@@ -1,3 +1,3 @@
-# Travel Planner Backend
+# Путевод бэк-энд
 
-Бэк-энд часть для [Travel Planner](https://github.com/slash0t/travel-planner)
+Бэк-энд часть для [Путевод](https://github.com/slash0t/travel-planner)
