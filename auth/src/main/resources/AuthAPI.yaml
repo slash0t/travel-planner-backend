@@ -1,0 +1,793 @@
+openapi: 3.0.0
+info:
+  title: Travel Planner Authentication Service API
+  description: API для управления доступом пользователей, регистрации и авторизации
+  version: 1.0.0
+servers:
+  - url: https://api.travelplanner.com/auth
+    description: Основной сервер API
+tags:
+  - name: authentication
+    description: Операции аутентификации
+  - name: registration
+    description: Операции регистрации пользователей
+  - name: password-recovery
+    description: Операции восстановления пароля
+  - name: user-management
+    description: Управление профилем пользователя
+
+paths:
+  /login:
+    post:
+      tags:
+        - authentication
+      summary: Вход в систему
+      description: Авторизация пользователя и получение JWT токена
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email пользователя
+                password:
+                  type: string
+                  format: password
+                  description: Пароль пользователя
+                deviceId:
+                  type: string
+                  description: Идентификатор устройства для push-уведомлений
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    description: JWT токен доступа
+                  refreshToken:
+                    type: string
+                    description: Токен для обновления accessToken
+                  expiresIn:
+                    type: integer
+                    description: Срок действия токена в секундах
+                  user:
+                    $ref: '#/components/schemas/UserInfo'
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неверные учетные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /refresh:
+    post:
+      tags:
+        - authentication
+      summary: Обновление токена
+      description: Обновление JWT токена доступа с помощью refresh токена
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  description: Refresh токен, полученный при авторизации
+      responses:
+        '200':
+          description: Токен успешно обновлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    description: Новый JWT токен доступа
+                  refreshToken:
+                    type: string
+                    description: Новый refresh токен
+                  expiresIn:
+                    type: integer
+                    description: Срок действия токена в секундах
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Недействительный refresh токен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /logout:
+    post:
+      tags:
+        - authentication
+      summary: Выход из системы
+      description: Инвалидация токенов пользователя
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный выход
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Вы успешно вышли из системы"
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /register:
+    post:
+      tags:
+        - registration
+      summary: Регистрация нового пользователя
+      description: Создание учетной записи нового пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - username
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email пользователя
+                password:
+                  type: string
+                  format: password
+                  description: Пароль пользователя
+                username:
+                  type: string
+                  description: Имя пользователя
+                firstName:
+                  type: string
+                  description: Имя
+                lastName:
+                  type: string
+                  description: Фамилия
+                deviceId:
+                  type: string
+                  description: Идентификатор устройства для push-уведомлений
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Регистрация успешно завершена. Проверьте почту для подтверждения аккаунта."
+                  userId:
+                    type: string
+                    format: uuid
+                    description: Идентификатор созданного пользователя
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Пользователь с таким email уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /verify-email:
+    post:
+      tags:
+        - registration
+      summary: Подтверждение email
+      description: Подтверждение email адреса пользователя по ссылке из письма
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: Токен подтверждения из email
+      responses:
+        '200':
+          description: Email успешно подтвержден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email успешно подтвержден"
+                  accessToken:
+                    type: string
+                    description: JWT токен доступа
+                  refreshToken:
+                    type: string
+                    description: Токен для обновления accessToken
+                  expiresIn:
+                    type: integer
+                    description: Срок действия токена в секундах
+                  user:
+                    $ref: '#/components/schemas/UserInfo'
+        '400':
+          description: Неверный или истекший токен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /resend-verification:
+    post:
+      tags:
+        - registration
+      summary: Повторная отправка письма подтверждения
+      description: Отправка нового письма для подтверждения email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email пользователя
+      responses:
+        '200':
+          description: Письмо успешно отправлено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Новое письмо подтверждения отправлено на ваш email"
+        '400':
+          description: Неверный email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /forgot-password:
+    post:
+      tags:
+        - password-recovery
+      summary: Запрос на восстановление пароля
+      description: Отправка письма для восстановления пароля
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email пользователя
+      responses:
+        '200':
+          description: Инструкции по восстановлению отправлены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Инструкции по восстановлению пароля отправлены на указанный email"
+        '400':
+          description: Неверный email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /verify-reset-code:
+    post:
+      tags:
+        - password-recovery
+      summary: Проверка кода восстановления
+      description: Проверка валидности кода для восстановления пароля
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - code
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email пользователя
+                code:
+                  type: string
+                  description: Код восстановления из email
+      responses:
+        '200':
+          description: Код валиден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Код подтверждения действителен"
+                  resetToken:
+                    type: string
+                    description: Токен для сброса пароля
+        '400':
+          description: Неверный код или email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Запрос на восстановление не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /reset-password:
+    post:
+      tags:
+        - password-recovery
+      summary: Сброс пароля
+      description: Установка нового пароля после подтверждения кода восстановления
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - resetToken
+                - newPassword
+              properties:
+                resetToken:
+                  type: string
+                  description: Токен для сброса пароля, полученный после проверки кода
+                newPassword:
+                  type: string
+                  format: password
+                  description: Новый пароль
+      responses:
+        '200':
+          description: Пароль успешно изменен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Пароль успешно изменен"
+        '400':
+          description: Неверный токен или пароль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /me:
+    get:
+      tags:
+        - user-management
+      summary: Получение информации о текущем пользователе
+      description: Возвращает информацию о текущем авторизованном пользователе
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешное получение данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - user-management
+      summary: Обновление профиля пользователя
+      description: Обновляет информацию профиля текущего пользователя
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Новое имя пользователя
+                firstName:
+                  type: string
+                  description: Новое имя
+                lastName:
+                  type: string
+                  description: Новая фамилия
+                bio:
+                  type: string
+                  description: Краткая информация о себе
+      responses:
+        '200':
+          description: Профиль успешно обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /me/avatar:
+    post:
+      tags:
+        - user-management
+      summary: Загрузка аватара
+      description: Загружает новое изображение профиля
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - avatar
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: Файл изображения
+      responses:
+        '200':
+          description: Аватар успешно загружен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avatarUrl:
+                    type: string
+                    format: uri
+                    description: URL нового аватара
+        '400':
+          description: Ошибка загрузки файла
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Файл слишком большой
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /me/change-password:
+    post:
+      tags:
+        - user-management
+      summary: Изменение пароля
+      description: Изменяет пароль авторизованного пользователя
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - currentPassword
+                - newPassword
+              properties:
+                currentPassword:
+                  type: string
+                  format: password
+                  description: Текущий пароль
+                newPassword:
+                  type: string
+                  format: password
+                  description: Новый пароль
+      responses:
+        '200':
+          description: Пароль успешно изменен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Пароль успешно изменен"
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неавторизованный доступ или неверный текущий пароль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /anonymous-token:
+    post:
+      tags:
+        - authentication
+      summary: Получение анонимного токена
+      description: Получение токена для неавторизованных пользователей с ограниченным доступом
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId:
+                  type: string
+                  description: Идентификатор устройства (optional)
+      responses:
+        '200':
+          description: Токен успешно создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  anonymousToken:
+                    type: string
+                    description: Токен для анонимного доступа
+                  expiresIn:
+                    type: integer
+                    description: Срок действия токена в секундах
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор пользователя
+        email:
+          type: string
+          format: email
+          description: Email пользователя
+        username:
+          type: string
+          description: Имя пользователя
+        firstName:
+          type: string
+          description: Имя
+        lastName:
+          type: string
+          description: Фамилия
+        avatarUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: URL аватара пользователя
+        bio:
+          type: string
+          nullable: true
+          description: Информация о пользователе
+        emailVerified:
+          type: boolean
+          description: Флаг подтверждения email
+        role:
+          type: string
+          enum: [user, admin]
+          description: Роль пользователя
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата регистрации
+
+    Error:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: HTTP статус код
+        message:
+          type: string
+          description: Сообщение об ошибке
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+          description: Детальное описание ошибок валидации

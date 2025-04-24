@@ -1,0 +1,2276 @@
+openapi: 3.0.3
+info:
+  title: Travel Planner Service API
+  description: API for managing travel plans, todo lists, and user interactions
+  version: 1.0.0
+servers:
+  - url: https://api.travelplanner.com/v1/planner
+    description: Main production server
+  - url: https://dev-api.travelplanner.com/v1/planner
+    description: Development server
+
+tags:
+  - name: trips
+    description: Operations about travel plans
+  - name: todo-lists
+    description: Operations about todo lists
+  - name: sharing
+    description: Operations for sharing and collaboration
+  - name: notifications
+    description: Operations for managing notifications
+
+paths:
+  /trips:
+    get:
+      tags:
+        - trips
+      summary: Get all trips for the authenticated user
+      description: Returns a list of all trips created by the authenticated user
+      operationId: getAllTrips
+      parameters:
+        - name: status
+          in: query
+          description: Filter trips by status
+          schema:
+            type: string
+            enum: [upcoming, ongoing, past, all]
+            default: all
+        - name: limit
+          in: query
+          description: Maximum number of trips to return
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          description: Number of trips to skip for pagination
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  trips:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TripSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - trips
+      summary: Create a new trip
+      description: Creates a new trip for the authenticated user
+      operationId: createTrip
+      requestBody:
+        description: Trip information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TripCreate'
+      responses:
+        '201':
+          description: Trip created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trips/{tripId}:
+    get:
+      tags:
+        - trips
+      summary: Get trip details
+      description: Returns detailed information about a specific trip
+      operationId: getTripById
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip to retrieve
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - trips
+      summary: Update trip details
+      description: Updates information about a specific trip
+      operationId: updateTrip
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip to update
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Updated trip information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TripUpdate'
+      responses:
+        '200':
+          description: Trip updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - trips
+      summary: Delete a trip
+      description: Deletes a specific trip
+      operationId: deleteTrip
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip to delete
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Trip deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trips/{tripId}/days:
+    get:
+      tags:
+        - trips
+      summary: Get all days for a trip
+      description: Returns all days planned for a specific trip
+      operationId: getTripDays
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TripDay'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - trips
+      summary: Add a new day to a trip
+      description: Creates a new day for a specific trip
+      operationId: addTripDay
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Day information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TripDayCreate'
+      responses:
+        '201':
+          description: Day added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripDay'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trips/{tripId}/days/{dayId}:
+    get:
+      tags:
+        - trips
+      summary: Get a specific day of a trip
+      description: Returns details of a specific day in a trip
+      operationId: getTripDay
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dayId
+          in: path
+          description: ID of the day
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripDay'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - trips
+      summary: Update a specific day of a trip
+      description: Updates details of a specific day in a trip
+      operationId: updateTripDay
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dayId
+          in: path
+          description: ID of the day
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Updated day information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TripDayUpdate'
+      responses:
+        '200':
+          description: Day updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripDay'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - trips
+      summary: Delete a specific day from a trip
+      description: Removes a specific day from a trip
+      operationId: deleteTripDay
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dayId
+          in: path
+          description: ID of the day
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Day deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trips/{tripId}/days/{dayId}/places:
+    get:
+      tags:
+        - trips
+      summary: Get all places for a specific day
+      description: Returns all places planned for a specific day in a trip
+      operationId: getDayPlaces
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dayId
+          in: path
+          description: ID of the day
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Place'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - trips
+      summary: Add a new place to a day
+      description: Adds a new place to a specific day in a trip
+      operationId: addDayPlace
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dayId
+          in: path
+          description: ID of the day
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Place information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceCreate'
+      responses:
+        '201':
+          description: Place added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Place'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trips/{tripId}/days/{dayId}/places/{placeId}:
+    get:
+      tags:
+        - trips
+      summary: Get a specific place details
+      description: Returns details of a specific place in a day
+      operationId: getDayPlace
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dayId
+          in: path
+          description: ID of the day
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: placeId
+          in: path
+          description: ID of the place
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Place'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - trips
+      summary: Update a specific place
+      description: Updates details of a specific place in a day
+      operationId: updateDayPlace
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dayId
+          in: path
+          description: ID of the day
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: placeId
+          in: path
+          description: ID of the place
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Updated place information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceUpdate'
+      responses:
+        '200':
+          description: Place updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Place'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - trips
+      summary: Remove a place from a day
+      description: Deletes a specific place from a day
+      operationId: deleteDayPlace
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dayId
+          in: path
+          description: ID of the day
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: placeId
+          in: path
+          description: ID of the place
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Place deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trips/{tripId}/files:
+    get:
+      tags:
+        - trips
+      summary: Get all files attached to a trip
+      description: Returns all files attached to a specific trip
+      operationId: getTripFiles
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - trips
+      summary: Attach a file to a trip
+      description: Uploads and attaches a file to a specific trip
+      operationId: addTripFile
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                description:
+                  type: string
+                  description: Optional description of the file
+      responses:
+        '201':
+          description: File added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '413':
+          description: File too large
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trips/{tripId}/files/{fileId}:
+    get:
+      tags:
+        - trips
+      summary: Get a specific file
+      description: Downloads a specific file attached to a trip
+      operationId: getTripFile
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: fileId
+          in: path
+          description: ID of the file
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - trips
+      summary: Delete a file from a trip
+      description: Removes a specific file from a trip
+      operationId: deleteTripFile
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: fileId
+          in: path
+          description: ID of the file
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: File deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trips/{tripId}/places/{placeId}/files:
+    get:
+      tags:
+        - trips
+      summary: Get all files attached to a place
+      description: Returns all files attached to a specific place
+      operationId: getPlaceFiles
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: placeId
+          in: path
+          description: ID of the place
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - trips
+      summary: Attach a file to a place
+      description: Uploads and attaches a file to a specific place
+      operationId: addPlaceFile
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: placeId
+          in: path
+          description: ID of the place
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                description:
+                  type: string
+                  description: Optional description of the file
+      responses:
+        '201':
+          description: File added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '413':
+          description: File too large
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trips/{tripId}/map:
+    get:
+      tags:
+        - trips
+      summary: Get map data for a trip
+      description: Returns geographic data for all places in a trip for map visualization
+      operationId: getTripMapData
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripMapData'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trips/{tripId}/share:
+    post:
+      tags:
+        - sharing
+      summary: Share a trip with another user
+      description: Shares a trip with another user by email or username
+      operationId: shareTrip
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip to share
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Sharing details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipient:
+                  type: string
+                  description: Email or username of the user to share with
+                permission:
+                  type: string
+                  enum: [view, edit]
+                  default: view
+                  description: Permission level to grant to the user
+              required:
+                - recipient
+      responses:
+        '200':
+          description: Trip shared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  shareId:
+                    type: string
+                    format: uuid
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trips/{tripId}/share/{shareId}:
+    delete:
+      tags:
+        - sharing
+      summary: Remove sharing for a user
+      description: Removes sharing access for a specific user
+      operationId: removeSharing
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: shareId
+          in: path
+          description: ID of the share record
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Sharing removed successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trips/{tripId}/collaborators:
+    get:
+      tags:
+        - sharing
+      summary: Get all collaborators for a trip
+      description: Returns all users who have access to a trip
+      operationId: getTripCollaborators
+      parameters:
+        - name: tripId
+          in: path
+          description: ID of the trip
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Collaborator'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /todo-lists:
+    get:
+      tags:
+        - todo-lists
+      summary: Get all todo lists
+      description: Returns all todo lists created by the authenticated user
+      operationId: getAllTodoLists
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of todo lists to return
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          description: Number of todo lists to skip for pagination
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  todoLists:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TodoListSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - todo-lists
+      summary: Create a new todo list
+      description: Creates a new todo list for the authenticated user
+      operationId: createTodoList
+      requestBody:
+        description: Todo list information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoListCreate'
+      responses:
+        '201':
+          description: Todo list created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /todo-lists/templates:
+    get:
+      tags:
+        - todo-lists
+      summary: Get available todo list templates
+      description: Returns all available templates for todo lists
+      operationId: getTodoListTemplates
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TodoListTemplate'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /todo-lists/{todoListId}:
+    get:
+      tags:
+        - todo-lists
+      summary: Get todo list details
+      description: Returns detailed information about a specific todo list
+      operationId: getTodoListById
+      parameters:
+        - name: todoListId
+          in: path
+          description: ID of the todo list to retrieve
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - todo-lists
+      summary: Update todo list details
+      description: Updates information about a specific todo list
+      operationId: updateTodoList
+      parameters:
+        - name: todoListId
+          in: path
+          description: ID of the todo list to update
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Updated todo list information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoListUpdate'
+      responses:
+        '200':
+          description: Todo list updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - todo-lists
+      summary: Delete a todo list
+      description: Deletes a specific todo list
+      operationId: deleteTodoList
+      parameters:
+        - name: todoListId
+          in: path
+          description: ID of the todo list to delete
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Todo list deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /todo-lists/{todoListId}/items:
+    get:
+      tags:
+        - todo-lists
+      summary: Get all items in a todo list
+      description: Returns all items in a specific todo list
+      operationId: getTodoListItems
+      parameters:
+        - name: todoListId
+          in: path
+          description: ID of the todo list
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TodoItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - todo-lists
+      summary: Add a new item to a todo list
+      description: Creates a new item in a specific todo list
+      operationId: addTodoItem
+      parameters:
+        - name: todoListId
+          in: path
+          description: ID of the todo list
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Todo item information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoItemCreate'
+      responses:
+        '201':
+          description: Item added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /todo-lists/{todoListId}/items/{itemId}:
+    put:
+      tags:
+        - todo-lists
+      summary: Update a specific todo item
+      description: Updates details of a specific item in a todo list
+      operationId: updateTodoItem
+      parameters:
+        - name: todoListId
+          in: path
+          description: ID of the todo list
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          description: ID of the todo item
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Updated item information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoItemUpdate'
+      responses:
+        '200':
+          description: Item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - todo-lists
+      summary: Delete a specific todo item
+      description: Removes a specific item from a todo list
+      operationId: deleteTodoItem
+      parameters:
+        - name: todoListId
+          in: path
+          description: ID of the todo list
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          description: ID of the todo item
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Item deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /todo-lists/{todoListId}/items/{itemId}/toggle:
+    put:
+      tags:
+        - todo-lists
+      summary: Toggle completion status of a todo item
+      description: Toggles the completion status of a specific item in a todo list
+      operationId: toggleTodoItem
+      parameters:
+        - name: todoListId
+          in: path
+          description: ID of the todo list
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          description: ID of the todo item
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Item status toggled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /todo-lists/ai-generate:
+    post:
+      tags:
+        - todo-lists
+      summary: Generate a todo list using AI
+      description: Creates a todo list based on trip parameters using AI
+      operationId: generateAiTodoList
+      requestBody:
+        description: Parameters for AI todo list generation
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                destination:
+                  type: string
+                  description: Destination of the trip
+                purpose:
+                  type: string
+                  description: Purpose of the trip (e.g., beach vacation, hiking trip)
+                season:
+                  type: string
+                  description: Season when the trip will take place
+                duration:
+                  type: integer
+                  description: Duration of the trip in days
+                additionalInfo:
+                  type: string
+                  description: Additional information for more precise recommendations
+              required:
+                - destination
+      responses:
+        '200':
+          description: Todo list generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /notifications:
+    get:
+      tags:
+        - notifications
+      summary: Get all notifications for the authenticated user
+      description: Returns all notifications for the authenticated user
+      operationId: getNotifications
+      parameters:
+        - name: read
+          in: query
+          description: Filter by read status
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          description: Maximum number of notifications to return
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          description: Number of notifications to skip for pagination
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  notifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /notifications/{notificationId}/read:
+    put:
+      tags:
+        - notifications
+      summary: Mark a notification as read
+      description: Marks a specific notification as read
+      operationId: markNotificationAsRead
+      parameters:
+        - name: notificationId
+          in: path
+          description: ID of the notification
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification marked as read successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /notifications/read-all:
+    put:
+      tags:
+        - notifications
+      summary: Mark all notifications as read
+      description: Marks all notifications for the authenticated user as read
+      operationId: markAllNotificationsAsRead
+      responses:
+        '200':
+          description: All notifications marked as read successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /notifications/settings:
+    get:
+      tags:
+        - notifications
+      summary: Get notification settings
+      description: Returns notification settings for the authenticated user
+      operationId: getNotificationSettings
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - notifications
+      summary: Update notification settings
+      description: Updates notification settings for the authenticated user
+      operationId: updateNotificationSettings
+      requestBody:
+        description: Updated notification settings
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationSettingsUpdate'
+      responses:
+        '200':
+          description: Notification settings updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationSettings'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    TripSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        destination:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        thumbnail:
+          type: string
+          format: uri
+        status:
+          type: string
+          enum: [upcoming, ongoing, past]
+        isShared:
+          type: boolean
+      required:
+        - id
+        - title
+        - startDate
+        - endDate
+        - status
+
+    TripCreate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        destination:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        thumbnail:
+          type: string
+          format: uri
+        isPrivate:
+          type: boolean
+          default: true
+      required:
+        - title
+        - startDate
+        - endDate
+
+    TripUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        destination:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        thumbnail:
+          type: string
+          format: uri
+        isPrivate:
+          type: boolean
+
+    Trip:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        destination:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        thumbnail:
+          type: string
+          format: uri
+        status:
+          type: string
+          enum: [upcoming, ongoing, past]
+        isPrivate:
+          type: boolean
+        isOwner:
+          type: boolean
+        owner:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - startDate
+        - endDate
+        - status
+        - isPrivate
+        - isOwner
+        - owner
+        - createdAt
+        - updatedAt
+
+    TripDayCreate:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        title:
+          type: string
+        notes:
+          type: string
+      required:
+        - date
+
+    TripDayUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        notes:
+          type: string
+
+    TripDay:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        title:
+          type: string
+        notes:
+          type: string
+        tripId:
+          type: string
+          format: uuid
+        places:
+          type: array
+          items:
+            $ref: '#/components/schemas/Place'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - date
+        - tripId
+        - createdAt
+        - updatedAt
+
+    PlaceCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+        startTime:
+          type: string
+          format: time
+        endTime:
+          type: string
+          format: time
+        notes:
+          type: string
+        coordinates:
+          $ref: '#/components/schemas/Coordinates'
+        externalId:
+          type: string
+          description: ID from external service (Google Maps, etc.)
+        externalSource:
+          type: string
+          enum: [google, yandex, manual]
+          default: manual
+        category:
+          type: string
+          enum: [attraction, restaurant, accommodation, transportation, other]
+          default: other
+      required:
+        - name
+
+    PlaceUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+        startTime:
+          type: string
+          format: time
+        endTime:
+          type: string
+          format: time
+        notes:
+          type: string
+        coordinates:
+          $ref: '#/components/schemas/Coordinates'
+        category:
+          type: string
+          enum: [attraction, restaurant, accommodation, transportation, other]
+
+    Place:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+        startTime:
+          type: string
+          format: time
+        endTime:
+          type: string
+          format: time
+        notes:
+          type: string
+        coordinates:
+          $ref: '#/components/schemas/Coordinates'
+        externalId:
+          type: string
+        externalSource:
+          type: string
+          enum: [google, yandex, manual]
+        category:
+          type: string
+          enum: [attraction, restaurant, accommodation, transportation, other]
+        tripId:
+          type: string
+          format: uuid
+        dayId:
+          type: string
+          format: uuid
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - tripId
+        - dayId
+        - createdAt
+        - updatedAt
+
+    Coordinates:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+      required:
+        - latitude
+        - longitude
+
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+          format: uri
+        size:
+          type: integer
+        mimeType:
+          type: string
+        tripId:
+          type: string
+          format: uuid
+        placeId:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - filename
+        - url
+        - size
+        - mimeType
+        - tripId
+        - createdAt
+        - updatedAt
+
+    TripMapData:
+      type: object
+      properties:
+        tripId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        days:
+          type: array
+          items:
+            type: object
+            properties:
+              dayId:
+                type: string
+                format: uuid
+              date:
+                type: string
+                format: date
+              places:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    name:
+                      type: string
+                    coordinates:
+                      $ref: '#/components/schemas/Coordinates'
+                    order:
+                      type: integer
+                    category:
+                      type: string
+                      enum: [attraction, restaurant, accommodation, transportation, other]
+                  required:
+                    - id
+                    - name
+                    - coordinates
+                    - order
+            required:
+              - dayId
+              - date
+              - places
+      required:
+        - tripId
+        - days
+
+    Collaborator:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/User'
+        permission:
+          type: string
+          enum: [view, edit]
+        tripId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - user
+        - permission
+        - tripId
+        - createdAt
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        avatar:
+          type: string
+          format: uri
+      required:
+        - id
+        - username
+
+    TodoListSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        itemCount:
+          type: integer
+        completedCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - itemCount
+        - completedCount
+        - createdAt
+        - updatedAt
+
+    TodoListCreate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        templateId:
+          type: string
+          format: uuid
+          description: ID of template to use for initial items
+        tripId:
+          type: string
+          format: uuid
+          description: Optional trip to associate with this todo list
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+              completed:
+                type: boolean
+                default: false
+            required:
+              - text
+      required:
+        - title
+
+    TodoListUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        tripId:
+          type: string
+          format: uuid
+          description: Optional trip to associate with this todo list
+
+    TodoList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        tripId:
+          type: string
+          format: uuid
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TodoItem'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - items
+        - createdAt
+        - updatedAt
+
+    TodoListTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [beach, hiking, city, business, winter, summer]
+        previewItems:
+          type: array
+          items:
+            type: string
+          description: Preview of some items in the template
+      required:
+        - id
+        - title
+        - category
+        - previewItems
+
+    TodoItemCreate:
+      type: object
+      properties:
+        text:
+          type: string
+        completed:
+          type: boolean
+          default: false
+      required:
+        - text
+
+    TodoItemUpdate:
+      type: object
+      properties:
+        text:
+          type: string
+        completed:
+          type: boolean
+
+    TodoItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+        completed:
+          type: boolean
+        todoListId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - text
+        - completed
+        - todoListId
+        - createdAt
+        - updatedAt
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [trip_share, trip_update, trip_reminder, system]
+        title:
+          type: string
+        message:
+          type: string
+        read:
+          type: boolean
+        data:
+          type: object
+          additionalProperties: true
+          description: Additional data specific to notification type
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - title
+        - message
+        - read
+        - createdAt
+
+    NotificationSettings:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        tripReminders:
+          type: boolean
+          description: Receive reminders for upcoming trips and events
+        tripUpdates:
+          type: boolean
+          description: Receive notifications about updates to shared trips
+        tripShares:
+          type: boolean
+          description: Receive notifications when trips are shared with you
+        systemNotifications:
+          type: boolean
+          description: Receive system notifications
+        reminderTime:
+          type: integer
+          description: Minutes before an event to send a reminder
+          default: 60
+      required:
+        - id
+        - userId
+        - tripReminders
+        - tripUpdates
+        - tripShares
+        - systemNotifications
+        - reminderTime
+
+    NotificationSettingsUpdate:
+      type: object
+      properties:
+        tripReminders:
+          type: boolean
+        tripUpdates:
+          type: boolean
+        tripShares:
+          type: boolean
+        systemNotifications:
+          type: boolean
+        reminderTime:
+          type: integer
+          description: Minutes before an event to send a reminder
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+      required:
+        - code
+        - message
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Permission denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
