@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono;
 import ru.putevod.app.planner.dto.UserDto;
 import ru.putevod.app.planner.exception.AuthenticationException;
 
+import java.util.Collections;
 import java.util.Map;
 
 @Service
@@ -72,20 +73,25 @@ public class AuthServiceClient {
      */
     public Map<String, Object> getUserInfoFromToken(String token) {
         try {
+            log.info("Запрос информации из токена: {}", token.substring(0, Math.min(10, token.length())) + "...");
             return webClient.post()
                     .uri("/auth/userinfo")
                     .bodyValue(new TokenValidationRequest(token))
                     .header("X-Service-Token", serviceToken)
                     .retrieve()
                     .bodyToMono(Map.class)
-                    .onErrorReturn(null)
+                    .doOnNext(response -> log.info("Получен ответ от сервиса аутентификации: {}", response))
+                    .onErrorResume(e -> {
+                        log.error("Ошибка получения информации из токена: {}", e.getMessage(), e);
+                        return Mono.just(Collections.emptyMap());
+                    })
                     .block();
         } catch (Exception e) {
-            log.error("Ошибка получения информации из токена: {}", e.getMessage());
-            return null;
+            log.error("Ошибка получения информации из токена: {}", e.getMessage(), e);
+            return Collections.emptyMap();
         }
     }
-    
+
     private record TokenValidationRequest(String token) {}
     
     private record TokenValidationResponse(boolean valid) {}

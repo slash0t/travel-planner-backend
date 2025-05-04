@@ -1,5 +1,6 @@
 package ru.putevod.app.planner.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -9,6 +10,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 @Component
+@Slf4j
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
     
     @Override
@@ -20,6 +22,8 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
-        return webRequest.getAttribute("userId", RequestAttributes.SCOPE_REQUEST);
+        Object userId = webRequest.getAttribute("userId", RequestAttributes.SCOPE_REQUEST);
+        log.info("Разрешение userId из атрибутов запроса: {}", userId);
+        return userId;
     }
 } 

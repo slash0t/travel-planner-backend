@@ -28,20 +28,21 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             "/api/health",
             "/swagger-ui",
             "/v3/api-docs",
-            "/actuator",
-            "/api/users/"
+            "/actuator"
     );
 
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain) throws IOException {
+            FilterChain filterChain) throws ServletException, IOException {
         
         try {
             String path = request.getRequestURI();
+            log.info("Обработка запроса: {} {}", request.getMethod(), path);
 
             if (isPathWhitelisted(path)) {
+                log.info("Путь в белом списке, пропускаем аутентификацию: {}", path);
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -57,16 +58,19 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             if (!isValid) {
                 throw new AuthenticationException("Недействительный токен авторизации");
             }
-
+            
             Map<String, Object> userInfo = authServiceClient.getUserInfoFromToken(token);
             if (userInfo == null || !userInfo.containsKey("userId")) {
+                log.error("Получены данные из токена: {}", userInfo);
                 throw new AuthenticationException("Невозможно получить информацию о пользователе из токена");
             }
-
+            
             Long userId = Long.valueOf(userInfo.get("userId").toString());
             request.setAttribute("userId", userId);
 
+            log.info("Установлен userId = {} в атрибуты запроса, передаем запрос дальше", userId);
             filterChain.doFilter(request, response);
+            log.info("Запрос обработан filterChain");
             
         } catch (AuthenticationException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
