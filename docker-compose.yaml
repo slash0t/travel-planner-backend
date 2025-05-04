@@ -30,6 +30,7 @@ services:
 
   auth-service:
     build:
+      context: .
       dockerfile: auth/Dockerfile
     container_name: auth_service
     depends_on:
@@ -44,6 +45,7 @@ services:
 
   planner-service:
     build:
+      context: .
       dockerfile: planner/Dockerfile
     container_name: planner_service
     depends_on:
@@ -60,6 +62,7 @@ services:
 
   external-service:
     build:
+      context: .
       dockerfile: external/Dockerfile
     container_name: external_service
     depends_on:
@@ -74,6 +77,7 @@ services:
 
   library-service:
     build:
+      context: .
       dockerfile: library/Dockerfile
     container_name: library_service
     depends_on:
