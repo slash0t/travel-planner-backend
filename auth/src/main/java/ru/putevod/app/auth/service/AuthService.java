@@ -2,6 +2,7 @@ package ru.putevod.app.auth.service;
 
 import ru.putevod.app.auth.dto.AuthResponse;
 import ru.putevod.app.auth.dto.RegisterRequest;
+import ru.putevod.app.auth.dto.TokenValidationResponse;
 
 import java.util.Map;
 
@@ -93,4 +94,22 @@ public interface AuthService {
      * @return Объект с анонимным токеном и сроком его действия
      */
     Map<String, Object> createAnonymousToken(String deviceId);
+    
+    /**
+     * Валидирует JWT токен
+     * 
+     * @param token JWT токен для проверки
+     * @param serviceToken Токен для межсервисного взаимодействия (опционально)
+     * @return объект с результатом валидации и информацией о пользователе
+     */
+    TokenValidationResponse validateToken(String token, String serviceToken);
+    
+    /**
+     * Получает информацию о пользователе из JWT токена
+     * 
+     * @param token JWT токен
+     * @param serviceToken Токен для межсервисного взаимодействия (опционально)
+     * @return объект с информацией о пользователе
+     */
+    Map<String, Object> getUserInfoFromToken(String token, String serviceToken);
 } 

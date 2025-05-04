@@ -11,6 +11,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.putevod.app.auth.dto.AuthResponse;
 import ru.putevod.app.auth.dto.LoginRequest;
@@ -20,6 +22,8 @@ import ru.putevod.app.auth.dto.EmailVerificationRequest;
 import ru.putevod.app.auth.dto.EmailRequest;
 import ru.putevod.app.auth.dto.ResetPasswordRequest;
 import ru.putevod.app.auth.dto.VerifyResetCodeRequest;
+import ru.putevod.app.auth.dto.TokenValidationRequest;
+import ru.putevod.app.auth.dto.TokenValidationResponse;
 import ru.putevod.app.auth.service.AuthService;
 
 import java.util.HashMap;
@@ -27,6 +31,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1")
 public class AuthController {
 
     private final AuthService authService;
@@ -159,5 +164,37 @@ public class AuthController {
         Map<String, Object> response = authService.createAnonymousToken(deviceId);
         
         return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Валидирует токен и возвращает информацию о нем
+     * 
+     * @param tokenRequest запрос с токеном для валидации
+     * @param serviceToken токен для межсервисного взаимодействия (опционально)
+     * @return информация о валидности токена и данные пользователя
+     */
+    @PostMapping("/auth/validate")
+    public ResponseEntity<TokenValidationResponse> validateToken(
+            @RequestBody TokenValidationRequest tokenRequest,
+            @RequestHeader(value = "X-Service-Token", required = false) String serviceToken) {
+        
+        TokenValidationResponse response = authService.validateToken(tokenRequest.getToken(), serviceToken);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Получает информацию о пользователе из токена
+     * 
+     * @param tokenRequest запрос с токеном для получения информации
+     * @param serviceToken токен для межсервисного взаимодействия (опционально)
+     * @return информация о пользователе
+     */
+    @PostMapping("/auth/userinfo")
+    public ResponseEntity<Map<String, Object>> getUserInfo(
+            @RequestBody TokenValidationRequest tokenRequest,
+            @RequestHeader(value = "X-Service-Token", required = false) String serviceToken) {
+        
+        Map<String, Object> userInfo = authService.getUserInfoFromToken(tokenRequest.getToken(), serviceToken);
+        return ResponseEntity.ok(userInfo);
     }
 } 

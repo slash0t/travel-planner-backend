@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.putevod.app.auth.dto.AuthResponse;
 import ru.putevod.app.auth.dto.RegisterRequest;
+import ru.putevod.app.auth.dto.TokenValidationResponse;
 import ru.putevod.app.auth.model.User;
 import ru.putevod.app.auth.model.UserSession;
 import ru.putevod.app.auth.repository.UserRepository;
@@ -217,5 +218,104 @@ public class AuthServiceImpl implements AuthService {
 
     private String generateRandomCode() {
         return String.format("%06d", (int)(Math.random() * 1000000));
+    }
+
+    @Override
+    public TokenValidationResponse validateToken(String token, String serviceToken) {
+        // Если передан валидный сервисный токен, проверяем его
+        if (!tokenProvider.validateServiceToken(serviceToken)) {
+            log.warn("Попытка валидации с неверным сервисным токеном");
+            return TokenValidationResponse.builder().valid(false).build();
+        }
+        
+        try {
+            // Проверяем валидность JWT токена
+            if (!tokenProvider.validateToken(token)) {
+                return TokenValidationResponse.builder().valid(false).build();
+            }
+            
+            // Для анонимного токена возвращаем только флаг валидности
+            if (tokenProvider.isAnonymousToken(token)) {
+                return TokenValidationResponse.builder().valid(true).build();
+            }
+            
+            // Получаем email из токена
+            String email = tokenProvider.getEmailFromToken(token);
+            Long userId = tokenProvider.getUserIdFromToken(token);
+            String username = tokenProvider.getUsernameFromToken(token);
+            Boolean isAdmin = tokenProvider.isAdminFromToken(token);
+            
+            // Проверяем, что пользователь существует (опционально)
+            Optional<User> userOpt = userService.findByEmail(email);
+            if (userOpt.isEmpty()) {
+                log.warn("Токен содержит email несуществующего пользователя: {}", email);
+                return TokenValidationResponse.builder().valid(false).build();
+            }
+            
+            // Формируем полный ответ с данными пользователя
+            return TokenValidationResponse.builder()
+                    .valid(true)
+                    .userId(userId)
+                    .email(email)
+                    .username(username)
+                    .admin(isAdmin != null ? isAdmin : false)
+                    .build();
+            
+        } catch (Exception e) {
+            log.error("Ошибка при валидации токена: {}", e.getMessage());
+            return TokenValidationResponse.builder().valid(false).build();
+        }
+    }
+    
+    @Override
+    public Map<String, Object> getUserInfoFromToken(String token, String serviceToken) {
+        // Проверяем сервисный токен
+        if (!tokenProvider.validateServiceToken(serviceToken)) {
+            log.warn("Попытка получения информации с неверным сервисным токеном");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Неверный сервисный токен");
+        }
+        
+        try {
+            // Проверяем валидность JWT токена
+            if (!tokenProvider.validateToken(token)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Неверный токен пользователя");
+            }
+            
+            // Для анонимного токена возвращаем ограниченную информацию
+            if (tokenProvider.isAnonymousToken(token)) {
+                Map<String, Object> info = new HashMap<>();
+                info.put("isAnonymous", true);
+                return info;
+            }
+            
+            // Получаем информацию из токена
+            String email = tokenProvider.getEmailFromToken(token);
+            Long userId = tokenProvider.getUserIdFromToken(token);
+            String username = tokenProvider.getUsernameFromToken(token);
+            Boolean isAdmin = tokenProvider.isAdminFromToken(token);
+            
+            // Создаем объект с информацией о пользователе
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("userId", userId);
+            userInfo.put("email", email);
+            userInfo.put("username", username);
+            userInfo.put("isAdmin", isAdmin != null ? isAdmin : false);
+            
+            // Дополняем информацию из базы данных
+            Optional<User> userOpt = userService.findByEmail(email);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                userInfo.put("verified", user.getEmailVerified());
+                userInfo.put("roles", user.getIsAdmin() ? new String[]{"ROLE_USER", "ROLE_ADMIN"} : new String[]{"ROLE_USER"});
+            }
+            
+            return userInfo;
+            
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Ошибка при получении информации из токена: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Ошибка обработки токена");
+        }
     }
 } 

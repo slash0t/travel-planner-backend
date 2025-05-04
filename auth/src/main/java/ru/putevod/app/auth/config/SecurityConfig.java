@@ -45,10 +45,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/login", "/register", "/verify-email",
-                                "/resend-verification", "/forgot-password",
-                                "/verify-reset-code", "/reset-password",
-                                "/anonymous-token", "/refresh"
+                                "/api/v1/login", "/api/v1/register", "/api/v1/verify-email",
+                                "/api/v1/resend-verification", "/api/v1/forgot-password",
+                                "/api/v1/verify-reset-code", "/api/v1/reset-password",
+                                "/api/v1/anonymous-token", "/api/v1/refresh",
+                                "/api/v1/auth/validate", "/api/v1/auth/userinfo"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -57,39 +58,6 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        
-        if (appProperties.getSecurity().getAllowedOrigins() != null) {
-            configuration.setAllowedOrigins(Arrays.asList(appProperties.getSecurity().getAllowedOrigins().split(",")));
-        } else {
-            configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-        }
-        
-        if (appProperties.getSecurity().getAllowedMethods() != null) {
-            configuration.setAllowedMethods(Arrays.asList(appProperties.getSecurity().getAllowedMethods().split(",")));
-        } else {
-            configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        }
-        
-        if (appProperties.getSecurity().getAllowedHeaders() != null) {
-            configuration.setAllowedHeaders(Arrays.asList(appProperties.getSecurity().getAllowedHeaders().split(",")));
-        } else {
-            configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        }
-        
-        configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
     }
 
     @Bean
@@ -103,5 +71,40 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        if (appProperties.getSecurity().getAllowedOrigins() != null) {
+            configuration.setAllowedOrigins(Arrays.asList(appProperties.getSecurity().getAllowedOrigins().split(",")));
+        } else {
+            configuration.setAllowedOrigins(List.of("*"));
+        }
+        
+        if (appProperties.getSecurity().getAllowedMethods() != null) {
+            configuration.setAllowedMethods(Arrays.asList(appProperties.getSecurity().getAllowedMethods().split(",")));
+        } else {
+            configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        }
+        
+        if (appProperties.getSecurity().getAllowedHeaders() != null) {
+            configuration.setAllowedHeaders(Arrays.asList(appProperties.getSecurity().getAllowedHeaders().split(",")));
+        } else {
+            configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token"));
+        }
+        
+        configuration.setExposedHeaders(List.of("X-Auth-Token"));
+        configuration.setAllowCredentials(true);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 } 
