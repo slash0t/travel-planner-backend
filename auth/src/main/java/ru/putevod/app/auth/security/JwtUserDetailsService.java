@@ -22,11 +22,11 @@ public class JwtUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь с email " + email + " не найден"));
 
-        String role = Boolean.TRUE.equals(user.isAdmin()) ? "ROLE_ADMIN" : "ROLE_USER";
+        String role = Boolean.TRUE.equals(user.getIsAdmin()) ? "ROLE_ADMIN" : "ROLE_USER";
 
         return new org.springframework.security.core.userdetails.User(
-                user.email(),
-                user.passwordHash(),
+                user.getEmail(),
+                user.getPasswordHash(),
                 Collections.singletonList(new SimpleGrantedAuthority(role))
         );
     }

@@ -43,10 +43,10 @@ public class JwtTokenProvider {
 
     public String generateAccessToken(User user) {
         return Jwts.builder()
-                .setSubject(user.email())
-                .claim("userId", user.userId())
-                .claim("username", user.username())
-                .claim("isAdmin", user.isAdmin())
+                .setSubject(user.getEmail())
+                .claim("userId", user.getUserId())
+                .claim("username", user.getUsername())
+                .claim("isAdmin", user.getIsAdmin())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpirationMs))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
@@ -114,7 +114,7 @@ public class JwtTokenProvider {
     }
 
     private Key getSigningKey() {
-        byte[] keyBytes = appProperties.jwt().secret().getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = appProperties.getJwt().getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 } 

@@ -76,11 +76,11 @@ public class EmailServiceImpl implements EmailService {
         EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByToken(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Недействительный токен верификации"));
 
-        if (verificationToken.expiresAt().isBefore(LocalDateTime.now())) {
+        if (verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             emailVerificationTokenRepository.deleteByToken(token);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Срок действия токена истек");
         }
-        User user = verificationToken.user();
+        User user = verificationToken.getUser();
 
         emailVerificationTokenRepository.deleteByToken(token);
 
@@ -139,8 +139,8 @@ public class EmailServiceImpl implements EmailService {
 
         PasswordResetToken token = tokenOptional.get();
 
-        if (token.expiresAt().isBefore(LocalDateTime.now())) {
-            passwordResetTokenRepository.deleteByToken(token.token());
+        if (token.getExpiresAt().isBefore(LocalDateTime.now())) {
+            passwordResetTokenRepository.deleteByToken(token.getToken());
             return false;
         }
 
@@ -155,8 +155,8 @@ public class EmailServiceImpl implements EmailService {
 
         if (tokenOptional.isPresent()) {
             PasswordResetToken token = tokenOptional.get();
-            token.token(resetToken);
-            token.expiresAt(LocalDateTime.now().plusMinutes(resetTokenExpirationMinutes));
+            token.setToken(resetToken);
+            token.setExpiresAt(LocalDateTime.now().plusMinutes(resetTokenExpirationMinutes));
             passwordResetTokenRepository.save(token);
         }
     }
@@ -172,11 +172,11 @@ public class EmailServiceImpl implements EmailService {
 
         PasswordResetToken token = tokenOptional.get();
 
-        if (token.expiresAt().isBefore(LocalDateTime.now()) || Boolean.TRUE.equals(token.isUsed())) {
+        if (token.getExpiresAt().isBefore(LocalDateTime.now()) || Boolean.TRUE.equals(token.getIsUsed())) {
             return null;
         }
 
-        return token.user().email();
+        return token.getUser().getEmail();
     }
 
     @Override
@@ -186,7 +186,7 @@ public class EmailServiceImpl implements EmailService {
 
         if (tokenOptional.isPresent()) {
             PasswordResetToken token = tokenOptional.get();
-            token.isUsed(true);
+            token.setIsUsed(true);
             passwordResetTokenRepository.save(token);
         }
     }

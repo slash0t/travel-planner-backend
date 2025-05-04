@@ -62,7 +62,7 @@ public class AuthServiceImpl implements AuthService {
         UserSession session = sessionRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Недействительный refresh токен"));
 
-        User user = session.user();
+        User user = session.getUser();
 
         sessionRepository.deleteByToken(refreshToken);
 
@@ -87,18 +87,18 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public String registerUser(RegisterRequest registerRequest, String ipAddress, String deviceInfo) {
-        if (userRepository.existsByEmail(registerRequest.email())) {
+        if (userRepository.existsByEmail(registerRequest.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Пользователь с таким email уже существует");
         }
         
-        if (userRepository.existsByUsername(registerRequest.username())) {
+        if (userRepository.existsByUsername(registerRequest.getUsername())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Пользователь с таким username уже существует");
         }
 
         User newUser = User.builder()
-                .email(registerRequest.email())
-                .username(registerRequest.username())
-                .passwordHash(passwordEncoder.encode(registerRequest.password()))
+                .email(registerRequest.getEmail())
+                .username(registerRequest.getUsername())
+                .passwordHash(passwordEncoder.encode(registerRequest.getPassword()))
                 .isAdmin(false)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -108,9 +108,9 @@ public class AuthServiceImpl implements AuthService {
         User savedUser = userRepository.save(newUser);
 
         String verificationToken = UUID.randomUUID().toString();
-        emailService.sendVerificationEmail(savedUser.email(), savedUser.username(), verificationToken);
+        emailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getUsername(), verificationToken);
         
-        return savedUser.userId().toString();
+        return savedUser.getUserId().toString();
     }
     
     @Override
@@ -118,8 +118,8 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse verifyEmail(String token, String ipAddress, String deviceInfo) {
         User user = emailService.verifyEmailToken(token);
 
-        user.isVerified(true);
-        user.updatedAt(LocalDateTime.now());
+        user.setIsVerified(true);
+        user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
 
         String accessToken = tokenProvider.generateAccessToken(user);
@@ -139,12 +139,12 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
         
-        if (Boolean.TRUE.equals(user.isVerified())) {
+        if (Boolean.TRUE.equals(user.getIsVerified())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email уже подтвержден");
         }
         
         String verificationToken = UUID.randomUUID().toString();
-        emailService.sendVerificationEmail(user.email(), user.username(), verificationToken);
+        emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), verificationToken);
     }
     
     @Override
@@ -160,7 +160,7 @@ public class AuthServiceImpl implements AuthService {
             // В данном примере предполагается, что это реализовано в emailService
             emailService.storeResetCode(email, resetCode);
 
-            emailService.sendPasswordResetEmail(user.email(), user.username(), resetCode);
+            emailService.sendPasswordResetEmail(user.getEmail(), user.getUsername(), resetCode);
         } else {
             log.info("Попытка сброса пароля для несуществующего email: {}", email);
         }
@@ -194,13 +194,13 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
 
-        user.passwordHash(passwordEncoder.encode(newPassword));
-        user.updatedAt(LocalDateTime.now());
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
 
         emailService.invalidateResetToken(resetToken);
         
-        // Опционально выход пользователя из всех сессий
+        // выход пользователя из всех сессий
         // sessionRepository.deleteAllByUserId(user.getUserId());
     }
     

@@ -63,20 +63,20 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        if (appProperties.security().allowedOrigins() != null) {
-            configuration.setAllowedOrigins(Arrays.asList(appProperties.security().allowedOrigins().split(",")));
+        if (appProperties.getSecurity().getAllowedOrigins() != null) {
+            configuration.setAllowedOrigins(Arrays.asList(appProperties.getSecurity().getAllowedOrigins().split(",")));
         } else {
             configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
         }
         
-        if (appProperties.security().allowedMethods() != null) {
-            configuration.setAllowedMethods(Arrays.asList(appProperties.security().allowedMethods().split(",")));
+        if (appProperties.getSecurity().getAllowedMethods() != null) {
+            configuration.setAllowedMethods(Arrays.asList(appProperties.getSecurity().getAllowedMethods().split(",")));
         } else {
             configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         }
         
-        if (appProperties.security().allowedHeaders() != null) {
-            configuration.setAllowedHeaders(Arrays.asList(appProperties.security().allowedHeaders().split(",")));
+        if (appProperties.getSecurity().getAllowedHeaders() != null) {
+            configuration.setAllowedHeaders(Arrays.asList(appProperties.getSecurity().getAllowedHeaders().split(",")));
         } else {
             configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         }

@@ -32,18 +32,18 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User updateLastLogin(User user) {
-        user.lastLogin(LocalDateTime.now());
+        user.setLastLogin(LocalDateTime.now());
         return userRepository.save(user);
     }
 
     @Override
     public UserInfoDto mapToUserInfoDto(User user) {
         return UserInfoDto.builder()
-                .id(user.userId())
-                .email(user.email())
-                .username(user.username())
-                .emailVerified(Boolean.TRUE.equals(user.isVerified()))
-                .createdAt(user.createdAt())
+                .id(user.getUserId())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .emailVerified(Boolean.TRUE.equals(user.getIsVerified()))
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 } 

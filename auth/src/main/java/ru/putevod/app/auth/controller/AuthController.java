@@ -34,11 +34,10 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
-        // Аутентифицируем пользователя через Spring Security
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.email(),
-                        loginRequest.password()
+                        loginRequest.getEmail(),
+                        loginRequest.getPassword()
                 )
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -47,10 +46,10 @@ public class AuthController {
         String deviceInfo = request.getHeader("User-Agent");
 
         AuthResponse authResponse = authService.createAuthResponse(
-                loginRequest.email(),
+                loginRequest.getEmail(),
                 ipAddress,
                 deviceInfo,
-                loginRequest.deviceId()
+                loginRequest.getDeviceId()
         );
 
         return ResponseEntity.ok(authResponse);
@@ -63,7 +62,7 @@ public class AuthController {
         String deviceInfo = request.getHeader("User-Agent");
 
         AuthResponse authResponse = authService.refreshToken(
-                refreshRequest.refreshToken(),
+                refreshRequest.getRefreshToken(),
                 ipAddress,
                 deviceInfo
         );
@@ -73,7 +72,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(@RequestBody RefreshTokenRequest refreshRequest) {
-        authService.logout(refreshRequest.refreshToken());
+        authService.logout(refreshRequest.getRefreshToken());
         SecurityContextHolder.clearContext();
         
         Map<String, String> response = new HashMap<>();
@@ -104,7 +103,7 @@ public class AuthController {
         String deviceInfo = request.getHeader("User-Agent");
         
         AuthResponse authResponse = authService.verifyEmail(
-                verificationRequest.token(),
+                verificationRequest.getToken(),
                 ipAddress,
                 deviceInfo
         );
@@ -114,7 +113,7 @@ public class AuthController {
     
     @PostMapping("/resend-verification")
     public ResponseEntity<Map<String, String>> resendVerification(@Valid @RequestBody EmailRequest emailRequest) {
-        authService.resendVerificationEmail(emailRequest.email());
+        authService.resendVerificationEmail(emailRequest.getEmail());
         
         Map<String, String> response = new HashMap<>();
         response.put("message", "Новое письмо подтверждения отправлено на ваш email");
@@ -124,7 +123,7 @@ public class AuthController {
     
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody EmailRequest emailRequest) {
-        authService.sendPasswordResetEmail(emailRequest.email());
+        authService.sendPasswordResetEmail(emailRequest.getEmail());
         
         Map<String, String> response = new HashMap<>();
         response.put("message", "Инструкции по восстановлению пароля отправлены на указанный email");
@@ -134,7 +133,7 @@ public class AuthController {
     
     @PostMapping("/verify-reset-code")
     public ResponseEntity<Map<String, String>> verifyResetCode(@Valid @RequestBody VerifyResetCodeRequest resetCodeRequest) {
-        String resetToken = authService.verifyPasswordResetCode(resetCodeRequest.email(), resetCodeRequest.code());
+        String resetToken = authService.verifyPasswordResetCode(resetCodeRequest.getEmail(), resetCodeRequest.getCode());
         
         Map<String, String> response = new HashMap<>();
         response.put("message", "Код подтверждения действителен");
@@ -145,7 +144,7 @@ public class AuthController {
     
     @PostMapping("/reset-password")
     public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest) {
-        authService.resetPassword(resetPasswordRequest.resetToken(), resetPasswordRequest.newPassword());
+        authService.resetPassword(resetPasswordRequest.getResetToken(), resetPasswordRequest.getNewPassword());
         
         Map<String, String> response = new HashMap<>();
         response.put("message", "Пароль успешно изменен");
