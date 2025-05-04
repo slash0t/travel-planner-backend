@@ -1,25 +1,23 @@
 package ru.putevod.app.library.client;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class AuthServiceClient {
 
-    private final WebClient.Builder webClientBuilder;
-
-    @Value("${services.auth.url}")
-    private String authServiceUrl;
-
+    private final WebClient webClient;
+    
     @Value("${auth.token}")
     private String serviceToken;
+    
+    public AuthServiceClient(@Qualifier("authServiceWebClient") WebClient webClient) {
+        this.webClient = webClient;
+    }
 
     /**
      * Проверяет валидность пользовательского токена через auth-сервис
@@ -28,11 +26,10 @@ public class AuthServiceClient {
      */
     public boolean validateUserToken(String token) {
         try {
-            WebClient webClient = buildWebClient();
-            
             return Boolean.TRUE.equals(webClient.post()
-                    .uri("/api/v1/auth/validate")
+                    .uri("/auth/validate")
                     .bodyValue(new TokenValidationRequest(token))
+                    .header("X-Service-Token", serviceToken)
                     .retrieve()
                     .bodyToMono(TokenValidationResponse.class)
                     .map(TokenValidationResponse::valid)
@@ -51,11 +48,10 @@ public class AuthServiceClient {
      */
     public UserInfo getUserInfo(String token) {
         try {
-            WebClient webClient = buildWebClient();
-            
             return webClient.post()
-                    .uri("/api/v1/auth/userinfo")
+                    .uri("/auth/userinfo")
                     .bodyValue(new TokenValidationRequest(token))
+                    .header("X-Service-Token", serviceToken)
                     .retrieve()
                     .bodyToMono(UserInfo.class)
                     .onErrorReturn(null)
@@ -64,15 +60,6 @@ public class AuthServiceClient {
             log.error("Error getting user info from auth service", e);
             return null;
         }
-    }
-
-    private WebClient buildWebClient() {
-        return webClientBuilder
-                .baseUrl(authServiceUrl)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader("X-Service-Token", serviceToken)
-                .build();
     }
 
     record TokenValidationRequest(String token) {}
