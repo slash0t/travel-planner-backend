@@ -1576,7 +1576,9 @@ components:
           type: string
         description:
           type: string
-        destination:
+        country:
+          type: string
+        city:
           type: string
         startDate:
           type: string
@@ -1584,12 +1586,9 @@ components:
         endDate:
           type: string
           format: date
-        thumbnail:
-          type: string
-          format: uri
-        isPrivate:
+        isPublic:
           type: boolean
-          default: true
+          default: false
       required:
         - title
         - startDate
@@ -1602,7 +1601,9 @@ components:
           type: string
         description:
           type: string
-        destination:
+        country:
+          type: string
+        city:
           type: string
         startDate:
           type: string
@@ -1610,10 +1611,7 @@ components:
         endDate:
           type: string
           format: date
-        thumbnail:
-          type: string
-          format: uri
-        isPrivate:
+        isPublic:
           type: boolean
 
     Trip:
@@ -1626,7 +1624,9 @@ components:
           type: string
         description:
           type: string
-        destination:
+        country:
+          type: string
+        city:
           type: string
         startDate:
           type: string
@@ -1634,182 +1634,27 @@ components:
         endDate:
           type: string
           format: date
-        thumbnail:
-          type: string
-          format: uri
         status:
           type: string
           enum: [upcoming, ongoing, past]
-        isPrivate:
+        isPublic:
           type: boolean
-        isOwner:
-          type: boolean
-        owner:
+        creator:
           $ref: '#/components/schemas/User'
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-      required:
-        - id
-        - title
-        - startDate
-        - endDate
-        - status
-        - isPrivate
-        - isOwner
-        - owner
-        - createdAt
-        - updatedAt
-
-    TripDayCreate:
-      type: object
-      properties:
-        date:
-          type: string
-          format: date
-        title:
-          type: string
-        notes:
-          type: string
-      required:
-        - date
-
-    TripDayUpdate:
-      type: object
-      properties:
-        title:
-          type: string
-        notes:
-          type: string
-
-    TripDay:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        date:
-          type: string
-          format: date
-        title:
-          type: string
-        notes:
-          type: string
-        tripId:
-          type: string
-          format: uuid
-        places:
+        totalDays:
+          type: integer
+        days:
           type: array
           items:
-            $ref: '#/components/schemas/Place'
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-      required:
-        - id
-        - date
-        - tripId
-        - createdAt
-        - updatedAt
-
-    PlaceCreate:
-      type: object
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        address:
-          type: string
-        startTime:
-          type: string
-          format: time
-        endTime:
-          type: string
-          format: time
-        notes:
-          type: string
-        coordinates:
-          $ref: '#/components/schemas/Coordinates'
-        externalId:
-          type: string
-          description: ID from external service (Google Maps, etc.)
-        externalSource:
-          type: string
-          enum: [google, yandex, manual]
-          default: manual
-        category:
-          type: string
-          enum: [attraction, restaurant, accommodation, transportation, other]
-          default: other
-      required:
-        - name
-
-    PlaceUpdate:
-      type: object
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        address:
-          type: string
-        startTime:
-          type: string
-          format: time
-        endTime:
-          type: string
-          format: time
-        notes:
-          type: string
-        coordinates:
-          $ref: '#/components/schemas/Coordinates'
-        category:
-          type: string
-          enum: [attraction, restaurant, accommodation, transportation, other]
-
-    Place:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        description:
-          type: string
-        address:
-          type: string
-        startTime:
-          type: string
-          format: time
-        endTime:
-          type: string
-          format: time
-        notes:
-          type: string
-        coordinates:
-          $ref: '#/components/schemas/Coordinates'
-        externalId:
-          type: string
-        externalSource:
-          type: string
-          enum: [google, yandex, manual]
-        category:
-          type: string
-          enum: [attraction, restaurant, accommodation, transportation, other]
-        tripId:
-          type: string
-          format: uuid
-        dayId:
-          type: string
-          format: uuid
+            $ref: '#/components/schemas/TripDay'
+        access:
+          type: array
+          items:
+            $ref: '#/components/schemas/TripAccess'
+        todoLists:
+          type: array
+          items:
+            $ref: '#/components/schemas/TodoListSummary'
         files:
           type: array
           items:
@@ -1822,9 +1667,143 @@ components:
           format: date-time
       required:
         - id
-        - name
+        - title
+        - startDate
+        - endDate
+        - status
+        - creator
+        - createdAt
+        - updatedAt
+
+    TripDayCreate:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        dayNumber:
+          type: integer
+        note:
+          type: string
+      required:
+        - date
+
+    TripDayUpdate:
+      type: object
+      properties:
+        dayNumber:
+          type: integer
+        note:
+          type: string
+
+    TripDay:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        dayNumber:
+          type: integer
+        date:
+          type: string
+          format: date
+        note:
+          type: string
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
         - tripId
-        - dayId
+        - date
+        - createdAt
+        - updatedAt
+
+    PlaceCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        address:
+          type: string
+        placeType:
+          type: string
+        externalId:
+          type: string
+        previewUrl:
+          type: string
+      required:
+        - name
+
+    PlaceUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        address:
+          type: string
+        placeType:
+          type: string
+        previewUrl:
+          type: string
+
+    Place:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        address:
+          type: string
+        placeType:
+          type: string
+        externalId:
+          type: string
+        previewUrl:
+          type: string
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Photo'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
         - createdAt
         - updatedAt
 
@@ -2005,10 +1984,8 @@ components:
           type: string
         description:
           type: string
-        templateId:
+        listType:
           type: string
-          format: uuid
-          description: ID of template to use for initial items
         tripId:
           type: string
           format: uuid
@@ -2016,15 +1993,7 @@ components:
         items:
           type: array
           items:
-            type: object
-            properties:
-              text:
-                type: string
-              completed:
-                type: boolean
-                default: false
-            required:
-              - text
+            $ref: '#/components/schemas/TodoItemCreate'
       required:
         - title
 
@@ -2034,6 +2003,8 @@ components:
         title:
           type: string
         description:
+          type: string
+        listType:
           type: string
         tripId:
           type: string
@@ -2046,18 +2017,27 @@ components:
         id:
           type: string
           format: uuid
-        title:
+        userId:
           type: string
-        description:
-          type: string
+          format: uuid
         tripId:
           type: string
           format: uuid
           nullable: true
+        title:
+          type: string
+        description:
+          type: string
+        listType:
+          type: string
         items:
           type: array
           items:
             $ref: '#/components/schemas/TodoItem'
+        itemCount:
+          type: integer
+        completedCount:
+          type: integer
         createdAt:
           type: string
           format: date-time
@@ -2098,21 +2078,25 @@ components:
     TodoItemCreate:
       type: object
       properties:
-        text:
+        content:
           type: string
         completed:
           type: boolean
           default: false
+        orderPosition:
+          type: integer
       required:
-        - text
+        - content
 
     TodoItemUpdate:
       type: object
       properties:
-        text:
+        content:
           type: string
         completed:
           type: boolean
+        orderPosition:
+          type: integer
 
     TodoItem:
       type: object
@@ -2120,13 +2104,15 @@ components:
         id:
           type: string
           format: uuid
-        text:
+        listId:
+          type: string
+          format: uuid
+        content:
           type: string
         completed:
           type: boolean
-        todoListId:
-          type: string
-          format: uuid
+        orderPosition:
+          type: integer
         createdAt:
           type: string
           format: date-time
@@ -2135,9 +2121,9 @@ components:
           format: date-time
       required:
         - id
-        - text
+        - listId
+        - content
         - completed
-        - todoListId
         - createdAt
         - updatedAt
 
@@ -2233,6 +2219,100 @@ components:
       required:
         - code
         - message
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        dayId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        startTime:
+          type: string
+          format: time
+        endTime:
+          type: string
+          format: time
+        hasSpecificTime:
+          type: boolean
+        notes:
+          type: string
+        orderPosition:
+          type: integer
+        place:
+          $ref: '#/components/schemas/Place'
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - dayId
+        - createdAt
+        - updatedAt
+
+    Photo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        description:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+      required:
+        - id
+        - url
+
+    TripAccess:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/User'
+        accessLevel:
+          type: string
+          enum: [view, edit, owner]
+        invitationStatus:
+          type: string
+          enum: [pending, accepted, rejected]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - tripId
+        - user
+        - accessLevel
+        - invitationStatus
+        - createdAt
+        - updatedAt
 
   responses:
     BadRequest:

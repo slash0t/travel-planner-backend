@@ -45,7 +45,6 @@ public class TripServiceImpl implements TripService {
     @Override
     @Transactional
     public TripDto createTrip(Long userId, TripDto tripDto) {
-        // Проверяем, что пользователь существует и авторизован через auth сервис
         User user = userService.getUserEntityById(userId);
         
         Trip trip = tripMapper.toEntity(tripDto);
@@ -53,8 +52,7 @@ public class TripServiceImpl implements TripService {
         trip.setDeleted(false);
         
         trip = tripRepository.save(trip);
-        
-        // Создаем запись о доступе для создателя
+
         TripAccess creatorAccess = TripAccess.builder()
                 .trip(trip)
                 .user(user)

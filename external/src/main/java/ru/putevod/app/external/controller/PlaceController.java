@@ -3,13 +3,10 @@ package ru.putevod.app.external.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.putevod.app.external.dto.PlaceRequestDto;
 import ru.putevod.app.external.dto.PlaceResponseDto;
 import ru.putevod.app.external.dto.response.PlaceSearchResponse;
 import ru.putevod.app.external.dto.response.PlaceSuggestionResponse;
 import ru.putevod.app.external.service.PlaceService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/places")
@@ -31,7 +28,8 @@ public class PlaceController {
     }
     
     @GetMapping("/{placeId}")
-    public ResponseEntity<PlaceResponseDto> getPlaceDetails(@PathVariable String placeId) {
+    public ResponseEntity<PlaceResponseDto> getPlaceDetails(
+            @PathVariable String placeId) {
         return ResponseEntity.ok(placeService.getPlaceDetails(placeId));
     }
     

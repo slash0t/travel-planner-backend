@@ -21,13 +21,21 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: nikelodeon53@gmail.com
-    password: fnwy euri rgiu pnbh
+    password:
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
 
 app:
   frontend-url: https://travelplanner.com

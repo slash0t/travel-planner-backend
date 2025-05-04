@@ -3,6 +3,7 @@ package ru.putevod.app.planner.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/trips")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Trips", description = "API для управления поездками")
 public class TripController {
     private final TripService tripService;
@@ -27,6 +29,7 @@ public class TripController {
     public ResponseEntity<TripDto> createTrip(
             @CurrentUser Long userId,
             @RequestBody TripDto tripDto) {
+        log.info("Creating trip: {} for user: {}", tripDto, userId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(tripService.createTrip(userId, tripDto));
     }

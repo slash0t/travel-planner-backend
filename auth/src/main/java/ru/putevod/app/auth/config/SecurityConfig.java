@@ -49,7 +49,9 @@ public class SecurityConfig {
                                 "/api/v1/resend-verification", "/api/v1/forgot-password",
                                 "/api/v1/verify-reset-code", "/api/v1/reset-password",
                                 "/api/v1/anonymous-token", "/api/v1/refresh",
-                                "/api/v1/auth/validate", "/api/v1/auth/userinfo"
+                                "/api/v1/auth/validate", "/api/v1/auth/userinfo",
+                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
+                                "/swagger-resources/**", "/webjars/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

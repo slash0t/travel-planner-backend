@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**").permitAll()
                 // Публичные эндпоинты, если нужны
                 // .requestMatchers("/api/v1/public/**").permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
             .addFilterBefore(authServiceTokenFilter, UsernamePasswordAuthenticationFilter.class);
 

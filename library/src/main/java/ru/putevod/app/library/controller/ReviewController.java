@@ -8,9 +8,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.library.client.AuthServiceClient;
 import ru.putevod.app.library.dto.ReviewDto;
+import ru.putevod.app.library.security.CurrentUser;
 import ru.putevod.app.library.service.ReviewService;
 
 import jakarta.validation.constraints.Max;
@@ -40,11 +42,7 @@ public class ReviewController {
             @PathVariable @Parameter(description = "ID маршрута") Long routeId,
             @RequestParam @NotNull @Min(1) @Max(5) Integer rating,
             @RequestParam(required = false) String comment,
-            @RequestHeader("Authorization") String authHeader) {
-        
-        String token = authHeader.substring(7); // Удаляем "Bearer " префикс
-        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(token);
-        Long userId = userInfo.userId();
+            @CurrentUser Long userId) {
         
         ReviewDto review = reviewService.addOrUpdateReview(routeId, userId, rating, comment);
         return ResponseEntity.ok(review);
@@ -56,11 +54,7 @@ public class ReviewController {
             @PathVariable @Parameter(description = "ID маршрута") Long routeId,
             @RequestParam @NotNull @Min(1) @Max(5) Integer rating,
             @RequestParam(required = false) String comment,
-            @RequestHeader("Authorization") String authHeader) {
-        
-        String token = authHeader.substring(7);
-        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(token);
-        Long userId = userInfo.userId();
+            @CurrentUser Long userId) {
         
         ReviewDto review = reviewService.addOrUpdateReview(routeId, userId, rating, comment);
         return ResponseEntity.ok(review);
@@ -70,11 +64,7 @@ public class ReviewController {
     @Operation(summary = "Удалить отзыв")
     public ResponseEntity<Void> deleteReview(
             @PathVariable @Parameter(description = "ID маршрута") Long routeId,
-            @RequestHeader("Authorization") String authHeader) {
-        
-        String token = authHeader.substring(7);
-        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(token);
-        Long userId = userInfo.userId();
+            @CurrentUser Long userId) {
         
         reviewService.deleteReview(routeId, userId);
         return ResponseEntity.noContent().build();
@@ -84,11 +74,7 @@ public class ReviewController {
     @Operation(summary = "Получить мой отзыв на маршрут")
     public ResponseEntity<ReviewDto> getMyReview(
             @PathVariable @Parameter(description = "ID маршрута") Long routeId,
-            @RequestHeader("Authorization") String authHeader) {
-        
-        String token = authHeader.substring(7);
-        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(token);
-        Long userId = userInfo.userId();
+            @CurrentUser Long userId) {
         
         return ResponseEntity.ok(reviewService.getUserReview(routeId, userId));
     }

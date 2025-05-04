@@ -24,8 +24,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/health", "/actuator/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/users/**").permitAll()
-                .anyRequest().authenticated())
+                .requestMatchers("/api/health", "/actuator/**", "/swagger-ui/**", "/v3/api-docs/**", "/api/trips/**").permitAll()
+                .anyRequest().permitAll())
             .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();

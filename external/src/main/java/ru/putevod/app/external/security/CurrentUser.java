@@ -1,4 +1,4 @@
-package ru.putevod.app.planner.config;
+package ru.putevod.app.external.security;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,4 +8,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CurrentUser {
+    boolean info() default false;
 } 
