@@ -17,6 +17,7 @@ import ru.putevod.app.library.dto.PublicRouteDetailDto;
 import ru.putevod.app.library.dto.PublicRouteDto;
 import ru.putevod.app.library.dto.RoutePreviewDto;
 import ru.putevod.app.library.entity.Trip;
+import ru.putevod.app.library.security.CurrentUser;
 import ru.putevod.app.library.service.LibraryService;
 
 import java.util.List;
@@ -91,13 +92,11 @@ public class LibraryController {
     @Operation(summary = "Опубликовать маршрут в библиотеке")
     public ResponseEntity<PublicRouteDto> publishRoute(
             @PathVariable @Parameter(description = "ID маршрута") Long tripId,
-            @RequestHeader("Authorization") String authHeader,
+            @CurrentUser Long userId,
             Authentication authentication) {
         
-        String token = authHeader.substring(7);
-        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(token);
-        Long userId = userInfo.userId();
-
+        String token = (String) authentication.getCredentials();
+        
         if (!plannerClient.canPublishRoute(tripId, userId, token)) {
             return ResponseEntity.badRequest().build();
         }

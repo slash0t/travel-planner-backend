@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.library.client.AuthServiceClient;
 import ru.putevod.app.library.dto.CommentDto;
+import ru.putevod.app.library.security.CurrentUser;
 import ru.putevod.app.library.service.CommentService;
 
 import jakarta.validation.constraints.NotBlank;
@@ -38,11 +39,7 @@ public class CommentController {
     public ResponseEntity<CommentDto> addComment(
             @PathVariable @Parameter(description = "ID маршрута") Long routeId,
             @RequestParam @NotBlank @Size(min = 1, max = 1000) String content,
-            @RequestHeader("Authorization") String authHeader) {
-        
-        String token = authHeader.substring(7);
-        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(token);
-        Long userId = userInfo.userId();
+            @CurrentUser Long userId) {
         
         CommentDto comment = commentService.addComment(routeId, userId, content);
         return ResponseEntity.ok(comment);
@@ -54,11 +51,7 @@ public class CommentController {
             @PathVariable @Parameter(description = "ID маршрута") Long routeId,
             @PathVariable @Parameter(description = "ID комментария") Long commentId,
             @RequestParam @NotBlank @Size(min = 1, max = 1000) String content,
-            @RequestHeader("Authorization") String authHeader) {
-        
-        String token = authHeader.substring(7);
-        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(token);
-        Long userId = userInfo.userId();
+            @CurrentUser Long userId) {
         
         CommentDto comment = commentService.updateComment(commentId, userId, content);
         return ResponseEntity.ok(comment);
@@ -69,11 +62,7 @@ public class CommentController {
     public ResponseEntity<Void> deleteComment(
             @PathVariable @Parameter(description = "ID маршрута") Long routeId,
             @PathVariable @Parameter(description = "ID комментария") Long commentId,
-            @RequestHeader("Authorization") String authHeader) {
-        
-        String token = authHeader.substring(7);
-        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(token);
-        Long userId = userInfo.userId();
+            @CurrentUser Long userId) {
         
         commentService.deleteComment(commentId, userId);
         return ResponseEntity.noContent().build();
