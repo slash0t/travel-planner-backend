@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.putevod.app.planner.config.CurrentUser;
 import ru.putevod.app.planner.dto.TripDayDto;
 import ru.putevod.app.planner.service.TripDayService;
 
@@ -23,7 +24,7 @@ public class TripDayController {
     @PostMapping
     @Operation(summary = "Добавить день в поездку")
     public ResponseEntity<TripDayDto> createTripDay(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser Long userId,
             @PathVariable Long tripId,
             @RequestBody TripDayDto tripDayDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -33,7 +34,7 @@ public class TripDayController {
     @GetMapping
     @Operation(summary = "Получить все дни поездки")
     public ResponseEntity<List<TripDayDto>> getTripDays(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser Long userId,
             @PathVariable Long tripId) {
         return ResponseEntity.ok(tripDayService.getTripDays(userId, tripId));
     }
@@ -41,7 +42,7 @@ public class TripDayController {
     @GetMapping("/{dayId}")
     @Operation(summary = "Получить день поездки по ID")
     public ResponseEntity<TripDayDto> getTripDay(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser Long userId,
             @PathVariable Long tripId,
             @PathVariable Long dayId) {
         return ResponseEntity.ok(tripDayService.getTripDay(userId, tripId, dayId));
@@ -50,7 +51,7 @@ public class TripDayController {
     @GetMapping("/date")
     @Operation(summary = "Получить день поездки по дате")
     public ResponseEntity<TripDayDto> getTripDayByDate(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser Long userId,
             @PathVariable Long tripId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(tripDayService.getTripDayByDate(userId, tripId, date));
@@ -59,7 +60,7 @@ public class TripDayController {
     @PutMapping("/{dayId}")
     @Operation(summary = "Обновить день поездки")
     public ResponseEntity<TripDayDto> updateTripDay(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser Long userId,
             @PathVariable Long tripId,
             @PathVariable Long dayId,
             @RequestBody TripDayDto tripDayDto) {
@@ -69,7 +70,7 @@ public class TripDayController {
     @DeleteMapping("/{dayId}")
     @Operation(summary = "Удалить день поездки")
     public ResponseEntity<Void> deleteTripDay(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser Long userId,
             @PathVariable Long tripId,
             @PathVariable Long dayId) {
         tripDayService.deleteTripDay(userId, tripId, dayId);

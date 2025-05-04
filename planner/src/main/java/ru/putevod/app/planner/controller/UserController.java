@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.putevod.app.planner.config.CurrentUser;
 import ru.putevod.app.planner.dto.UserDto;
 import ru.putevod.app.planner.service.UserService;
 
@@ -18,7 +19,7 @@ public class UserController {
     @GetMapping("/me")
     @Operation(summary = "Получить информацию о текущем пользователе")
     public ResponseEntity<UserDto> getCurrentUser(
-            @RequestHeader("X-User-Id") Long userId) {
+            @CurrentUser Long userId) {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
     
@@ -46,7 +47,7 @@ public class UserController {
     @PutMapping("/me")
     @Operation(summary = "Обновить профиль текущего пользователя")
     public ResponseEntity<UserDto> updateUserProfile(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser Long userId,
             @RequestBody UserDto userDto) {
         return ResponseEntity.ok(userService.updateUserProfile(userId, userDto));
     }

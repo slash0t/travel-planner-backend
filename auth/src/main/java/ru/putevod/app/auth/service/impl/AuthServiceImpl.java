@@ -73,7 +73,7 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(newRefreshToken)
-                .expiresIn(3600) // 1 час в секундах
+                .expiresIn(360000)
                 .user(userService.mapToUserInfoDto(user))
                 .build();
     }
@@ -222,30 +222,25 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenValidationResponse validateToken(String token, String serviceToken) {
-        // Если передан валидный сервисный токен, проверяем его
         if (!tokenProvider.validateServiceToken(serviceToken)) {
             log.warn("Попытка валидации с неверным сервисным токеном");
             return TokenValidationResponse.builder().valid(false).build();
         }
         
         try {
-            // Проверяем валидность JWT токена
             if (!tokenProvider.validateToken(token)) {
                 return TokenValidationResponse.builder().valid(false).build();
             }
-            
-            // Для анонимного токена возвращаем только флаг валидности
+
             if (tokenProvider.isAnonymousToken(token)) {
                 return TokenValidationResponse.builder().valid(true).build();
             }
-            
-            // Получаем email из токена
+
             String email = tokenProvider.getEmailFromToken(token);
             Long userId = tokenProvider.getUserIdFromToken(token);
             String username = tokenProvider.getUsernameFromToken(token);
             Boolean isAdmin = tokenProvider.isAdminFromToken(token);
-            
-            // Проверяем, что пользователь существует (опционально)
+
             Optional<User> userOpt = userService.findByEmail(email);
             if (userOpt.isEmpty()) {
                 log.warn("Токен содержит email несуществующего пользователя: {}", email);

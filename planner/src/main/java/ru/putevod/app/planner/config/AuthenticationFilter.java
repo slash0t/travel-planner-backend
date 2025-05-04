@@ -15,6 +15,7 @@ import ru.putevod.app.planner.exception.AuthenticationException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -27,7 +28,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             "/api/health",
             "/swagger-ui",
             "/v3/api-docs",
-            "/actuator"
+            "/actuator",
+            "/api/users/"
     );
 
     @Override
@@ -56,21 +58,26 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 throw new AuthenticationException("Недействительный токен авторизации");
             }
 
-            String userIdStr = request.getHeader("X-User-Id");
-            if (!StringUtils.hasText(userIdStr)) {
-                throw new AuthenticationException("Идентификатор пользователя (X-User-Id) отсутствует");
+            Map<String, Object> userInfo = authServiceClient.getUserInfoFromToken(token);
+            if (userInfo == null || !userInfo.containsKey("userId")) {
+                throw new AuthenticationException("Невозможно получить информацию о пользователе из токена");
             }
+
+            Long userId = Long.valueOf(userInfo.get("userId").toString());
+            request.setAttribute("userId", userId);
 
             filterChain.doFilter(request, response);
             
         } catch (AuthenticationException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
+            response.setContentType("application/json;charset=UTF-8");
+            response.setCharacterEncoding("UTF-8");
             response.getWriter().write("{\"error\":\"" + e.getMessage() + "\"}");
         } catch (Exception e) {
             log.error("Ошибка в фильтре аутентификации", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.setContentType("application/json");
+            response.setContentType("application/json;charset=UTF-8");
+            response.setCharacterEncoding("UTF-8");
             response.getWriter().write("{\"error\":\"Внутренняя ошибка сервера\"}");
         }
     }

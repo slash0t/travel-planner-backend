@@ -20,9 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Фильтр для проверки JWT токенов через auth сервис
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j

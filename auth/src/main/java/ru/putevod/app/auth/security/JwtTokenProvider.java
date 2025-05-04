@@ -113,7 +113,8 @@ public class JwtTokenProvider {
     
     public Boolean isAnonymousToken(String token) {
         try {
-            return getClaimFromToken(token, claims -> claims.get("isAnonymous", Boolean.class));
+            Boolean isAnonymous = getClaimFromToken(token, claims -> claims.get("isAnonymous", Boolean.class));
+            return isAnonymous != null ? isAnonymous : false;
         } catch (Exception e) {
             return false;
         }

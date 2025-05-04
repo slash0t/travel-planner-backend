@@ -23,10 +23,11 @@ public class OpenApiConfig {
                                 .name("Putevod Team")
                                 .email("info@putevod.ru")))
                 .components(new Components()
-                        .addSecuritySchemes("userId", new SecurityScheme()
-                                .type(SecurityScheme.Type.APIKEY)
-                                .in(SecurityScheme.In.HEADER)
-                                .name("X-User-Id")))
-                .addSecurityItem(new SecurityRequirement().addList("userId"));
+                        .addSecuritySchemes("bearerAuth", new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                                .description("JWT токен авторизации. Формат: Bearer [token]")))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
     }
 } 
