@@ -305,7 +305,7 @@ public class AuthServiceImpl implements AuthService {
             Optional<User> userOpt = userService.findByEmail(email);
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
-                userInfo.put("verified", user.getEmailVerified());
+                userInfo.put("verified", user.getIsVerified());
                 userInfo.put("roles", user.getIsAdmin() ? new String[]{"ROLE_USER", "ROLE_ADMIN"} : new String[]{"ROLE_USER"});
             }
             
