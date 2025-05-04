@@ -8,10 +8,6 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-/**
- * Резолвер аргументов для получения ID текущего пользователя,
- * который был установлен в AuthenticationFilter из JWT токена.
- */
 @Component
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
     

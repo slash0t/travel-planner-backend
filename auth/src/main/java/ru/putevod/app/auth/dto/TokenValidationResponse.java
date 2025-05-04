@@ -1,5 +1,6 @@
 package ru.putevod.app.auth.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,11 +10,20 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Ответ на запрос валидации токена")
 public class TokenValidationResponse {
+    @Schema(description = "Признак валидности токена", example = "true")
     private boolean valid;
     
+    @Schema(description = "ID пользователя", example = "123")
     private Long userId;
+    
+    @Schema(description = "Email пользователя", example = "user@example.com")
     private String email;
+    
+    @Schema(description = "Имя пользователя", example = "johndoe")
     private String username;
+    
+    @Schema(description = "Признак, что пользователь является администратором", example = "false")
     private boolean admin;
 } 
