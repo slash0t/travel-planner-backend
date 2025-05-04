@@ -33,9 +33,9 @@ public class OpenTripMapPlaceService implements PlaceService {
                 query, lat, lon, radius, limit, category);
         
         String url = UriComponentsBuilder
-                .fromUriString(appConfig.openTripMapBaseUrl())
+                .fromUriString(appConfig.getOpenTripMapBaseUrl())
                 .path("ru/places/radius")
-                .queryParam("apikey", appConfig.openTripMapApiKey())
+                .queryParam("apikey", appConfig.getOpenTripMapApiKey())
                 .queryParam("radius", radius)
                 .queryParam("limit", limit)
                 .queryParam("name", query)
@@ -96,9 +96,9 @@ public class OpenTripMapPlaceService implements PlaceService {
         log.info("Getting place details for id={}", placeId);
         
         String url = UriComponentsBuilder
-                .fromUriString(appConfig.openTripMapBaseUrl())
+                .fromUriString(appConfig.getOpenTripMapBaseUrl())
                 .path("ru/places/xid/" + placeId)
-                .queryParam("apikey", appConfig.openTripMapApiKey())
+                .queryParam("apikey", appConfig.getOpenTripMapApiKey())
                 .build()
                 .toUriString();
 
@@ -127,9 +127,9 @@ public class OpenTripMapPlaceService implements PlaceService {
         // OpenTripMap не имеет прямого API для автозаполнения, поэтому используем поиск по имени
         // и ограничиваем результаты
         String url = UriComponentsBuilder
-                .fromUriString(appConfig.openTripMapBaseUrl())
+                .fromUriString(appConfig.getOpenTripMapBaseUrl())
                 .path("ru/places/autosuggest")
-                .queryParam("apikey", appConfig.openTripMapApiKey())
+                .queryParam("apikey", appConfig.getOpenTripMapApiKey())
                 .queryParam("name", input)
                 .queryParam("limit", limit)
                 .build()
@@ -179,9 +179,9 @@ public class OpenTripMapPlaceService implements PlaceService {
                 lat, lon, radius, limit, categories);
         
         String url = UriComponentsBuilder
-                .fromUriString(appConfig.openTripMapBaseUrl())
+                .fromUriString(appConfig.getOpenTripMapBaseUrl())
                 .path("ru/places/radius")
-                .queryParam("apikey", appConfig.openTripMapApiKey())
+                .queryParam("apikey", appConfig.getOpenTripMapApiKey())
                 .queryParam("lat", lat)
                 .queryParam("lon", lon)
                 .queryParam("radius", radius)
@@ -256,7 +256,7 @@ public class OpenTripMapPlaceService implements PlaceService {
         // Добавляем информацию о расстоянии, если она есть
         if (data.containsKey("dist")) {
             Integer distanceMeters = parseInteger(data, "dist");
-            dto.distanceMeters(distanceMeters);
+            dto.setDistanceMeters(distanceMeters);
         }
         
         return dto;
