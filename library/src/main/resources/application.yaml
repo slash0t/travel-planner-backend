@@ -1,0 +1,44 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /library
+
+spring:
+  application:
+    name: library-service
+  liquibase:
+    enabled: false
+  datasource:
+    url: jdbc:postgresql://localhost:5438/travelPlannerDB
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+services:
+  planner:
+    url: http://localhost:8080
+  auth:
+    url: http://localhost:8081/api
+
+auth:
+  token: ${AUTH_SERVICE_TOKEN:service_token_for_development}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+logging:
+  level:
+    org.springframework.web: INFO
+    ru.putevod.app.library: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE 
