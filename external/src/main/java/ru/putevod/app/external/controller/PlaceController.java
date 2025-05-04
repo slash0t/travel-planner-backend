@@ -7,9 +7,11 @@ import ru.putevod.app.external.dto.PlaceRequestDto;
 import ru.putevod.app.external.dto.PlaceResponseDto;
 import ru.putevod.app.external.dto.response.PlaceSearchResponse;
 import ru.putevod.app.external.dto.response.PlaceSuggestionResponse;
+import ru.putevod.app.external.security.CurrentUser;
 import ru.putevod.app.external.service.PlaceService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/places")
@@ -25,13 +27,16 @@ public class PlaceController {
             @RequestParam(required = false) Double lon,
             @RequestParam(required = false, defaultValue = "5000") Integer radius,
             @RequestParam(required = false, defaultValue = "20") Integer limit,
-            @RequestParam(required = false) String category) {
+            @RequestParam(required = false) String category,
+            @CurrentUser(info = true) Map<String, Object> userInfo) {
         
         return ResponseEntity.ok(placeService.searchPlaces(query, lat, lon, radius, limit, category));
     }
     
     @GetMapping("/{placeId}")
-    public ResponseEntity<PlaceResponseDto> getPlaceDetails(@PathVariable String placeId) {
+    public ResponseEntity<PlaceResponseDto> getPlaceDetails(
+            @PathVariable String placeId,
+            @CurrentUser(info = true) Map<String, Object> userInfo) {
         return ResponseEntity.ok(placeService.getPlaceDetails(placeId));
     }
     
@@ -40,7 +45,8 @@ public class PlaceController {
             @RequestParam String input,
             @RequestParam(required = false) Double lat,
             @RequestParam(required = false) Double lon,
-            @RequestParam(required = false, defaultValue = "5") Integer limit) {
+            @RequestParam(required = false, defaultValue = "5") Integer limit,
+            @CurrentUser(info = true) Map<String, Object> userInfo) {
         
         return ResponseEntity.ok(placeService.autocompletePlaces(input, lat, lon, limit));
     }
@@ -51,7 +57,8 @@ public class PlaceController {
             @RequestParam Double lon,
             @RequestParam(required = false, defaultValue = "1000") Integer radius,
             @RequestParam(required = false, defaultValue = "20") Integer limit,
-            @RequestParam(required = false) String categories) {
+            @RequestParam(required = false) String categories,
+            @CurrentUser(info = true) Map<String, Object> userInfo) {
         
         return ResponseEntity.ok(placeService.getNearbyPlaces(lat, lon, radius, limit, categories));
     }
