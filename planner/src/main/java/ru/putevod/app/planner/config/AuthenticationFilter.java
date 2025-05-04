@@ -27,7 +27,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             "/api/health",
             "/swagger-ui",
             "/v3/api-docs",
-            "/actuator"
+            "/actuator",
+            "/api/users/"
     );
 
     @Override
@@ -65,12 +66,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             
         } catch (AuthenticationException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
+            response.setContentType("application/json;charset=UTF-8");
+            response.setCharacterEncoding("UTF-8");
             response.getWriter().write("{\"error\":\"" + e.getMessage() + "\"}");
         } catch (Exception e) {
             log.error("Ошибка в фильтре аутентификации", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.setContentType("application/json");
+            response.setContentType("application/json;charset=UTF-8");
+            response.setCharacterEncoding("UTF-8");
             response.getWriter().write("{\"error\":\"Внутренняя ошибка сервера\"}");
         }
     }

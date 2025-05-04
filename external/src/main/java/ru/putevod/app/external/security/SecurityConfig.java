@@ -16,9 +16,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Конфигурация безопасности для external сервиса
- */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor

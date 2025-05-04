@@ -8,9 +8,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Map;
 
-/**
- * Клиент для взаимодействия с auth сервисом
- */
 @Service
 @Slf4j
 public class AuthServiceClient {

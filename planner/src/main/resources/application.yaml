@@ -2,6 +2,14 @@ spring:
   application:
     name: planner-service
 
+  security:
+    user:
+      name: admin
+      password: admin
+
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+
   liquibase:
     enabled: false
   datasource:
