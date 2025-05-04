@@ -1,0 +1,15 @@
+server:
+  port: 8081
+
+app:
+  external-api:
+    openTripMapApiKey: 5ae2e3f221c38a28845f05b66e774690bb38416f927413ffede5037
+    openTripMapBaseUrl: https://api.opentripmap.com/0.1/
+
+logging:
+  level:
+    ru.putevod.app: DEBUG
+
+spring:
+  application:
+    name: travel-planner-external-service
