@@ -28,5 +28,63 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  auth-service:
+    build:
+      dockerfile: auth/Dockerfile
+    container_name: auth_service
+    depends_on:
+      - postgresql
+      - liquibase-migrations
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8081:8080"
+
+  planner-service:
+    build:
+      dockerfile: planner/Dockerfile
+    container_name: planner_service
+    depends_on:
+      - postgresql
+      - liquibase-migrations
+      - auth-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      AUTH_SERVICE_URL: http://auth-service:8080
+    ports:
+      - "8082:8080"
+
+  external-service:
+    build:
+      dockerfile: external/Dockerfile
+    container_name: external_service
+    depends_on:
+      - postgresql
+      - liquibase-migrations
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8083:8080"
+
+  library-service:
+    build:
+      dockerfile: library/Dockerfile
+    container_name: library_service
+    depends_on:
+      - postgresql
+      - liquibase-migrations
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8084:8080"
+
 volumes:
   postgres_data:
