@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.putevod.app.planner.config.CurrentUser;
 import ru.putevod.app.planner.dto.EventDto;
 import ru.putevod.app.planner.dto.EventReminderDto;
 import ru.putevod.app.planner.service.EventService;
@@ -13,16 +14,16 @@ import ru.putevod.app.planner.service.EventService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/trips/{tripId}/days/{dayId}/events")
+@RequestMapping("/api/trips/{tripId}/days/{dayId}/places")
 @RequiredArgsConstructor
-@Tag(name = "Events", description = "API для управления событиями")
+@Tag(name = "Places", description = "API для управления местами и событиями")
 public class EventController {
     private final EventService eventService;
     
     @PostMapping
-    @Operation(summary = "Создать событие")
+    @Operation(summary = "Создать место/событие")
     public ResponseEntity<EventDto> createEvent(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser Long userId,
             @PathVariable Long tripId,
             @PathVariable Long dayId,
             @RequestBody EventDto eventDto) {
@@ -31,69 +32,69 @@ public class EventController {
     }
     
     @GetMapping
-    @Operation(summary = "Получить все события дня")
+    @Operation(summary = "Получить все места/события дня")
     public ResponseEntity<List<EventDto>> getDayEvents(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser Long userId,
             @PathVariable Long tripId,
             @PathVariable Long dayId) {
         return ResponseEntity.ok(eventService.getDayEvents(userId, tripId, dayId));
     }
     
-    @GetMapping("/{eventId}")
-    @Operation(summary = "Получить событие по ID")
+    @GetMapping("/{placeId}")
+    @Operation(summary = "Получить место/событие по ID")
     public ResponseEntity<EventDto> getEvent(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser Long userId,
             @PathVariable Long tripId,
             @PathVariable Long dayId,
-            @PathVariable Long eventId) {
+            @PathVariable("placeId") Long eventId) {
         return ResponseEntity.ok(eventService.getEvent(userId, tripId, dayId, eventId));
     }
     
-    @PutMapping("/{eventId}")
-    @Operation(summary = "Обновить событие")
+    @PutMapping("/{placeId}")
+    @Operation(summary = "Обновить место/событие")
     public ResponseEntity<EventDto> updateEvent(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser Long userId,
             @PathVariable Long tripId,
             @PathVariable Long dayId,
-            @PathVariable Long eventId,
+            @PathVariable("placeId") Long eventId,
             @RequestBody EventDto eventDto) {
         return ResponseEntity.ok(eventService.updateEvent(userId, tripId, dayId, eventId, eventDto));
     }
     
-    @DeleteMapping("/{eventId}")
-    @Operation(summary = "Удалить событие")
+    @DeleteMapping("/{placeId}")
+    @Operation(summary = "Удалить место/событие")
     public ResponseEntity<Void> deleteEvent(
-            @RequestHeader("X-User-Id") Long userId,
+            @CurrentUser Long userId,
             @PathVariable Long tripId,
             @PathVariable Long dayId,
-            @PathVariable Long eventId) {
+            @PathVariable("placeId") Long eventId) {
         eventService.deleteEvent(userId, tripId, dayId, eventId);
         return ResponseEntity.noContent().build();
     }
     
-    @PostMapping("/{eventId}/reminders")
-    @Operation(summary = "Добавить напоминание для события")
+    @PostMapping("/{placeId}/reminders")
+    @Operation(summary = "Добавить напоминание для места/события")
     public ResponseEntity<EventReminderDto> addEventReminder(
-            @RequestHeader("X-User-Id") Long userId,
-            @PathVariable Long eventId,
+            @CurrentUser Long userId,
+            @PathVariable("placeId") Long eventId,
             @RequestBody EventReminderDto reminderDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(eventService.addEventReminder(userId, eventId, reminderDto));
     }
     
-    @GetMapping("/{eventId}/reminders")
-    @Operation(summary = "Получить список напоминаний для события")
+    @GetMapping("/{placeId}/reminders")
+    @Operation(summary = "Получить список напоминаний для места/события")
     public ResponseEntity<List<EventReminderDto>> getEventReminders(
-            @RequestHeader("X-User-Id") Long userId,
-            @PathVariable Long eventId) {
+            @CurrentUser Long userId,
+            @PathVariable("placeId") Long eventId) {
         return ResponseEntity.ok(eventService.getEventReminders(userId, eventId));
     }
     
-    @DeleteMapping("/{eventId}/reminders/{reminderId}")
-    @Operation(summary = "Удалить напоминание для события")
+    @DeleteMapping("/{placeId}/reminders/{reminderId}")
+    @Operation(summary = "Удалить напоминание для места/события")
     public ResponseEntity<Void> deleteEventReminder(
-            @RequestHeader("X-User-Id") Long userId,
-            @PathVariable Long eventId,
+            @CurrentUser Long userId,
+            @PathVariable("placeId") Long eventId,
             @PathVariable Long reminderId) {
         eventService.deleteEventReminder(userId, eventId, reminderId);
         return ResponseEntity.noContent().build();

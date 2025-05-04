@@ -15,6 +15,7 @@ import ru.putevod.app.planner.exception.AuthenticationException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -57,10 +58,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 throw new AuthenticationException("Недействительный токен авторизации");
             }
 
-            String userIdStr = request.getHeader("X-User-Id");
-            if (!StringUtils.hasText(userIdStr)) {
-                throw new AuthenticationException("Идентификатор пользователя (X-User-Id) отсутствует");
+            Map<String, Object> userInfo = authServiceClient.getUserInfoFromToken(token);
+            if (userInfo == null || !userInfo.containsKey("userId")) {
+                throw new AuthenticationException("Невозможно получить информацию о пользователе из токена");
             }
+
+            Long userId = Long.valueOf(userInfo.get("userId").toString());
+            request.setAttribute("userId", userId);
 
             filterChain.doFilter(request, response);
             
