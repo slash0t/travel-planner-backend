@@ -8,9 +8,6 @@ import ru.putevod.app.external.security.CurrentUserArgumentResolver;
 
 import java.util.List;
 
-/**
- * Конфигурация Spring MVC для добавления пользовательских компонентов
- */
 @Configuration
 @RequiredArgsConstructor
 public class WebMvcConfig implements WebMvcConfigurer {

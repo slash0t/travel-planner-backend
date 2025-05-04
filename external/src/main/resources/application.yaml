@@ -3,7 +3,7 @@ server:
 
 app:
   external-api:
-    openTripMapApiKey: 5ae2e3f221c38a28845f05b66e774690bb38416f927413ffede5037
+    openTripMapApiKey: 5ae2e3f221c38a28845f05b6eef345b7956e84e655924ecd1cdf1ca2
     openTripMapBaseUrl: https://api.opentripmap.com/0.1/
 
 logging:
@@ -13,6 +13,11 @@ logging:
 spring:
   application:
     name: travel-planner-external-service
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
 
 services:
   auth:

@@ -32,26 +32,28 @@ public class OpenTripMapPlaceService implements PlaceService {
         log.info("Searching places with query={}, lat={}, lon={}, radius={}, limit={}, category={}", 
                 query, lat, lon, radius, limit, category);
         
+        if (lat == null || lon == null) {
+            return searchPlacesByName(query, limit, category);
+        }
+        
         String url = UriComponentsBuilder
                 .fromUriString(appConfig.getOpenTripMapBaseUrl())
                 .path("ru/places/radius")
                 .queryParam("apikey", appConfig.getOpenTripMapApiKey())
                 .queryParam("radius", radius)
                 .queryParam("limit", limit)
-                .queryParam("name", query)
+                .queryParam("lat", lat)
+                .queryParam("lon", lon)
                 .build()
                 .toUriString();
 
-        // Если координаты заданы, используем поиск по радиусу
-        if (lat != null && lon != null) {
+        if (query != null && !query.isEmpty()) {
             url = UriComponentsBuilder.fromUriString(url)
-                    .queryParam("lat", lat)
-                    .queryParam("lon", lon)
+                    .queryParam("name", query)
                     .build()
                     .toUriString();
         }
-        
-        // Если указана категория, добавляем в запрос
+
         if (category != null && !category.isEmpty()) {
             url = UriComponentsBuilder.fromUriString(url)
                     .queryParam("kinds", category)
@@ -84,6 +86,57 @@ public class OpenTripMapPlaceService implements PlaceService {
                     
         } catch (Exception e) {
             log.error("Error searching places", e);
+            return PlaceSearchResponse.builder()
+                    .places(new ArrayList<>())
+                    .total(0)
+                    .build();
+        }
+    }
+    
+    private PlaceSearchResponse searchPlacesByName(String query, Integer limit, String category) {
+        log.info("Searching places by name with query={}, limit={}, category={}", query, limit, category);
+        
+        String url = UriComponentsBuilder
+                .fromUriString(appConfig.getOpenTripMapBaseUrl())
+                .path("ru/places/geoname")
+                .queryParam("apikey", appConfig.getOpenTripMapApiKey())
+                .queryParam("name", query)
+                .build()
+                .toUriString();
+        
+        try {
+            Map<String, Object> response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+                    
+            if (response == null || !response.containsKey("name")) {
+                return PlaceSearchResponse.builder()
+                        .places(new ArrayList<>())
+                        .total(0)
+                        .build();
+            }
+            
+            PlaceResponseDto place = PlaceResponseDto.builder()
+                    .id(response.getOrDefault("xid", "").toString())
+                    .name(response.getOrDefault("name", "").toString())
+                    .lat(parseDouble(response, "lat"))
+                    .lon(parseDouble(response, "lon"))
+                    .address(response.containsKey("country") ? response.get("country").toString() : "")
+                    .sourceSystem("OpenTripMap")
+                    .build();
+                    
+            List<PlaceResponseDto> places = new ArrayList<>();
+            places.add(place);
+            
+            return PlaceSearchResponse.builder()
+                    .places(places)
+                    .total(places.size())
+                    .build();
+                    
+        } catch (Exception e) {
+            log.error("Error searching places by name", e);
             return PlaceSearchResponse.builder()
                     .places(new ArrayList<>())
                     .total(0)

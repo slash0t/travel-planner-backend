@@ -13,10 +13,6 @@ import ru.putevod.app.external.client.AuthServiceClient;
 
 import java.util.Map;
 
-/**
- * Резолвер аргументов для получения информации о текущем пользователе
- * из контекста безопасности Spring Security.
- */
 @Component
 @RequiredArgsConstructor
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
@@ -39,13 +35,11 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
             return null;
         }
         
-        // Получаем JWT токен из учетных данных аутентификации
         String token = (String) authentication.getCredentials();
         if (token == null) {
             return null;
         }
         
-        // Получаем информацию о пользователе через AuthServiceClient
         Map<String, Object> userInfo = authServiceClient.getUserInfoFromToken(token);
         if (userInfo == null || !userInfo.containsKey("userId")) {
             return null;
@@ -53,7 +47,6 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         
         CurrentUser annotation = parameter.getParameterAnnotation(CurrentUser.class);
         
-        // Возвращаем либо userId, либо всю информацию о пользователе
         if (parameter.getParameterType().equals(Long.class)) {
             Object userId = userInfo.get("userId");
             return userId instanceof Number ? ((Number) userId).longValue() : null;

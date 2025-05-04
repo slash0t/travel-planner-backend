@@ -5,7 +5,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.Map;
 
 @Service
@@ -56,7 +58,11 @@ public class AuthServiceClient {
                     .header("X-Service-Token", serviceToken)
                     .retrieve()
                     .bodyToMono(Map.class)
-                    .onErrorReturn(null)
+                    .doOnNext(response -> log.info("Получен ответ от сервиса аутентификации: {}", response))
+                    .onErrorResume(e -> {
+                        log.error("Ошибка получения информации из токена: {}", e.getMessage(), e);
+                        return Mono.just(Collections.emptyMap());
+                    })
                     .block();
         } catch (Exception e) {
             log.error("Ошибка получения информации из токена: {}", e.getMessage());
