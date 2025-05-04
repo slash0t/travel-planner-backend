@@ -10,6 +10,8 @@ import reactor.core.publisher.Mono;
 import ru.putevod.app.planner.dto.UserDto;
 import ru.putevod.app.planner.exception.AuthenticationException;
 
+import java.util.Map;
+
 @Service
 @Slf4j
 public class AuthServiceClient {
@@ -48,15 +50,43 @@ public class AuthServiceClient {
      */
     public boolean validateToken(String token) {
         try {
-            return Boolean.TRUE.equals(webClient.get()
-                    .uri("/validate-token")
-                    .header("Authorization", "Bearer " + token)
+            return Boolean.TRUE.equals(webClient.post()
+                    .uri("/auth/validate")
+                    .bodyValue(new TokenValidationRequest(token))
+                    .header("X-Service-Token", serviceToken)
                     .retrieve()
-                    .bodyToMono(Boolean.class)
+                    .bodyToMono(TokenValidationResponse.class)
+                    .map(TokenValidationResponse::valid)
+                    .onErrorReturn(false)
                     .block());
         } catch (Exception e) {
             log.error("Ошибка проверки токена: {}", e.getMessage());
             return false;
         }
     }
+    
+    /**
+     * Получает информацию о пользователе из токена
+     * @param token JWT токен для получения информации
+     * @return данные пользователя из токена или null в случае ошибки
+     */
+    public Map<String, Object> getUserInfoFromToken(String token) {
+        try {
+            return webClient.post()
+                    .uri("/auth/userinfo")
+                    .bodyValue(new TokenValidationRequest(token))
+                    .header("X-Service-Token", serviceToken)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .onErrorReturn(null)
+                    .block();
+        } catch (Exception e) {
+            log.error("Ошибка получения информации из токена: {}", e.getMessage());
+            return null;
+        }
+    }
+    
+    private record TokenValidationRequest(String token) {}
+    
+    private record TokenValidationResponse(boolean valid) {}
 } 

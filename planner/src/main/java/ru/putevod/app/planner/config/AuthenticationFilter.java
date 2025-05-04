@@ -34,38 +34,33 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+            FilterChain filterChain) throws IOException {
         
         try {
             String path = request.getRequestURI();
-            
-            // Пропускаем запросы к swagger, api docs и другим открытым эндпоинтам
+
             if (isPathWhitelisted(path)) {
                 filterChain.doFilter(request, response);
                 return;
             }
-            
-            // Получаем токен из запроса
+
             String token = getTokenFromRequest(request);
             
             if (token == null) {
                 throw new AuthenticationException("Токен авторизации отсутствует");
             }
-            
-            // Проверяем токен через сервис авторизации
+
             boolean isValid = authServiceClient.validateToken(token);
             
             if (!isValid) {
                 throw new AuthenticationException("Недействительный токен авторизации");
             }
-            
-            // Получаем id пользователя из заголовка
+
             String userIdStr = request.getHeader("X-User-Id");
             if (!StringUtils.hasText(userIdStr)) {
                 throw new AuthenticationException("Идентификатор пользователя (X-User-Id) отсутствует");
             }
-            
-            // Пропускаем запрос дальше, если аутентификация прошла успешно
+
             filterChain.doFilter(request, response);
             
         } catch (AuthenticationException e) {
