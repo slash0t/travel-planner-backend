@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8080
   servlet:
     context-path:
 
@@ -21,7 +21,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: nikelodeon53@gmail.com
-    password: fnwy euri rgiu pnbh
+    password: kjez szkp lfpx ptrm
     properties:
       mail:
         smtp:
