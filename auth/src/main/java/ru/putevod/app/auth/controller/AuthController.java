@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -110,14 +111,16 @@ public class AuthController {
 
     @Operation(
         summary = "Выход из системы",
-        description = "Выполняет выход пользователя из системы и инвалидирует refresh token"
+        description = "Выполняет выход пользователя из системы и инвалидирует refresh token",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200", 
             description = "Успешный выход из системы"
         ),
-        @ApiResponse(responseCode = "400", description = "Неверный запрос")
+        @ApiResponse(responseCode = "400", description = "Неверный запрос"),
+        @ApiResponse(responseCode = "401", description = "Не авторизован")
     })
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(@RequestBody RefreshTokenRequest refreshRequest) {

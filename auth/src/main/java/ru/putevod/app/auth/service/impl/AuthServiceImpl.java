@@ -73,7 +73,7 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(newRefreshToken)
-                .expiresIn(360000)
+                .expiresIn(360000000)
                 .user(userService.mapToUserInfoDto(user))
                 .build();
     }

@@ -26,7 +26,6 @@ public class OpenApiConfig {
                                 .name("TravelPlanner Support")
                                 .email("support@travelplanner.example")
                                 .url("https://travelplanner.example")))
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth",
                                 new SecurityScheme()

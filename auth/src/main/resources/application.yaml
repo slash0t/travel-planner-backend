@@ -21,7 +21,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: nikelodeon53@gmail.com
-    password:
+    password: fnwy euri rgiu pnbh
     properties:
       mail:
         smtp:
@@ -41,7 +41,7 @@ app:
   frontend-url: https://travelplanner.com
   jwt:
     secret: ${JWT_SECRET:YgUH7tDfJVRgH3Kvd9oNaX1PYqIj0yGGM2rHDouD9zL7rAp8HOt8XbX9UQ2q1QQjA9QacCXCqoSXMQIPT8EGJ92kUuG7zGuKvBbD}
-    access-token-expiration-ms: 3600000
+    access-token-expiration-ms: 3600000000
     refresh-token-expiration-ms: 604800000
     anonymous-token-expiration-ms: 1800000
   email:
