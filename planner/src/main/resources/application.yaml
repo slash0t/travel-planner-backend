@@ -30,7 +30,7 @@ spring:
       max-request-size: 15MB
 
 server:
-  port: 8082
+  port: 8080
   servlet:
     context-path: /
 
@@ -46,6 +46,7 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     operationsSorter: method
+  show-actuator: false
 
 logging:
   level:
