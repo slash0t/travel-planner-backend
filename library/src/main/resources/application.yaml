@@ -1,5 +1,5 @@
 server:
-  port: 8082
+  port: 8084
   servlet:
     context-path: /library
 
@@ -21,7 +21,7 @@ spring:
 
 services:
   planner:
-    url: http://localhost:8080
+    url: http://localhost:8082
   auth:
     url: http://localhost:8081/api
 
