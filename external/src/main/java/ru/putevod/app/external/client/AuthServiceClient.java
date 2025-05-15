@@ -1,8 +1,10 @@
 package ru.putevod.app.external.client;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -13,7 +15,6 @@ import java.util.Map;
 @Service
 @Slf4j
 public class AuthServiceClient {
-    
     private final WebClient webClient;
     
     @Value("${auth.token}")
