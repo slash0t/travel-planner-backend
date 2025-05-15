@@ -1,40 +1,53 @@
 server:
   port: 8080
   servlet:
-    context-path: /library
+    context-path:
 
 spring:
   application:
     name: library-service
   liquibase:
     enabled: false
+  security:
+    user:
+      name: admin
+      password: secret
+      roles: ADMIN
   datasource:
     url: jdbc:postgresql://localhost:5438/travelPlannerDB
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
     show-sql: true
 
 services:
   planner:
-    url: http://localhost:8082
+    url: ${PLANNER_SERVICE_URL}
   auth:
-    url: http://localhost:8081/api
+    url: ${AUTH_SERVICE_URL}
 
 auth:
   token: ${AUTH_SERVICE_TOKEN:service_token_for_development}
-
 springdoc:
   api-docs:
     path: /api-docs
+    enabled: true
   swagger-ui:
     path: /swagger-ui.html
     operations-sorter: method
     tags-sorter: alpha
+    disable-swagger-default-url: true
+    display-request-duration: true
+    csrf:
+      enabled: false
+  packages-to-scan: ru.putevod.app.library.controller
+  group-configs:
+    - group: library-api
+      paths-to-match: /api/v1/routes/**
+      display-name: Библиотека маршрутов API
 
 logging:
   level:
