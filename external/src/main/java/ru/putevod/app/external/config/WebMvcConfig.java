@@ -1,8 +1,12 @@
 package ru.putevod.app.external.config;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import ru.putevod.app.external.security.CurrentUserArgumentResolver;
 
@@ -10,12 +14,42 @@ import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private final CurrentUserArgumentResolver currentUserArgumentResolver;
     
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        log.debug("Добавление CurrentUserArgumentResolver");
         resolvers.add(currentUserArgumentResolver);
+    }
+    
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        log.debug("Настройка CORS для /api/**");
+        registry.addMapping("/api/**")
+                .allowedOrigins("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .maxAge(3600);
+    }
+    
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        log.debug("Регистрация обработчиков ресурсов для Swagger UI");
+        registry.addResourceHandler("/swagger-ui/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/swagger-ui/*/");
+        registry.addResourceHandler("/webjars/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/");
+    }
+    
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        log.debug("Регистрация контроллеров представлений для Swagger UI");
+        registry.addViewController("/swagger-ui/")
+                .setViewName("forward:/swagger-ui/index.html");
+        registry.addViewController("/swagger-ui")
+                .setViewName("forward:/swagger-ui/index.html");
     }
 } 
