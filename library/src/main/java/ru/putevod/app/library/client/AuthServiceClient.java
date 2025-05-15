@@ -9,7 +9,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Service
 @Slf4j
 public class AuthServiceClient {
-
     private final WebClient webClient;
     
     @Value("${auth.token}")
