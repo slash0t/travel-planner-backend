@@ -1,13 +1,13 @@
 package ru.putevod.app.auth.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import ru.putevod.app.auth.config.AppProperties;
 import ru.putevod.app.auth.model.EmailVerificationToken;
 import ru.putevod.app.auth.model.PasswordResetToken;
 import ru.putevod.app.auth.model.User;
@@ -26,18 +26,7 @@ public class EmailServiceImpl implements EmailService {
     private final UserRepository userRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Value("${app.email.from}")
-    private String fromEmail;
-
-    @Value("${app.frontend-url}")
-    private String frontendUrl;
-
-    @Value("${app.verification-token-expiration-hours:24}")
-    private int verificationTokenExpirationHours;
-
-    @Value("${app.reset-token-expiration-minutes:15}")
-    private int resetTokenExpirationMinutes;
+    private final AppProperties appProperties;
 
     @Override
     @Transactional
@@ -49,13 +38,13 @@ public class EmailServiceImpl implements EmailService {
                 .user(user)
                 .token(verificationToken)
                 .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusHours(verificationTokenExpirationHours))
+                .expiresAt(LocalDateTime.now().plusHours(appProperties.getVerificationTokenExpirationHours()))
                 .build();
 
         emailVerificationTokenRepository.save(token);
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
+        message.setFrom(appProperties.getEmail().getFrom());
         message.setTo(email);
         message.setSubject("Подтверждение регистрации в Travel Planner");
         message.setText(String.format(
@@ -64,7 +53,7 @@ public class EmailServiceImpl implements EmailService {
                 "%s/verify-email?token=%s\n\n" +
                 "Ссылка действительна в течение %d часов.\n\n" +
                 "Если вы не регистрировались в нашем приложении, просто проигнорируйте это письмо.",
-                username, frontendUrl, verificationToken, verificationTokenExpirationHours
+                username, appProperties.getFrontendUrl(), verificationToken, appProperties.getVerificationTokenExpirationHours()
         ));
 
         mailSender.send(message);
@@ -100,14 +89,14 @@ public class EmailServiceImpl implements EmailService {
                 .token(token)
                 .resetCode(resetCode)
                 .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusMinutes(resetTokenExpirationMinutes))
+                .expiresAt(LocalDateTime.now().plusMinutes(appProperties.getResetTokenExpirationMinutes()))
                 .isUsed(false)
                 .build();
 
         passwordResetTokenRepository.save(resetToken);
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
+        message.setFrom(appProperties.getEmail().getFrom());
         message.setTo(email);
         message.setSubject("Сброс пароля в Travel Planner");
         message.setText(String.format(
@@ -116,7 +105,7 @@ public class EmailServiceImpl implements EmailService {
                 "%s\n\n" +
                 "Код действителен в течение %d минут.\n\n" +
                 "Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.",
-                username, resetCode, resetTokenExpirationMinutes
+                username, resetCode, appProperties.getResetTokenExpirationMinutes()
         ));
 
         mailSender.send(message);
@@ -156,7 +145,7 @@ public class EmailServiceImpl implements EmailService {
         if (tokenOptional.isPresent()) {
             PasswordResetToken token = tokenOptional.get();
             token.setToken(resetToken);
-            token.setExpiresAt(LocalDateTime.now().plusMinutes(resetTokenExpirationMinutes));
+            token.setExpiresAt(LocalDateTime.now().plusMinutes(appProperties.getResetTokenExpirationMinutes()));
             passwordResetTokenRepository.save(token);
         }
     }
