@@ -1,8 +1,10 @@
 package ru.putevod.app.planner.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +16,11 @@ import ru.putevod.app.planner.service.EventService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/trips/{tripId}/days/{dayId}/places")
+@RequestMapping("/api/v1/trips/{tripId}/days/{dayId}/places")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Places", description = "API для управления местами и событиями")
+@SecurityRequirement(name = "bearerAuth")
 public class EventController {
     private final EventService eventService;
     

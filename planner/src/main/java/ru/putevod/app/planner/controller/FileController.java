@@ -1,8 +1,10 @@
 package ru.putevod.app.planner.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -18,14 +20,16 @@ import ru.putevod.app.planner.service.FileService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1/files")
 @RequiredArgsConstructor
-@Tag(name = "Files", description = "API для управления файлами")
+@Slf4j
+@Tag(name = "Files", description = "API для работы с файлами")
+@SecurityRequirement(name = "bearerAuth")
 public class FileController {
     
     private final FileService fileService;
     
-    @PostMapping("/files/upload")
+    @PostMapping("/upload")
     @Operation(summary = "Загрузить файл")
     public ResponseEntity<FileDto> uploadFile(
             @CurrentUser Long userId,
@@ -35,7 +39,7 @@ public class FileController {
                 .body(fileService.uploadFile(userId, file, description));
     }
     
-    @GetMapping("/files/{fileId}")
+    @GetMapping("/{fileId}")
     @Operation(summary = "Получить информацию о файле")
     public ResponseEntity<FileDto> getFileInfo(
             @CurrentUser Long userId,
@@ -43,7 +47,7 @@ public class FileController {
         return ResponseEntity.ok(fileService.getFileInfo(userId, fileId));
     }
     
-    @GetMapping("/files/{fileId}/download")
+    @GetMapping("/{fileId}/download")
     @Operation(summary = "Скачать файл")
     public ResponseEntity<Resource> downloadFile(
             @CurrentUser Long userId,
@@ -60,7 +64,7 @@ public class FileController {
                 .body(resource);
     }
     
-    @DeleteMapping("/files/{fileId}")
+    @DeleteMapping("/{fileId}")
     @Operation(summary = "Удалить файл")
     public ResponseEntity<Void> deleteFile(
             @CurrentUser Long userId,

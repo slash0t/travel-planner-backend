@@ -1,8 +1,10 @@
 package ru.putevod.app.planner.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.planner.config.CurrentUser;
@@ -10,9 +12,11 @@ import ru.putevod.app.planner.dto.UserDto;
 import ru.putevod.app.planner.service.UserService;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Users", description = "API для управления пользователями")
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
     private final UserService userService;
     
