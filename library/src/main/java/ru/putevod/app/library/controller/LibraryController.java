@@ -13,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.library.client.AuthServiceClient;
 import ru.putevod.app.library.client.PlannerClient;
@@ -137,6 +139,9 @@ public class LibraryController {
             @PathVariable @Parameter(description = "ID маршрута") Long tripId,
             @CurrentUser Long userId,
             Authentication authentication) {
+        if (tripId <= 0) {
+            return ResponseEntity.badRequest().build();
+        }
         
         String token = (String) authentication.getCredentials();
         
@@ -162,10 +167,17 @@ public class LibraryController {
         @ApiResponse(responseCode = "403", description = "Нет прав администратора"),
         @ApiResponse(responseCode = "401", description = "Не авторизован")
     })
-    public ResponseEntity<PublicRouteDto> approveRoute(
-            @PathVariable @Parameter(description = "ID опубликованного маршрута") Long id) {
-        return ResponseEntity.ok(libraryService.approvePublishedRoute(id));
-    }
+public ResponseEntity<PublicRouteDto> approveRoute(
+        @PathVariable @Parameter(description = "ID опубликованного маршрута") Long id) {
+   Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+   if (authentication == null || authentication.getAuthorities().stream()
+           .noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+   }
+   
+    return ResponseEntity.ok(libraryService.approvePublishedRoute(id));
+}
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить маршрут из библиотеки", 

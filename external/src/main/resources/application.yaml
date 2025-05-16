@@ -1,12 +1,10 @@
 server:
-  port: 8080
-  servlet:
-    context-path:
+  port: ${SERVER_PORT_EXTERNAL}
 
 app:
   external-api:
-    openTripMapApiKey: ${OPEN_TRIP_MAP_API_KEY}
-    openTripMapBaseUrl: ${OPEN_TRIP_MAP_BASE_URL}
+    openTripMapApiKey: ${OPENTRIPMAP_API_KEY}
+    openTripMapBaseUrl: ${OPENTRIPMAP_BASE_URL}
 
 logging:
   level:
@@ -22,8 +20,8 @@ spring:
       - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
   security:
     user:
-      name: admin
-      password: admin
+      name: ${SPRING_SECURITY_USER}
+      password: ${SPRING_SECURITY_PASSWORD}
 
 services:
   auth:

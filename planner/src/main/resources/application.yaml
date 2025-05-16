@@ -1,11 +1,14 @@
+server:
+  port: ${SERVER_PORT_PLANNER}
+
 spring:
   application:
     name: putevod-planner-service
 
   security:
     user:
-      name: admin
-      password: admin
+      name: ${SPRING_SECURITY_USER}
+      password: ${SPRING_SECURITY_PASSWORD}
 
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
@@ -28,11 +31,6 @@ spring:
       enabled: true
       max-file-size: ${MAX_FILE_SIZE}
       max-request-size: ${MAX_REQUEST_SIZE}
-
-server:
-  port: 8082
-  servlet:
-    context-path: /
 
 management:
   endpoints:
