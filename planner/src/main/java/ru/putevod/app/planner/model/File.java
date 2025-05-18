@@ -40,14 +40,17 @@ public class File {
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
+
     @OneToMany(mappedBy = "file")
+    @Builder.Default
     private List<TripFile> tripFiles = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "file")
+    @Builder.Default
     private List<EventFile> eventFiles = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "file")
+    @Builder.Default
     private List<Photo> photos = new ArrayList<>();
     
     @PrePersist

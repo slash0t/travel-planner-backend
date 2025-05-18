@@ -16,7 +16,6 @@ import ru.putevod.app.library.client.AuthServiceClient.UserInfo;
 @Component
 @RequiredArgsConstructor
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
-
     private final AuthServiceClient authServiceClient;
 
     @Override

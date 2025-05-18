@@ -41,10 +41,11 @@ public class TripDay {
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     @OneToMany(mappedBy = "day", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Event> events = new ArrayList<>();
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

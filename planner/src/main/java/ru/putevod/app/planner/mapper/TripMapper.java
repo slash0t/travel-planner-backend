@@ -11,7 +11,7 @@ import java.time.temporal.ChronoUnit;
         uses = {UserMapper.class, TripDayMapper.class, TripAccessMapper.class, FileMapper.class, TodoListMapper.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface TripMapper {
-    
+
     @Mapping(source = "tripId", target = "id")
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "totalDays", ignore = true)
@@ -26,7 +26,7 @@ public interface TripMapper {
             tripDto.setTotalDays((int) daysBetween);
         }
     }
-    
+
     @Mapping(source = "id", target = "tripId")
     @Mapping(source = "title", target = "title")
     @Mapping(source = "description", target = "description")
@@ -34,6 +34,7 @@ public interface TripMapper {
     @Mapping(source = "endDate", target = "endDate")
     @Mapping(source = "country", target = "country")
     @Mapping(source = "city", target = "city")
+    @Mapping(source = "published", target = "published")
     @Mapping(target = "isDeleted", constant = "false")
     @Mapping(target = "days", ignore = true)
     @Mapping(target = "accesses", ignore = true)

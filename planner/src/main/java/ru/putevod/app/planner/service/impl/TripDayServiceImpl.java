@@ -140,7 +140,7 @@ public class TripDayServiceImpl implements TripDayService {
     public void deleteTripDay(Long userId, Long tripId, Long dayId) {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
         
-        if (!tripDayRepository.findByTripAndDayId(trip, dayId).isPresent()) {
+        if (tripDayRepository.findByTripAndDayId(trip, dayId).isEmpty()) {
             throw new ResourceNotFoundException("День", "id", dayId);
         }
         

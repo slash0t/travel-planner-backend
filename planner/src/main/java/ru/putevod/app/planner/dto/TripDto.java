@@ -25,7 +25,7 @@ public class TripDto {
     private LocalDate endDate;
     private String country;
     private String city;
-    private boolean isPublic;
+    private boolean published;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     

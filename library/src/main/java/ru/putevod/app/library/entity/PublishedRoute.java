@@ -65,9 +65,11 @@ public class PublishedRoute {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "publishedRoute", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<RouteRating> ratings = new ArrayList<>();
 
     @OneToMany(mappedBy = "publishedRoute", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<RouteComment> comments = new ArrayList<>();
 
     @Transient

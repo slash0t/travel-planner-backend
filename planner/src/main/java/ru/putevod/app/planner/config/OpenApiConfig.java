@@ -8,7 +8,6 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
-import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,24 +22,6 @@ public class OpenApiConfig {
     private String contextPath;
     
     @Bean
-    public GroupedOpenApi plannerApi() {
-        return GroupedOpenApi.builder()
-                .group("planner-api")
-                .pathsToMatch("/api/v1/**")
-                .displayName("Planner API")
-                .build();
-    }
-    
-    @Bean
-    public GroupedOpenApi adminApi() {
-        return GroupedOpenApi.builder()
-                .group("administrator")
-                .pathsToMatch("/admin/**")
-                .displayName("Admin API")
-                .build();
-    }
-    
-    @Bean
     public OpenAPI customOpenAPI() {
         List<Server> servers = new ArrayList<>();
         Server server = new Server();
@@ -51,9 +32,9 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .servers(servers)
                 .info(new Info()
-                        .title("Planner API")
+                        .title("Putevod API")
                         .version("1.0")
-                        .description("API для планировщика маршрутов и задач")
+                        .description("API сервиса Putevod для планировщика маршрутов и задач")
                         .termsOfService("https://example.com/terms/")
                         .license(new License().name("Apache 2.0").url("https://www.apache.org/licenses/LICENSE-2.0"))
                         .contact(new Contact()

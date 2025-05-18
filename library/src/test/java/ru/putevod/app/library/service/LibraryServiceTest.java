@@ -1,6 +1,7 @@
 package ru.putevod.app.library.service;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +40,7 @@ class LibraryServiceTest {
     private PublishedRouteRepository publishedRouteRepository;
 
     @Mock
-    private UserRepository userRepository; // Assuming this might be needed later based on service code
+    private UserRepository userRepository;
 
     @Mock
     private MapperService mapperService;
@@ -103,15 +104,12 @@ class LibraryServiceTest {
     @Test
     @DisplayName("getPublishedRoutes - Success")
     void testGetPublishedRoutes_Success() {
-        // Arrange
         Page<PublishedRoute> routePage = new PageImpl<>(Collections.singletonList(publishedRoute), pageable, 1);
         when(publishedRouteRepository.findAllApproved(pageable)).thenReturn(routePage);
         when(mapperService.toRoutePreviewDto(any(PublishedRoute.class))).thenReturn(routePreviewDto);
 
-        // Act
         Page<RoutePreviewDto> result = libraryService.getPublishedRoutes(pageable);
 
-        // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(1, result.getContent().size());
@@ -123,15 +121,12 @@ class LibraryServiceTest {
     @Test
     @DisplayName("getRouteDetails - Success")
     void testGetRouteDetails_Success() {
-        // Arrange
         Long routeId = 1L;
         when(publishedRouteRepository.findByIdAndIsApprovedTrue(routeId)).thenReturn(Optional.of(publishedRoute));
         when(mapperService.toPublicRouteDetailDto(any(PublishedRoute.class))).thenReturn(routeDetailDto);
 
-        // Act
         PublicRouteDetailDto result = libraryService.getRouteDetails(routeId);
 
-        // Assert
         assertNotNull(result);
         assertEquals(routeDetailDto.getId(), result.getId());
         assertEquals(routeDetailDto.getTitle(), result.getTitle());
@@ -159,7 +154,6 @@ class LibraryServiceTest {
     @Test
     @DisplayName("publishRoute - Success")
     void testPublishRoute_Success() {
-        // Arrange
         when(publishedRouteRepository.existsByOriginalRouteId(trip.getId())).thenReturn(false);
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(publishedRouteRepository.save(any(PublishedRoute.class))).thenAnswer(invocation -> {
@@ -174,10 +168,8 @@ class LibraryServiceTest {
             return publicRouteDto;
         });
 
-        // Act
         PublicRouteDto result = libraryService.publishRoute(trip, user.getId());
 
-        // Assert
         assertNotNull(result);
         assertNotNull(result.getId());
         assertEquals(trip.getTitle(), result.getTitle());
@@ -192,12 +184,10 @@ class LibraryServiceTest {
     @Test
     @DisplayName("publishRoute - User Not Found")
     void testPublishRoute_UserNotFound() {
-        // Arrange
         Long nonExistentUserId = 999L;
         when(publishedRouteRepository.existsByOriginalRouteId(trip.getId())).thenReturn(false);
         when(userRepository.findById(nonExistentUserId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             libraryService.publishRoute(trip, nonExistentUserId);
         });
@@ -209,10 +199,8 @@ class LibraryServiceTest {
     @Test
     @DisplayName("publishRoute - Already Exists")
     void testPublishRoute_AlreadyExists() {
-        // Arrange
         when(publishedRouteRepository.existsByOriginalRouteId(trip.getId())).thenReturn(true);
 
-        // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
             libraryService.publishRoute(trip, user.getId());
         });
@@ -223,24 +211,20 @@ class LibraryServiceTest {
     @Test
     @DisplayName("approvePublishedRoute - Success")
     void testApprovePublishedRoute_Success() {
-        // Arrange
         Long routeId = 1L;
-        publishedRoute.setIsApproved(false); // Ensure it's initially not approved
+        publishedRoute.setIsApproved(false);
         when(publishedRouteRepository.findById(routeId)).thenReturn(Optional.of(publishedRoute));
         when(publishedRouteRepository.save(any(PublishedRoute.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(mapperService.toPublicRouteDto(any(PublishedRoute.class))).thenAnswer(invocation -> {
              PublishedRoute savedRoute = invocation.getArgument(0);
-             publicRouteDto.setId(convertToUuid(savedRoute.getId())); 
-             // Update DTO based on saved route if necessary
+             publicRouteDto.setId(convertToUuid(savedRoute.getId()));
              return publicRouteDto;
         });
 
-        // Act
         PublicRouteDto result = libraryService.approvePublishedRoute(routeId);
 
-        // Assert
         assertNotNull(result);
-        assertTrue(publishedRoute.getIsApproved()); // Check that the flag is set to true
+        assertTrue(publishedRoute.getIsApproved());
         verify(publishedRouteRepository).findById(routeId);
         verify(publishedRouteRepository).save(publishedRoute);
         verify(mapperService).toPublicRouteDto(publishedRoute);
@@ -249,11 +233,9 @@ class LibraryServiceTest {
     @Test
     @DisplayName("approvePublishedRoute - Not Found")
     void testApprovePublishedRoute_NotFound() {
-        // Arrange
         Long routeId = 99L;
         when(publishedRouteRepository.findById(routeId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             libraryService.approvePublishedRoute(routeId);
         });
@@ -264,14 +246,11 @@ class LibraryServiceTest {
     @Test
     @DisplayName("deletePublishedRoute - Success")
     void testDeletePublishedRoute_Success() {
-        // Arrange
         Long routeId = 1L;
         when(publishedRouteRepository.findById(routeId)).thenReturn(Optional.of(publishedRoute));
 
-        // Act
         libraryService.deletePublishedRoute(routeId);
 
-        // Assert
         verify(publishedRouteRepository).findById(routeId);
         verify(publishedRouteRepository).delete(publishedRoute);
     }
@@ -279,11 +258,9 @@ class LibraryServiceTest {
     @Test
     @DisplayName("deletePublishedRoute - Not Found")
     void testDeletePublishedRoute_NotFound() {
-        // Arrange
         Long routeId = 99L;
         when(publishedRouteRepository.findById(routeId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             libraryService.deletePublishedRoute(routeId);
         });
@@ -294,16 +271,13 @@ class LibraryServiceTest {
     @Test
     @DisplayName("searchRoutes - Success")
     void testSearchRoutes_Success() {
-        // Arrange
         String query = "Italy";
         Page<PublishedRoute> routePage = new PageImpl<>(Collections.singletonList(publishedRoute), pageable, 1);
         when(publishedRouteRepository.searchByQuery(query, pageable)).thenReturn(routePage);
         when(mapperService.toRoutePreviewDto(any(PublishedRoute.class))).thenReturn(routePreviewDto);
 
-        // Act
         Page<RoutePreviewDto> result = libraryService.searchRoutes(query, pageable);
 
-        // Assert
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(1, result.getContent().size());

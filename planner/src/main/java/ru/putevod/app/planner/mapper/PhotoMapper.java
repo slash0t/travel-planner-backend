@@ -8,12 +8,12 @@ import ru.putevod.app.planner.model.Photo;
         uses = {FileMapper.class, UserMapper.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface PhotoMapper {
-    
     @Mapping(source = "photoId", target = "id")
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "place.placeId", target = "placeId")
     @Mapping(source = "event.eventId", target = "eventId")
     @Mapping(source = "trip.tripId", target = "tripId")
+    @Mapping(target = "url", ignore = true)
     PhotoDto toDto(Photo photo);
     
     @Mapping(source = "id", target = "photoId")

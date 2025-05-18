@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.putevod.app.planner.client.AuthServiceClient;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
-import ru.putevod.app.planner.dto.UserDto;
 import ru.putevod.app.planner.exception.AccessDeniedException;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
@@ -284,7 +283,7 @@ public class TripServiceImpl implements TripService {
             return true;
         }
         
-        if (trip.isPublic() && Arrays.asList(requiredLevels).contains("read")) {
+        if (trip.isPublished() && Arrays.asList(requiredLevels).contains("read")) {
             return true;
         }
         

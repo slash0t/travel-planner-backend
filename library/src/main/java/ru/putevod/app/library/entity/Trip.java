@@ -61,6 +61,7 @@ public class Trip {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "trip_id")
+    @Builder.Default
     private List<TripDay> days = new ArrayList<>();
 
     @Transient

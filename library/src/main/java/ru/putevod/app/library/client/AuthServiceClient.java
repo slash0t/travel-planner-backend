@@ -1,22 +1,19 @@
 package ru.putevod.app.library.client;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-@Service
 @Slf4j
+@Service
+@RequiredArgsConstructor
 public class AuthServiceClient {
-    private final WebClient webClient;
+    private final WebClient authServiceWebClient;
     
     @Value("${auth.token}")
     private String serviceToken;
-    
-    public AuthServiceClient(@Qualifier("authServiceWebClient") WebClient webClient) {
-        this.webClient = webClient;
-    }
 
     /**
      * Проверяет валидность пользовательского токена через auth-сервис
@@ -25,7 +22,7 @@ public class AuthServiceClient {
      */
     public boolean validateUserToken(String token) {
         try {
-            return Boolean.TRUE.equals(webClient.post()
+            return Boolean.TRUE.equals(authServiceWebClient.post()
                     .uri("/auth/validate")
                     .bodyValue(new TokenValidationRequest(token))
                     .header("X-Service-Token", serviceToken)
@@ -47,7 +44,7 @@ public class AuthServiceClient {
      */
     public UserInfo getUserInfo(String token) {
         try {
-            return webClient.post()
+            return authServiceWebClient.post()
                     .uri("/auth/userinfo")
                     .bodyValue(new TokenValidationRequest(token))
                     .header("X-Service-Token", serviceToken)
