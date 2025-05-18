@@ -45,9 +45,9 @@ app:
   frontend-url: ${FRONTEND_URL}
   jwt:
     secret: ${JWT_SECRET:secretsecretsecretsecretsecretsecretsecretsecret}
-    access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS:3600000000}
-    refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRATION_MS:604800000}
-    anonymous-token-expiration-ms: ${JWT_ANONYMOUS_TOKEN_EXPIRATION_MS:1800000}
+    access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS}
+    refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRATION_MS}
+    anonymous-token-expiration-ms: ${JWT_ANONYMOUS_TOKEN_EXPIRATION_MS}
   email:
     from: ${EMAIL_FROM}
   verification-token-expiration-hours: 24
