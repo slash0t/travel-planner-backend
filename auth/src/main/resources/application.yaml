@@ -8,14 +8,14 @@ spring:
     import: optional:file:.env[.properties]
   security:
     user:
-      name: ${SPRING_SECURITY_USER}
-      password: ${SPRING_SECURITY_PASSWORD}
+      name: ${SPRING_SECURITY_USER:admin}
+      password: ${SPRING_SECURITY_PASSWORD:admin}
   liquibase:
     enabled: false
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5438/travelPlannerDB}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
