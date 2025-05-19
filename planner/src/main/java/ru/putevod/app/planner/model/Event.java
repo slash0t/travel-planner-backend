@@ -57,11 +57,13 @@ public class Event {
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<EventFile> files = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<EventReminder> reminders = new ArrayList<>();
     
     @PrePersist

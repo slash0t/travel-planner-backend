@@ -1,27 +1,31 @@
 server:
-  port: 8080
-  servlet:
-    context-path:
+  port: ${SERVER_PORT_AUTH}
 
 spring:
   application:
-    name: auth-service
+    name: putevod-auth-service
+  config:
+    import: optional:file:.env[.properties]
+  security:
+    user:
+      name: ${SPRING_SECURITY_USER:admin}
+      password: ${SPRING_SECURITY_PASSWORD:admin}
   liquibase:
     enabled: false
   datasource:
-    url: jdbc:postgresql://localhost:5438/travelPlannerDB
-    username: postgres
-    password: postgres
+    url: ${DB_URL:jdbc:postgresql://localhost:5438/travelPlannerDB}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: nikelodeon53@gmail.com
-    password: kjez szkp lfpx ptrm
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -31,18 +35,21 @@ spring:
 
 springdoc:
   api-docs:
-    path: /v3/api-docs
+    path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
     operations-sorter: method
     tags-sorter: alpha
 
 app:
-  frontend-url: https://travelplanner.com
+  frontend-url: ${FRONTEND_URL}
   jwt:
-    secret: ${JWT_SECRET:YgUH7tDfJVRgH3Kvd9oNaX1PYqIj0yGGM2rHDouD9zL7rAp8HOt8XbX9UQ2q1QQjA9QacCXCqoSXMQIPT8EGJ92kUuG7zGuKvBbD}
-    access-token-expiration-ms: 3600000000
-    refresh-token-expiration-ms: 604800000
-    anonymous-token-expiration-ms: 1800000
+    secret: ${JWT_SECRET:secretsecretsecretsecretsecretsecretsecretsecret}
+    access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS}
+    refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRATION_MS}
+    anonymous-token-expiration-ms: ${JWT_ANONYMOUS_TOKEN_EXPIRATION_MS}
   email:
-    from: nikelodeon53@gmail.com
+    from: ${EMAIL_FROM}
+  verification-token-expiration-hours: 24
+  reset-token-expiration-minutes: 15
+  auth-token: ${AUTH_SERVICE_TOKEN:service_token_for_development}

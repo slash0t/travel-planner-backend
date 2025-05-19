@@ -44,8 +44,9 @@ public class TodoList {
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     @OneToMany(mappedBy = "todoList", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<TodoItem> items = new ArrayList<>();
     
     @PrePersist

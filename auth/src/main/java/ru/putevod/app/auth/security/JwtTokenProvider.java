@@ -1,16 +1,9 @@
 package ru.putevod.app.auth.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
-import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.putevod.app.auth.config.AppProperties;
@@ -32,21 +25,6 @@ import java.util.function.Function;
 @Slf4j
 public class JwtTokenProvider {
 
-    @Value("${app.jwt.secret}")
-    private String jwtSecret;
-
-    @Value("${app.jwt.access-token-expiration-ms}")
-    private long accessTokenExpirationMs;
-
-    @Value("${app.jwt.refresh-token-expiration-ms}")
-    private long refreshTokenExpirationMs;
-    
-    @Value("${app.jwt.anonymous-token-expiration-ms:1800000}")
-    private long anonymousTokenExpirationMs;
-    
-    @Value("${auth.token:${AUTH_SERVICE_TOKEN:service_token_for_development}}")
-    private String serviceToken;
-
     private final AppProperties appProperties;
     private final UserSessionRepository userSessionRepository;
 
@@ -57,8 +35,8 @@ public class JwtTokenProvider {
                 .claim("username", user.getUsername())
                 .claim("isAdmin", user.getIsAdmin())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpirationMs))
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .setExpiration(new Date(System.currentTimeMillis() + appProperties.getJwt().getAccessTokenExpirationMs()))
+                .signWith(Keys.hmacShaKeyFor(appProperties.getJwt().getSecret().getBytes()))
                 .compact();
     }
 
@@ -70,7 +48,7 @@ public class JwtTokenProvider {
                 .token(token)
                 .deviceInfo(deviceInfo)
                 .ipAddress(ipAddress)
-                .expiresAt(LocalDateTime.now().plusNanos(refreshTokenExpirationMs))
+                .expiresAt(LocalDateTime.now().plusNanos(appProperties.getJwt().getRefreshTokenExpirationMs()))
                 .createdAt(LocalDateTime.now())
                 .lastActivity(LocalDateTime.now())
                 .build();
@@ -90,8 +68,8 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + anonymousTokenExpirationMs))
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .setExpiration(new Date(System.currentTimeMillis() + appProperties.getJwt().getAnonymousTokenExpirationMs()))
+                .signWith(Keys.hmacShaKeyFor(appProperties.getJwt().getSecret().getBytes()))
                 .compact();
     }
 
@@ -126,7 +104,11 @@ public class JwtTokenProvider {
     }
 
     private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder()
+                .setSigningKey(Keys.hmacShaKeyFor(appProperties.getJwt().getSecret().getBytes(StandardCharsets.UTF_8)))
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
@@ -142,15 +124,19 @@ public class JwtTokenProvider {
      */
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
+            JwtParser jwtParser = Jwts.parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(appProperties.getJwt().getSecret().getBytes()))
+                    .build();
+
+            jwtParser.parseClaimsJws(token);
             return !isTokenExpired(token);
-        } catch (SignatureException e) {
+        } catch (io.jsonwebtoken.security.SignatureException e) {
             log.error("Неверная подпись JWT: {}", e.getMessage());
-        } catch (MalformedJwtException e) {
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
             log.error("Неверный формат JWT: {}", e.getMessage());
-        } catch (ExpiredJwtException e) {
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
             log.error("JWT токен истек: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
+        } catch (io.jsonwebtoken.UnsupportedJwtException e) {
             log.error("JWT токен не поддерживается: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
             log.error("JWT неверные аргументы: {}", e.getMessage());
@@ -165,7 +151,7 @@ public class JwtTokenProvider {
      * @return true если токен действительный, false в противном случае
      */
     public boolean validateServiceToken(String providedToken) {
-        return providedToken != null && providedToken.equals(serviceToken);
+        return providedToken != null && providedToken.equals(appProperties.getAuthToken());
     }
 
     private boolean isTokenExpired(String token) {

@@ -1,27 +1,51 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT_EXTERNAL}
 
 app:
   external-api:
-    openTripMapApiKey: 5ae2e3f221c38a28845f05b6eef345b7956e84e655924ecd1cdf1ca2
-    openTripMapBaseUrl: https://api.opentripmap.com/0.1/
+    openTripMapApiKey: ${OPENTRIPMAP_API_KEY}
+    openTripMapBaseUrl: ${OPENTRIPMAP_BASE_URL}
 
 logging:
   level:
     ru.putevod.app: DEBUG
+    org.springdoc: DEBUG
 
 spring:
   application:
-    name: travel-planner-external-service
-
+    name: putevod-external-service
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
       - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+  security:
+    user:
+      name: ${SPRING_SECURITY_USER}
+      password: ${SPRING_SECURITY_PASSWORD}
 
 services:
   auth:
-    url: http://localhost:8081/api/v1
+    url: ${AUTH_SERVICE_URL}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    disable-swagger-default-url: true
+    display-request-duration: true
+  packages-to-scan: ru.putevod.app.external.controller
+  paths-to-match: /api/v1/**
+  group-configs:
+    - group: places-api
+      paths-to-match: /api/v1/places/**
+      display-name: Places API
+    - group: ai-api
+      paths-to-match: /api/v1/ai/**
+      display-name: AI Services API
 
 auth:
   token: ${AUTH_SERVICE_TOKEN:service_token_for_development}

@@ -49,11 +49,13 @@ public class Place {
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     @OneToMany(mappedBy = "place")
+    @Builder.Default
     private List<Event> events = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "place")
+    @Builder.Default
     private List<Photo> photos = new ArrayList<>();
     
     @PrePersist

@@ -1,8 +1,10 @@
 package ru.putevod.app.planner.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +14,11 @@ import ru.putevod.app.planner.dto.NotificationDto;
 import ru.putevod.app.planner.service.NotificationService;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Notifications", description = "API для управления уведомлениями")
+@SecurityRequirement(name = "bearerAuth")
 public class NotificationController {
     
     private final NotificationService notificationService;

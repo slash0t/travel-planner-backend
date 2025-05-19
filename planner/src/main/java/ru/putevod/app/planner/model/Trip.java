@@ -46,7 +46,7 @@ public class Trip {
     private String city;
     
     @Column(name = "is_public")
-    private boolean isPublic;
+    private boolean published;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -56,19 +56,23 @@ public class Trip {
     
     @Column(name = "is_deleted")
     private boolean isDeleted;
-    
+
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<TripDay> days = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<TripAccess> accesses = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<TripFile> files = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<TodoList> todoLists = new ArrayList<>();
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

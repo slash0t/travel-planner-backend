@@ -1,6 +1,7 @@
 package ru.putevod.app.planner.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,10 +18,11 @@ import ru.putevod.app.planner.service.TripService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/trips")
+@RequestMapping("/api/v1/trips")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Trips", description = "API для управления поездками")
+@SecurityRequirement(name = "bearerAuth")
 public class TripController {
     private final TripService tripService;
     

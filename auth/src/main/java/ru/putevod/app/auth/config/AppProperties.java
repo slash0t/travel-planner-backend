@@ -12,17 +12,22 @@ public class AppProperties {
     private Jwt jwt = new Jwt();
     private Email email = new Email();
     private Security security = new Security();
+    private String frontendUrl;
+    private int verificationTokenExpirationHours = 24;
+    private int resetTokenExpirationMinutes = 15;
+    private String authToken;
 
     @Data
     public static class Jwt {
         private String secret;
         private long accessTokenExpirationMs;
         private long refreshTokenExpirationMs;
-        private long anonymousTokenExpirationMs;
+        private long anonymousTokenExpirationMs = 1800000;
     }
 
     @Data
     public static class Email {
+        private String from;
         private Verification verification = new Verification();
         private PasswordReset passwordReset = new PasswordReset();
 

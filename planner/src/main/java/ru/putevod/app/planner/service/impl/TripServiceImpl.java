@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.putevod.app.planner.client.AuthServiceClient;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
-import ru.putevod.app.planner.dto.UserDto;
 import ru.putevod.app.planner.exception.AccessDeniedException;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
@@ -114,21 +113,12 @@ public class TripServiceImpl implements TripService {
     @Transactional(readOnly = true)
     public Page<TripDto> getUserTrips(Long userId, String filter, Pageable pageable) {
         User user = userService.getUserEntityById(userId);
-        Page<Trip> trips;
-        
-        switch (filter.toLowerCase()) {
-            case "created":
-                trips = tripRepository.findAllByCreator(user, pageable);
-                break;
-            case "shared":
-                trips = tripRepository.findAllSharedWithUser(user, pageable);
-                break;
-            case "all":
-            default:
-                trips = tripRepository.findAllAvailableToUser(user, pageable);
-                break;
-        }
-        
+        Page<Trip> trips = switch (filter.toLowerCase()) {
+            case "created" -> tripRepository.findAllByCreator(user, pageable);
+            case "shared" -> tripRepository.findAllSharedWithUser(user, pageable);
+            default -> tripRepository.findAllAvailableToUser(user, pageable);
+        };
+
         return trips.map(tripMapper::toDto);
     }
 
@@ -196,12 +186,10 @@ public class TripServiceImpl implements TripService {
         User user = userService.getUserEntityById(userId);
         Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin");
         
-        // Нельзя удалить доступ создателя поездки
         if (trip.getCreator().getUserId().equals(shareUserId)) {
             throw new BadRequestException("Невозможно удалить доступ создателя поездки");
         }
         
-        // Проверяем, что удаляемый доступ принадлежит не самому пользователю, если он не создатель
         if (userId.equals(shareUserId) && !trip.getCreator().getUserId().equals(userId)) {
             throw new BadRequestException("Вы не можете удалить свой собственный доступ");
         }
@@ -236,7 +224,6 @@ public class TripServiceImpl implements TripService {
         tripAccess = tripAccessRepository.save(tripAccess);
         
         if ("accepted".equals(status)) {
-            // Отправляем уведомление создателю поездки, что пользователь принял приглашение
             notificationService.createTripShareAcceptedNotification(
                     trip.getCreator().getUserId(),
                     tripId,
@@ -288,22 +275,18 @@ public class TripServiceImpl implements TripService {
     @Override
     @Transactional(readOnly = true)
     public boolean hasAccessToTrip(User user, Trip trip, String... requiredLevels) {
-        // Проверяем, что поездка не удалена
         if (trip.isDeleted()) {
             return false;
         }
         
-        // Создатель всегда имеет полный доступ
         if (trip.getCreator().getUserId().equals(user.getUserId())) {
             return true;
         }
         
-        // Публичная поездка доступна для чтения всем
-        if (trip.isPublic() && Arrays.asList(requiredLevels).contains("read")) {
+        if (trip.isPublished() && Arrays.asList(requiredLevels).contains("read")) {
             return true;
         }
         
-        // Проверяем права доступа по записям TripAccess
         return tripAccessRepository.findByTripAndUser(trip, user)
                 .filter(access -> "accepted".equals(access.getInvitationStatus()))
                 .map(access -> Arrays.asList(requiredLevels).contains(access.getAccessLevel()))

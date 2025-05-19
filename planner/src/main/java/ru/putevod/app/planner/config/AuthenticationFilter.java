@@ -28,6 +28,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             "/api/health",
             "/swagger-ui",
             "/v3/api-docs",
+            "/api-docs",
+            "/api-docs/swagger-config",
             "/actuator"
     );
 
