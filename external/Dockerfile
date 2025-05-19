@@ -23,5 +23,5 @@ RUN ./mvnw -pl :external clean package -DskipTests
 FROM eclipse-temurin:23-jre-alpine
 WORKDIR /app
 COPY --from=builder /app/external/target/*.jar app.jar
-EXPOSE 8080
+EXPOSE 8083
 ENTRYPOINT ["java", "-jar", "app.jar"]

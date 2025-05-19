@@ -23,5 +23,5 @@ RUN ./mvnw -pl :library clean package -DskipTests
 FROM eclipse-temurin:23-jre-alpine
 WORKDIR /app
 COPY --from=builder /app/library/target/*.jar app.jar
-EXPOSE 8080
+EXPOSE 8084
 ENTRYPOINT ["java", "-jar", "app.jar"]
