@@ -3,6 +3,8 @@ services:
     image: postgres:17
     env_file:
       - .env
+    environment:
+      PGPORT: 5438
     ports:
       - "5438:5438"
     volumes:
