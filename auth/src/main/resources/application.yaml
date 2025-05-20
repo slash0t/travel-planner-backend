@@ -40,6 +40,11 @@ springdoc:
     path: /swagger-ui.html
     operations-sorter: method
     tags-sorter: alpha
+    disable-swagger-default-url: true
+    display-request-duration: true
+  packages-to-scan: ru.putevod.app.auth.controller
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
 
 app:
   frontend-url: ${FRONTEND_URL}
