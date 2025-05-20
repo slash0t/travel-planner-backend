@@ -83,3 +83,99 @@ jobs:
         name: planner-target.jar
         path: planner/target/*SNAPSHOT.jar
         if-no-files-found: error
+        
+  build_and_push_auth:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+  
+      - name: Log in to registry
+        uses: docker/login-action@v3
+        with:
+          registry: https://ghcr.io
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.GH_TOKEN }}
+      - name: Check gh hash before pushing to registry
+        run: |
+          echo ${{ github.sha }}
+      - name: Build and push Docker backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./auth/
+          push: true
+          tags: |
+            ghcr.io/slash0t/putevod-auth:latest
+            ghcr.io/slash0t/putevod-auth:${{ github.sha }}
+            
+  build_and_push_external:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+  
+      - name: Log in to registry
+        uses: docker/login-action@v3
+        with:
+          registry: https://ghcr.io
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.GH_TOKEN }}
+      - name: Check gh hash before pushing to registry
+        run: |
+          echo ${{ github.sha }}
+      - name: Build and push Docker backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./external/
+          push: true
+          tags: |
+            ghcr.io/slash0t/putevod-external:latest
+            ghcr.io/slash0t/putevod-external:${{ github.sha }}
+            
+  build_and_push_library:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+  
+      - name: Log in to registry
+        uses: docker/login-action@v3
+        with:
+          registry: https://ghcr.io
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.GH_TOKEN }}
+      - name: Check gh hash before pushing to registry
+        run: |
+          echo ${{ github.sha }}
+      - name: Build and push Docker backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./library/
+          push: true
+          tags: |
+            ghcr.io/slash0t/putevod-library:latest
+            ghcr.io/slash0t/putevod-library:${{ github.sha }}
+
+  build_and_push_planner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+  
+      - name: Log in to registry
+        uses: docker/login-action@v3
+        with:
+          registry: https://ghcr.io
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.GH_TOKEN }}
+      - name: Check gh hash before pushing to registry
+        run: |
+          echo ${{ github.sha }}
+      - name: Build and push Docker backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./planner/
+          push: true
+          tags: |
+            ghcr.io/slash0t/putevod-planner:latest
+            ghcr.io/slash0t/putevod-planner:${{ github.sha }}
