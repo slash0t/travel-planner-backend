@@ -204,45 +204,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: create env file
-        run: |
-          echo "SERVER_PORT_PLANNER=${{ secrets.SERVER_PORT_PLANNER }}" >> ./envfile
-          echo "SERVER_PORT_EXTERNAL=${{ secrets.SERVER_PORT_EXTERNAL }}" >> ./envfile
-          echo "SERVER_PORT_AUTH=${{ secrets.SERVER_PORT_AUTH }}" >> ./envfile
-          echo "SERVER_PORT_LIBRARY=${{ secrets.SERVER_PORT_LIBRARY }}" >> ./envfile
-          echo "DB_URL=${{ secrets.DB_URL }}" >> ./envfile
-          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> ./envfile
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ./envfile
-          echo "SPRING_SECURITY_USER=${{ secrets.SPRING_SECURITY_USER }}" >> ./envfile
-          echo "SPRING_SECURITY_PASSWORD=${{ secrets.SPRING_SECURITY_PASSWORD }}" >> ./envfile
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ./envfile
-          echo "JWT_ACCESS_TOKEN_EXPIRATION_MS=${{ secrets.JWT_ACCESS_TOKEN_EXPIRATION_MS }}" >> ./envfile
-          echo "JWT_REFRESH_TOKEN_EXPIRATION_MS=${{ secrets.JWT_REFRESH_TOKEN_EXPIRATION_MS }}" >> ./envfile
-          echo "JWT_ANONYMOUS_TOKEN_EXPIRATION_MS=${{ secrets.JWT_ANONYMOUS_TOKEN_EXPIRATION_MS }}" >> ./envfile
-          echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> ./envfile
-          echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> ./envfile
-          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> ./envfile
-          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> ./envfile
-          echo "EMAIL_FROM=${{ secrets.EMAIL_FROM }}" >> ./envfile
-          echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> ./envfile
-          echo "AUTH_SERVICE_URL=${{ secrets.AUTH_SERVICE_URL }}" >> ./envfile
-          echo "PLANNER_SERVICE_URL=${{ secrets.PLANNER_SERVICE_URL }}" >> ./envfile
-          echo "AUTH_SERVICE_TOKEN=${{ secrets.AUTH_SERVICE_TOKEN }}" >> ./envfile
-          echo "OPENTRIPMAP_API_KEY=${{ secrets.OPENTRIPMAP_API_KEY }}" >> ./envfile
-          echo "OPENTRIPMAP_BASE_URL=${{ secrets.OPENTRIPMAP_BASE_URL }}" >> ./envfile
-          echo "MAX_FILE_SIZE=${{ secrets.MAX_FILE_SIZE }}" >> ./envfile
-          echo "MAX_REQUEST_SIZE=${{ secrets.MAX_REQUEST_SIZE }}" >> ./envfile
-          echo "LOG_LEVEL_ROOT=${{ secrets.LOG_LEVEL_ROOT }}" >> ./envfile
-          echo "LOG_LEVEL_APP=${{ secrets.LOG_LEVEL_APP }}" >> ./envfile
-          echo "LOG_LEVEL_SPRING_WEB=${{ secrets.LOG_LEVEL_SPRING_WEB }}" >> ./envfile
-          echo "LOG_LEVEL_HIBERNATE=${{ secrets.LOG_LEVEL_HIBERNATE }}" >> ./envfile
-          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> ./envfile
-          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> ./envfile
-          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> ./envfile
-          echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" >> ./envfile
-          echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> ./envfile
-          echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> ./envfile
-          echo "PGPORT=${{ secrets.PGPORT }}" >> ./envfile
+      - name: Make envfile
+        uses: SpicyPizza/create-envfile@v2.0
+        with:
+          envkey_SECRETS: ${{ toJSON(secrets) }}
+          file_name: ./envfile
+          fail_on_empty: false
 
       - name: Docker Stack Deploy
         uses: cssnr/stack-deploy-action@v1
@@ -257,6 +224,3 @@ jobs:
           registry_host: "ghcr.io"
           registry_user: ${{ secrets.DEPLOY_USER }}
           registry_pass: ${{ secrets.GH_TOKEN }}
-
-      - name: Run tmate
-        uses: mxschmitt/action-tmate@v3
