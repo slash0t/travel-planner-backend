@@ -1,0 +1,106 @@
+services:
+  postgresql:
+    image: postgres:17
+    container_name: postgresTravelPlanner
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: travelPlannerDB
+      PGPORT: 5438
+    ports:
+      - "5438:5438"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  liquibase-migrations:
+    container_name: migrations_travel_planner
+    image: liquibase/liquibase:4.29
+    depends_on:
+      - postgresql
+    command:
+      - --searchPath=/changesets
+      - --changelog-file=master.xml
+      - --driver=org.postgresql.Driver
+      - --url=jdbc:postgresql://postgresql:5438/travelPlannerDB
+      - --username=${DB_USERNAME}
+      - --password=${DB_PASSWORD}
+      - update
+    volumes:
+      - ./migrations:/changesets
+
+  auth-service:
+    image: ghcr.io/slash0t/putevod-auth:latest
+    container_name: auth_service
+    env_file:
+      - .env
+    depends_on:
+      - postgresql
+      - liquibase-migrations
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8081:8081"
+    deploy:
+      update_config:
+        order: start-first
+
+  planner-service:
+    image: ghcr.io/slash0t/putevod-planner:latest
+    container_name: planner_service
+    env_file:
+      - .env
+    depends_on:
+      - postgresql
+      - liquibase-migrations
+      - auth-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      AUTH_SERVICE_URL: http://auth-service:8080
+    ports:
+      - "8082:8082"
+    deploy:
+      update_config:
+        order: start-first
+
+  external-service:
+    image: ghcr.io/slash0t/putevod-external:latest
+    container_name: external_service
+    env_file:
+      - .env
+    depends_on:
+      - postgresql
+      - liquibase-migrations
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8083:8083"
+    deploy:
+      update_config:
+        order: start-first
+
+  library-service:
+    image: ghcr.io/slash0t/putevod-library:latest
+    container_name: library_service
+    env_file:
+      - .env
+    depends_on:
+      - postgresql
+      - liquibase-migrations
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8084:8084"
+    deploy:
+      update_config:
+        order: start-first
+
+volumes:
+  postgres_data:
