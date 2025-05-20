@@ -245,6 +245,9 @@ jobs:
           echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> ./.env
           echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> ./.env
 
+      - name: Get env
+        run: echo "$(cat .env)"
+
       - name: Docker Stack Deploy
         uses: cssnr/stack-deploy-action@v1
         with:
