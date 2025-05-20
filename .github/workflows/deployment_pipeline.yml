@@ -205,45 +205,45 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Make env file
-        uses: SpicyPizza/create-envfile@v2.0
+        uses: ozaytsev86/create-env-file@v2.0.0
         with:
-          envkey_SERVER_PORT_PLANNER: ${{ secrets.SERVER_PORT_PLANNER }}
-          envkey_SERVER_PORT_EXTERNAL: ${{ secrets.SERVER_PORT_EXTERNAL }}
-          envkey_SERVER_PORT_AUTH: ${{ secrets.SERVER_PORT_AUTH }}
-          envkey_SERVER_PORT_LIBRARY: ${{ secrets.SERVER_PORT_LIBRARY }}
-          envkey_DB_URL: ${{ secrets.DB_URL }}
-          envkey_DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          envkey_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          envkey_SPRING_SECURITY_USER: ${{ secrets.SPRING_SECURITY_USER }}
-          envkey_SPRING_SECURITY_PASSWORD: ${{ secrets.SPRING_SECURITY_PASSWORD }}
-          envkey_JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          envkey_JWT_ACCESS_TOKEN_EXPIRATION_MS: ${{ secrets.JWT_ACCESS_TOKEN_EXPIRATION_MS }}
-          envkey_JWT_REFRESH_TOKEN_EXPIRATION_MS: ${{ secrets.JWT_REFRESH_TOKEN_EXPIRATION_MS }}
-          envkey_JWT_ANONYMOUS_TOKEN_EXPIRATION_MS: ${{ secrets.JWT_ANONYMOUS_TOKEN_EXPIRATION_MS }}
-          envkey_MAIL_HOST: ${{ secrets.MAIL_HOST }}
-          envkey_MAIL_PORT: ${{ secrets.MAIL_PORT }}
-          envkey_MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          envkey_MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          envkey_EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-          envkey_FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
-          envkey_AUTH_SERVICE_URL: ${{ secrets.AUTH_SERVICE_URL }}
-          envkey_PLANNER_SERVICE_URL: ${{ secrets.PLANNER_SERVICE_URL }}
-          envkey_AUTH_SERVICE_TOKEN: ${{ secrets.AUTH_SERVICE_TOKEN }}
-          envkey_OPENTRIPMAP_API_KEY: ${{ secrets.OPENTRIPMAP_API_KEY }}
-          envkey_OPENTRIPMAP_BASE_URL: ${{ secrets.OPENTRIPMAP_BASE_URL }}
-          envkey_MAX_FILE_SIZE: ${{ secrets.MAX_FILE_SIZE }}
-          envkey_MAX_REQUEST_SIZE: ${{ secrets.MAX_REQUEST_SIZE }}
-          envkey_LOG_LEVEL_ROOT: ${{ secrets.LOG_LEVEL_ROOT }}
-          envkey_LOG_LEVEL_APP: ${{ secrets.LOG_LEVEL_APP }}
-          envkey_LOG_LEVEL_SPRING_WEB: ${{ secrets.LOG_LEVEL_SPRING_WEB }}
-          envkey_LOG_LEVEL_HIBERNATE: ${{ secrets.LOG_LEVEL_HIBERNATE }}
-          envkey_POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          envkey_POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          envkey_POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          envkey_PGPORT: ${{ secrets.PGPORT }}
-          envkey_SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
-          envkey_SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          envkey_SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          ENV_SERVER_PORT_PLANNER: ${{ secrets.SERVER_PORT_PLANNER }}
+          ENV_SERVER_PORT_EXTERNAL: ${{ secrets.SERVER_PORT_EXTERNAL }}
+          ENV_SERVER_PORT_AUTH: ${{ secrets.SERVER_PORT_AUTH }}
+          ENV_SERVER_PORT_LIBRARY: ${{ secrets.SERVER_PORT_LIBRARY }}
+          ENV_DB_URL: ${{ secrets.DB_URL }}
+          ENV_DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          ENV_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          ENV_SPRING_SECURITY_USER: ${{ secrets.SPRING_SECURITY_USER }}
+          ENV_SPRING_SECURITY_PASSWORD: ${{ secrets.SPRING_SECURITY_PASSWORD }}
+          ENV_JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          ENV_JWT_ACCESS_TOKEN_EXPIRATION_MS: ${{ secrets.JWT_ACCESS_TOKEN_EXPIRATION_MS }}
+          ENV_JWT_REFRESH_TOKEN_EXPIRATION_MS: ${{ secrets.JWT_REFRESH_TOKEN_EXPIRATION_MS }}
+          ENV_JWT_ANONYMOUS_TOKEN_EXPIRATION_MS: ${{ secrets.JWT_ANONYMOUS_TOKEN_EXPIRATION_MS }}
+          ENV_MAIL_HOST: ${{ secrets.MAIL_HOST }}
+          ENV_MAIL_PORT: ${{ secrets.MAIL_PORT }}
+          ENV_MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          ENV_MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          ENV_EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          ENV_FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          ENV_AUTH_SERVICE_URL: ${{ secrets.AUTH_SERVICE_URL }}
+          ENV_PLANNER_SERVICE_URL: ${{ secrets.PLANNER_SERVICE_URL }}
+          ENV_AUTH_SERVICE_TOKEN: ${{ secrets.AUTH_SERVICE_TOKEN }}
+          ENV_OPENTRIPMAP_API_KEY: ${{ secrets.OPENTRIPMAP_API_KEY }}
+          ENV_OPENTRIPMAP_BASE_URL: ${{ secrets.OPENTRIPMAP_BASE_URL }}
+          ENV_MAX_FILE_SIZE: ${{ secrets.MAX_FILE_SIZE }}
+          ENV_MAX_REQUEST_SIZE: ${{ secrets.MAX_REQUEST_SIZE }}
+          ENV_LOG_LEVEL_ROOT: ${{ secrets.LOG_LEVEL_ROOT }}
+          ENV_LOG_LEVEL_APP: ${{ secrets.LOG_LEVEL_APP }}
+          ENV_LOG_LEVEL_SPRING_WEB: ${{ secrets.LOG_LEVEL_SPRING_WEB }}
+          ENV_LOG_LEVEL_HIBERNATE: ${{ secrets.LOG_LEVEL_HIBERNATE }}
+          ENV_POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          ENV_POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          ENV_POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          ENV_PGPORT: ${{ secrets.PGPORT }}
+          ENV_SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+          ENV_SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          ENV_SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
           file_name: .env
 
       - name: Get env
@@ -257,7 +257,7 @@ jobs:
           host: ${{ secrets.HOST }}
           user: deploy
           ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
-          env_file: .env
+          ENVfile: .env
           registry_auth: true
           registry_host: "ghcr.io"
           registry_user: ${{ secrets.DEPLOY_USER }}
