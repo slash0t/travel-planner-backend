@@ -102,7 +102,8 @@ jobs:
       - name: Build and push Docker backend image
         uses: docker/build-push-action@v6
         with:
-          context: ./auth/
+          context: .
+          file: /auth/Dockerfile
           push: true
           tags: |
             ghcr.io/slash0t/putevod-auth:latest
@@ -126,7 +127,8 @@ jobs:
       - name: Build and push Docker backend image
         uses: docker/build-push-action@v6
         with:
-          context: ./external/
+          context: .
+          file: /external/Dockerfile
           push: true
           tags: |
             ghcr.io/slash0t/putevod-external:latest
@@ -150,7 +152,8 @@ jobs:
       - name: Build and push Docker backend image
         uses: docker/build-push-action@v6
         with:
-          context: ./library/
+          context: .
+          file: /library/Dockerfile
           push: true
           tags: |
             ghcr.io/slash0t/putevod-library:latest
@@ -174,7 +177,8 @@ jobs:
       - name: Build and push Docker backend image
         uses: docker/build-push-action@v6
         with:
-          context: ./planner/
+          context: .
+          file: /planner/Dockerfile
           push: true
           tags: |
             ghcr.io/slash0t/putevod-planner:latest
