@@ -1,5 +1,6 @@
 package ru.putevod.app.auth.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import ru.putevod.app.auth.security.JwtAuthenticationFilter;
+import ru.putevod.app.auth.security.JwtExceptionHandler;
 import ru.putevod.app.auth.security.JwtTokenProvider;
 import ru.putevod.app.auth.security.JwtUserDetailsService;
 
@@ -32,10 +34,16 @@ public class SecurityConfig {
     private final JwtUserDetailsService userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AppProperties appProperties;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
+    }
+    
+    @Bean
+    public JwtExceptionHandler jwtExceptionHandler() {
+        return new JwtExceptionHandler(objectMapper);
     }
 
     @Bean
@@ -58,6 +66,7 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtExceptionHandler(), JwtAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -99,7 +108,7 @@ public class SecurityConfig {
         if (appProperties.getSecurity().getAllowedHeaders() != null) {
             configuration.setAllowedHeaders(Arrays.asList(appProperties.getSecurity().getAllowedHeaders().split(",")));
         } else {
-            configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token"));
+            configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token", "X-Service-Token"));
         }
         
         configuration.setExposedHeaders(List.of("X-Auth-Token"));

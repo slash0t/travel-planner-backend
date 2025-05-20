@@ -1,5 +1,9 @@
 package ru.putevod.app.auth.service.impl;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -247,7 +251,6 @@ public class AuthServiceImpl implements AuthService {
                 return TokenValidationResponse.builder().valid(false).build();
             }
             
-            // Формируем полный ответ с данными пользователя
             return TokenValidationResponse.builder()
                     .valid(true)
                     .userId(userId)
@@ -256,47 +259,80 @@ public class AuthServiceImpl implements AuthService {
                     .admin(isAdmin != null ? isAdmin : false)
                     .build();
             
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            log.warn("JWT токен истек: {}", e.getMessage());
+            return TokenValidationResponse.builder()
+                    .valid(false)
+                    .errorMessage("Срок действия токена истек")
+                    .errorType("ExpiredJwtException")
+                    .build();
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            log.warn("Неверная подпись JWT: {}", e.getMessage());
+            return TokenValidationResponse.builder()
+                    .valid(false)
+                    .errorMessage("Неверная подпись токена")
+                    .errorType("SignatureException")
+                    .build();
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            log.warn("Неверный формат JWT: {}", e.getMessage());
+            return TokenValidationResponse.builder()
+                    .valid(false)
+                    .errorMessage("Неверный формат токена")
+                    .errorType("MalformedJwtException")
+                    .build();
+        } catch (io.jsonwebtoken.UnsupportedJwtException e) {
+            log.warn("JWT токен не поддерживается: {}", e.getMessage());
+            return TokenValidationResponse.builder()
+                    .valid(false)
+                    .errorMessage("Неподдерживаемый токен")
+                    .errorType("UnsupportedJwtException")
+                    .build();
+        } catch (IllegalArgumentException e) {
+            log.warn("JWT неверные аргументы: {}", e.getMessage());
+            return TokenValidationResponse.builder()
+                    .valid(false)
+                    .errorMessage("Недопустимые аргументы JWT")
+                    .errorType("IllegalArgumentException")
+                    .build();
         } catch (Exception e) {
             log.error("Ошибка при валидации токена: {}", e.getMessage());
-            return TokenValidationResponse.builder().valid(false).build();
+            return TokenValidationResponse.builder()
+                    .valid(false)
+                    .errorMessage("Ошибка обработки токена")
+                    .errorType("Exception")
+                    .build();
         }
     }
     
     @Override
     public Map<String, Object> getUserInfoFromToken(String token, String serviceToken) {
-        // Проверяем сервисный токен
         if (!tokenProvider.validateServiceToken(serviceToken)) {
             log.warn("Попытка получения информации с неверным сервисным токеном");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Неверный сервисный токен");
         }
         
         try {
-            // Проверяем валидность JWT токена
             if (!tokenProvider.validateToken(token)) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Неверный токен пользователя");
             }
-            
-            // Для анонимного токена возвращаем ограниченную информацию
+
             if (tokenProvider.isAnonymousToken(token)) {
                 Map<String, Object> info = new HashMap<>();
                 info.put("isAnonymous", true);
                 return info;
             }
-            
-            // Получаем информацию из токена
+
             String email = tokenProvider.getEmailFromToken(token);
             Long userId = tokenProvider.getUserIdFromToken(token);
             String username = tokenProvider.getUsernameFromToken(token);
             Boolean isAdmin = tokenProvider.isAdminFromToken(token);
-            
-            // Создаем объект с информацией о пользователе
+
             Map<String, Object> userInfo = new HashMap<>();
             userInfo.put("userId", userId);
             userInfo.put("email", email);
             userInfo.put("username", username);
             userInfo.put("isAdmin", isAdmin != null ? isAdmin : false);
-            
-            // Дополняем информацию из базы данных
+
             Optional<User> userOpt = userService.findByEmail(email);
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
@@ -306,6 +342,21 @@ public class AuthServiceImpl implements AuthService {
             
             return userInfo;
             
+        } catch (ExpiredJwtException e) {
+            log.warn("JWT токен истек: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Срок действия токена истек");
+        } catch (SignatureException e) {
+            log.warn("Неверная подпись JWT: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Неверная подпись токена");
+        } catch (MalformedJwtException e) {
+            log.warn("Неверный формат JWT: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Неверный формат токена");
+        } catch (UnsupportedJwtException e) {
+            log.warn("JWT токен не поддерживается: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Неподдерживаемый токен");
+        } catch (IllegalArgumentException e) {
+            log.warn("JWT неверные аргументы: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Недопустимые аргументы JWT");
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
