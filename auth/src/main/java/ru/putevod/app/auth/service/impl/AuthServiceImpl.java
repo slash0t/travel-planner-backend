@@ -139,7 +139,7 @@ public class AuthServiceImpl implements AuthService {
     }
     
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public void resendVerificationEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
@@ -153,7 +153,7 @@ public class AuthServiceImpl implements AuthService {
     }
     
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public void sendPasswordResetEmail(String email) {
         Optional<User> userOptional = userRepository.findByEmail(email);
         
@@ -161,10 +161,6 @@ public class AuthServiceImpl implements AuthService {
             User user = userOptional.get();
             String resetCode = generateRandomCode();
             
-            // Сохраняем код в кеше или БД
-            // В данном примере предполагается, что это реализовано в emailService
-            emailService.storeResetCode(email, resetCode);
-
             emailService.sendPasswordResetEmail(user.getEmail(), user.getUsername(), resetCode);
         } else {
             log.info("Попытка сброса пароля для несуществующего email: {}", email);
@@ -204,10 +200,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         emailService.invalidateResetToken(resetToken);
-        
-        // выход пользователя из всех сессий
-        // sessionRepository.deleteAllByUserId(user.getUserId());
-    }
+  }
     
     @Override
     public Map<String, Object> createAnonymousToken(String deviceId) {
@@ -228,7 +221,11 @@ public class AuthServiceImpl implements AuthService {
     public TokenValidationResponse validateToken(String token, String serviceToken) {
         if (!tokenProvider.validateServiceToken(serviceToken)) {
             log.warn("Попытка валидации с неверным сервисным токеном");
-            return TokenValidationResponse.builder().valid(false).build();
+            return TokenValidationResponse.builder()
+                    .valid(false)
+                    .errorMessage("Отказано в доступе")
+                    .errorType("AccessDenied")
+                    .build();
         }
         
         try {
