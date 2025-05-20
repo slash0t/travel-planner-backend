@@ -14,7 +14,7 @@ services:
   liquibase-migrations:
     image: liquibase/liquibase:4.29
     env_file:
-      - .env
+      - ./envfile
     depends_on:
       - postgresql
     command:
@@ -34,7 +34,7 @@ services:
   auth-service:
     image: ghcr.io/slash0t/putevod-auth:latest
     env_file:
-      - .env
+      - ./envfile
     depends_on:
       - postgresql
       - liquibase-migrations
@@ -47,7 +47,7 @@ services:
   planner-service:
     image: ghcr.io/slash0t/putevod-planner:latest
     env_file:
-      - .env
+      - ./envfile
     depends_on:
       - postgresql
       - liquibase-migrations
@@ -61,7 +61,7 @@ services:
   external-service:
     image: ghcr.io/slash0t/putevod-external:latest
     env_file:
-      - .env
+      - ./envfile
     depends_on:
       - postgresql
       - liquibase-migrations
@@ -74,7 +74,7 @@ services:
   library-service:
     image: ghcr.io/slash0t/putevod-library:latest
     env_file:
-      - .env
+      - ./envfile
     depends_on:
       - postgresql
       - liquibase-migrations
