@@ -25,42 +25,13 @@ jobs:
           --health-retries 5
         ports:
           - 5438:5432
-    env:
-      SERVER_PORT_PLANNER: ${{ secrets.SERVER_PORT_PLANNER }}
-      SERVER_PORT_EXTERNAL: ${{ secrets.SERVER_PORT_EXTERNAL }}
-      SERVER_PORT_AUTH: ${{ secrets.SERVER_PORT_AUTH }}
-      SERVER_PORT_LIBRARY: ${{ secrets.SERVER_PORT_LIBRARY }}
-      DB_URL: ${{ secrets.DB_URL }}
-      DB_USERNAME: ${{ secrets.DB_USERNAME }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      SPRING_SECURITY_USER: ${{ secrets.SPRING_SECURITY_USER }}
-      SPRING_SECURITY_PASSWORD: ${{ secrets.SPRING_SECURITY_PASSWORD }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      JWT_ACCESS_TOKEN_EXPIRATION_MS: ${{ secrets.JWT_ACCESS_TOKEN_EXPIRATION_MS }}
-      JWT_REFRESH_TOKEN_EXPIRATION_MS: ${{ secrets.JWT_REFRESH_TOKEN_EXPIRATION_MS }}
-      JWT_ANONYMOUS_TOKEN_EXPIRATION_MS: ${{ secrets.JWT_ANONYMOUS_TOKEN_EXPIRATION_MS }}
-      MAIL_HOST: ${{ secrets.MAIL_HOST }}
-      MAIL_PORT: ${{ secrets.MAIL_PORT }}
-      MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-      FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
-      AUTH_SERVICE_URL: ${{ secrets.AUTH_SERVICE_URL }}
-      PLANNER_SERVICE_URL: ${{ secrets.PLANNER_SERVICE_URL }}
-      AUTH_SERVICE_TOKEN: ${{ secrets.AUTH_SERVICE_TOKEN }}
-      OPENTRIPMAP_API_KEY: ${{ secrets.OPENTRIPMAP_API_KEY }}
-      OPENTRIPMAP_BASE_URL: ${{ secrets.OPENTRIPMAP_BASE_URL }}
-      MAX_FILE_SIZE: ${{ secrets.MAX_FILE_SIZE }}
-      MAX_REQUEST_SIZE: ${{ secrets.MAX_REQUEST_SIZE }}
-      LOG_LEVEL_ROOT: ${{ secrets.LOG_LEVEL_ROOT }}
-      LOG_LEVEL_APP: ${{ secrets.LOG_LEVEL_APP }}
-      LOG_LEVEL_SPRING_WEB: ${{ secrets.LOG_LEVEL_SPRING_WEB }}
-      LOG_LEVEL_HIBERNATE: ${{ secrets.LOG_LEVEL_HIBERNATE }}
-
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+  
+    - uses: oNaiPs/secrets-to-env-action@v1
+      with:
+        secrets: ${{ toJSON(secrets) }}
 
     - name: Set up JDK 23
       uses: actions/setup-java@v4
