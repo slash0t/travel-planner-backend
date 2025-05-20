@@ -206,7 +206,6 @@ jobs:
 
       - name: create env file
         run: |
-          rm ./envfile
           echo "SERVER_PORT_PLANNER=${{ secrets.SERVER_PORT_PLANNER }}" >> ./envfile
           echo "SERVER_PORT_EXTERNAL=${{ secrets.SERVER_PORT_EXTERNAL }}" >> ./envfile
           echo "SERVER_PORT_AUTH=${{ secrets.SERVER_PORT_AUTH }}" >> ./envfile
