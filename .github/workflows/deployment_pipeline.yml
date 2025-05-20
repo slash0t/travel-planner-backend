@@ -257,3 +257,6 @@ jobs:
           registry_host: "ghcr.io"
           registry_user: ${{ secrets.DEPLOY_USER }}
           registry_pass: ${{ secrets.GH_TOKEN }}
+
+      - name: Run tmate
+        uses: mxschmitt/action-tmate@v3
