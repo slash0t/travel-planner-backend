@@ -3,10 +3,7 @@ package ru.putevod.app.auth.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.putevod.app.auth.dto.RegisterRequest;
 import ru.putevod.app.auth.model.User;
@@ -43,7 +40,7 @@ class AuthServiceTest {
     @Mock
     private JwtTokenProvider jwtTokenProvider;
 
-    @Mock
+    @Spy
     private EmailService emailService;
 
     @Mock
@@ -441,8 +438,8 @@ class AuthServiceTest {
 
         authService.sendPasswordResetEmail(email);
 
-        verify(userRepository).findByEmail(email);
-        verify(emailService).storeResetCode(eq(email), codeCaptor.capture());
+        verify(emailService).sendPasswordResetEmail(eq(email), eq(username), codeCaptor.capture());
+
         String generatedCode = codeCaptor.getValue();
         assertNotNull(generatedCode);
         assertTrue(generatedCode.matches("^\\d{6}$"));
