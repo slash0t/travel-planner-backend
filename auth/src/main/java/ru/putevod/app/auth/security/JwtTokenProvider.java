@@ -2,6 +2,7 @@ package ru.putevod.app.auth.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -121,27 +122,21 @@ public class JwtTokenProvider {
      * 
      * @param token JWT токен для проверки
      * @return true если токен валидный, false в противном случае
+     * @throws SignatureException если подпись токена неверна
+     * @throws MalformedJwtException если формат токена неверен
+     * @throws ExpiredJwtException если срок действия токена истек
+     * @throws UnsupportedJwtException если токен не поддерживается
+     * @throws IllegalArgumentException если токен не содержит claims
      */
-    public boolean validateToken(String token) {
-        try {
-            JwtParser jwtParser = Jwts.parserBuilder()
-                    .setSigningKey(Keys.hmacShaKeyFor(appProperties.getJwt().getSecret().getBytes()))
-                    .build();
+    public boolean validateToken(String token) throws SignatureException, MalformedJwtException, 
+                                                     ExpiredJwtException, UnsupportedJwtException, 
+                                                     IllegalArgumentException {
+        JwtParser jwtParser = Jwts.parserBuilder()
+                .setSigningKey(Keys.hmacShaKeyFor(appProperties.getJwt().getSecret().getBytes()))
+                .build();
 
-            jwtParser.parseClaimsJws(token);
-            return !isTokenExpired(token);
-        } catch (io.jsonwebtoken.security.SignatureException e) {
-            log.error("Неверная подпись JWT: {}", e.getMessage());
-        } catch (io.jsonwebtoken.MalformedJwtException e) {
-            log.error("Неверный формат JWT: {}", e.getMessage());
-        } catch (io.jsonwebtoken.ExpiredJwtException e) {
-            log.error("JWT токен истек: {}", e.getMessage());
-        } catch (io.jsonwebtoken.UnsupportedJwtException e) {
-            log.error("JWT токен не поддерживается: {}", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            log.error("JWT неверные аргументы: {}", e.getMessage());
-        }
-        return false;
+        jwtParser.parseClaimsJws(token);
+        return !isTokenExpired(token);
     }
     
     /**
@@ -155,12 +150,8 @@ public class JwtTokenProvider {
     }
 
     private boolean isTokenExpired(String token) {
-        try {
-            final Date expiration = getExpirationDateFromToken(token);
-            return expiration.before(new Date());
-        } catch (ExpiredJwtException e) {
-            return true;
-        }
+        final Date expiration = getExpirationDateFromToken(token);
+        return expiration.before(new Date());
     }
 
     private Date getExpirationDateFromToken(String token) {

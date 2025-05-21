@@ -1,10 +1,11 @@
 package ru.putevod.app.auth.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -18,6 +19,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import ru.putevod.app.auth.security.JwtAuthenticationFilter;
+import ru.putevod.app.auth.security.JwtExceptionHandler;
 import ru.putevod.app.auth.security.JwtTokenProvider;
 import ru.putevod.app.auth.security.JwtUserDetailsService;
 
@@ -32,10 +34,16 @@ public class SecurityConfig {
     private final JwtUserDetailsService userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AppProperties appProperties;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
+    }
+    
+    @Bean
+    public JwtExceptionHandler jwtExceptionHandler() {
+        return new JwtExceptionHandler(objectMapper);
     }
 
     @Bean
@@ -57,17 +65,10 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider())
+                .userDetailsService(userDetailsService)
+                .addFilterBefore(jwtExceptionHandler(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .build();
-    }
-
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
     }
 
     @Bean
@@ -99,7 +100,7 @@ public class SecurityConfig {
         if (appProperties.getSecurity().getAllowedHeaders() != null) {
             configuration.setAllowedHeaders(Arrays.asList(appProperties.getSecurity().getAllowedHeaders().split(",")));
         } else {
-            configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token"));
+            configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token", "X-Service-Token"));
         }
         
         configuration.setExposedHeaders(List.of("X-Auth-Token"));
