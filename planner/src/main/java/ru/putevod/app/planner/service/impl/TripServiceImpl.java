@@ -18,8 +18,10 @@ import ru.putevod.app.planner.mapper.TripAccessMapper;
 import ru.putevod.app.planner.mapper.TripMapper;
 import ru.putevod.app.planner.model.Trip;
 import ru.putevod.app.planner.model.TripAccess;
+import ru.putevod.app.planner.model.TripDay;
 import ru.putevod.app.planner.model.User;
 import ru.putevod.app.planner.repository.TripAccessRepository;
+import ru.putevod.app.planner.repository.TripDayRepository;
 import ru.putevod.app.planner.repository.TripRepository;
 import ru.putevod.app.planner.service.NotificationService;
 import ru.putevod.app.planner.service.TripService;
@@ -43,6 +45,7 @@ public class TripServiceImpl implements TripService {
     private final TripAccessMapper tripAccessMapper;
     private final CreateTripMapper createTripMapper;
     private final AuthServiceClient authServiceClient;
+    private final TripDayRepository tripDayRepository;
 
     @Override
     @Transactional
@@ -65,6 +68,10 @@ public class TripServiceImpl implements TripService {
                 .build();
         
         tripAccessRepository.save(creatorAccess);
+        
+       if (trip.getStartDate() != null && trip.getEndDate() != null) {
+            createTripDays(trip);
+        }
         
         return tripMapper.toDto(trip);
     }
@@ -90,7 +97,37 @@ public class TripServiceImpl implements TripService {
         
         tripAccessRepository.save(creatorAccess);
         
+        // Создаем дни поездки автоматически
+        if (trip.getStartDate() != null && trip.getEndDate() != null) {
+            createTripDays(trip);
+        }
+        
         return tripMapper.toDto(trip);
+    }
+
+    /**
+     * Создает дни поездки автоматически на основе дат начала и окончания поездки
+     * @param trip поездка
+     */
+    private void createTripDays(Trip trip) {
+        LocalDate currentDate = trip.getStartDate();
+        int dayNumber = 1;
+        
+        while (!currentDate.isAfter(trip.getEndDate())) {
+            if (tripDayRepository.findByTripAndDate(trip, currentDate).isEmpty()) {
+                TripDay tripDay = TripDay.builder()
+                        .trip(trip)
+                        .dayNumber(dayNumber)
+                        .date(currentDate)
+                        .build();
+                
+                tripDayRepository.save(tripDay);
+                log.info("Создан день {} для поездки {}: {}", dayNumber, trip.getTripId(), currentDate);
+            }
+            
+            currentDate = currentDate.plusDays(1);
+            dayNumber++;
+        }
     }
 
     /**
@@ -158,7 +195,6 @@ public class TripServiceImpl implements TripService {
     @Override
     @Transactional
     public TripDto updateTrip(Long userId, Long tripId, TripDto tripDto) {
-        User user = userService.getUserEntityById(userId);
         Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin", "write");
         
         tripMapper.updateEntityFromDto(tripDto, trip);

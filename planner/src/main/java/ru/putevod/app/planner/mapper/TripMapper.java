@@ -1,11 +1,13 @@
 package ru.putevod.app.planner.mapper;
 
 import org.mapstruct.*;
+import ru.putevod.app.planner.dto.TripDayDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.model.Trip;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 
 @Mapper(componentModel = "spring", 
         uses = {UserMapper.class, TripDayMapper.class, TripAccessMapper.class, FileMapper.class, TodoListMapper.class},
@@ -24,6 +26,10 @@ public interface TripMapper {
         if (tripDto.getStartDate() != null && tripDto.getEndDate() != null) {
             long daysBetween = ChronoUnit.DAYS.between(tripDto.getStartDate(), tripDto.getEndDate()) + 1;
             tripDto.setTotalDays((int) daysBetween);
+        }
+        
+        if (tripDto.getDays() != null && !tripDto.getDays().isEmpty()) {
+            tripDto.getDays().sort(Comparator.comparing(TripDayDto::getDayNumber));
         }
     }
 
