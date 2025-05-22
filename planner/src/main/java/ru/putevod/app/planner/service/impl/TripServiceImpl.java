@@ -69,7 +69,7 @@ public class TripServiceImpl implements TripService {
         
         tripAccessRepository.save(creatorAccess);
         
-       if (trip.getStartDate() != null && trip.getEndDate() != null) {
+         if (trip.getStartDate() != null && trip.getEndDate() != null) {
             createTripDays(trip);
         }
         
@@ -97,7 +97,6 @@ public class TripServiceImpl implements TripService {
         
         tripAccessRepository.save(creatorAccess);
         
-        // Создаем дни поездки автоматически
         if (trip.getStartDate() != null && trip.getEndDate() != null) {
             createTripDays(trip);
         }
@@ -253,11 +252,22 @@ public class TripServiceImpl implements TripService {
     @Transactional
     public void deleteTrip(Long userId, Long tripId) {
         User user = userService.getUserEntityById(userId);
-        Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin");
+        Trip trip = getTripEntityById(tripId);
         
-        // Выполняем "мягкое" удаление
+        if (trip.isDeleted()) {
+            throw new BadRequestException("Поездка уже была удалена");
+        }
+        
+        if (!trip.getCreator().getUserId().equals(userId)) {
+            if (!hasAccessToTrip(user, trip, "admin")) {
+                throw new AccessDeniedException("У вас нет прав на удаление этой поездки");
+            }
+        }
+        
         trip.setDeleted(true);
         tripRepository.save(trip);
+        
+        log.info("Поездка {} успешно удалена пользователем {}", tripId, userId);
     }
 
     @Override
@@ -402,18 +412,23 @@ public class TripServiceImpl implements TripService {
     @Override
     @Transactional(readOnly = true)
     public boolean hasAccessToTrip(User user, Trip trip, String... requiredLevels) {
+        // Если поездка удалена, доступа нет ни у кого
         if (trip.isDeleted()) {
             return false;
         }
         
+        // Создатель поездки всегда имеет права администратора
         if (trip.getCreator().getUserId().equals(user.getUserId())) {
+            // Создатель имеет все права на свою поездку, независимо от требуемого уровня доступа
             return true;
         }
         
+        // Для публичных поездок - уровень чтения доступен всем
         if (trip.isPublished() && Arrays.asList(requiredLevels).contains("read")) {
             return true;
         }
         
+        // Проверяем уровень доступа согласно записям в базе
         return tripAccessRepository.findByTripAndUser(trip, user)
                 .filter(access -> "accepted".equals(access.getInvitationStatus()))
                 .map(access -> Arrays.asList(requiredLevels).contains(access.getAccessLevel()))
