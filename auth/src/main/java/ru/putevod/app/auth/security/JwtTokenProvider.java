@@ -49,23 +49,24 @@ public class JwtTokenProvider {
                 .token(token)
                 .deviceInfo(deviceInfo)
                 .ipAddress(ipAddress)
-                .expiresAt(LocalDateTime.now().plusNanos(appProperties.getJwt().getRefreshTokenExpirationMs()))
-                .createdAt(LocalDateTime.now())
-                .lastActivity(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now()
+                        .plusSeconds(appProperties.getJwt()
+                                .getRefreshTokenExpirationMs() / 1000))
+                .createdAt(LocalDateTime.now()).lastActivity(LocalDateTime.now())
                 .build();
 
         userSessionRepository.save(session);
 
         return token;
     }
-    
+
     public String generateAnonymousToken(String deviceId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("isAnonymous", true);
         if (deviceId != null && !deviceId.isEmpty()) {
             claims.put("deviceId", deviceId);
         }
-        
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(new Date())
@@ -77,19 +78,19 @@ public class JwtTokenProvider {
     public String getEmailFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
-    
+
     public Long getUserIdFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get("userId", Long.class));
     }
-    
+
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get("username", String.class));
     }
-    
+
     public Boolean isAdminFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get("isAdmin", Boolean.class));
     }
-    
+
     public Boolean isAnonymousToken(String token) {
         try {
             Boolean isAnonymous = getClaimFromToken(token, claims -> claims.get("isAnonymous", Boolean.class));
@@ -116,10 +117,10 @@ public class JwtTokenProvider {
         final String email = getEmailFromToken(token);
         return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
-    
+
     /**
      * Валидирует JWT токен без проверки UserDetails
-     * 
+     *
      * @param token JWT токен для проверки
      * @return true если токен валидный, false в противном случае
      * @throws SignatureException если подпись токена неверна
@@ -128,9 +129,9 @@ public class JwtTokenProvider {
      * @throws UnsupportedJwtException если токен не поддерживается
      * @throws IllegalArgumentException если токен не содержит claims
      */
-    public boolean validateToken(String token) throws SignatureException, MalformedJwtException, 
-                                                     ExpiredJwtException, UnsupportedJwtException, 
-                                                     IllegalArgumentException {
+    public boolean validateToken(String token) throws SignatureException, MalformedJwtException,
+            ExpiredJwtException, UnsupportedJwtException,
+            IllegalArgumentException {
         JwtParser jwtParser = Jwts.parserBuilder()
                 .setSigningKey(Keys.hmacShaKeyFor(appProperties.getJwt().getSecret().getBytes()))
                 .build();
@@ -138,10 +139,10 @@ public class JwtTokenProvider {
         jwtParser.parseClaimsJws(token);
         return !isTokenExpired(token);
     }
-    
+
     /**
      * Проверяет, соответствует ли переданный токен ожидаемому токену межсервисного взаимодействия
-     * 
+     *
      * @param providedToken токен для проверки
      * @return true если токен действительный, false в противном случае
      */
