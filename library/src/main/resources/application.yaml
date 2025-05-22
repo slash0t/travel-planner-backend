@@ -31,7 +31,7 @@ auth:
   token: ${AUTH_SERVICE_TOKEN:service_token_for_development}
 springdoc:
   api-docs:
-    path: /api-docs
+    path: /api-docs-library
     enabled: true
   swagger-ui:
     path: /swagger-ui.html

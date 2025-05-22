@@ -31,7 +31,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/api-docs-library/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/routes").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/routes/search").permitAll()
@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/routes/{id}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/routes/{id}/reviews").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/routes/{id}/comments").permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
             .addFilterBefore(authServiceTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
