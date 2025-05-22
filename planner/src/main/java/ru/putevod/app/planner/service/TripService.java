@@ -2,6 +2,7 @@ package ru.putevod.app.planner.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import ru.putevod.app.planner.dto.CreateTripDto;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.model.Trip;
@@ -12,6 +13,8 @@ import java.util.List;
 public interface TripService {
     
     TripDto createTrip(Long userId, TripDto tripDto);
+    
+    TripDto createTrip(Long userId, CreateTripDto createTripDto);
     
     TripDto updateTrip(Long userId, Long tripId, TripDto tripDto);
     

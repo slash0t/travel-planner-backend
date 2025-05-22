@@ -7,11 +7,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.putevod.app.planner.client.AuthServiceClient;
+import ru.putevod.app.planner.dto.CreateTripDto;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.exception.AccessDeniedException;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
+import ru.putevod.app.planner.mapper.CreateTripMapper;
 import ru.putevod.app.planner.mapper.TripAccessMapper;
 import ru.putevod.app.planner.mapper.TripMapper;
 import ru.putevod.app.planner.model.Trip;
@@ -39,11 +41,14 @@ public class TripServiceImpl implements TripService {
     private final NotificationService notificationService;
     private final TripMapper tripMapper;
     private final TripAccessMapper tripAccessMapper;
+    private final CreateTripMapper createTripMapper;
     private final AuthServiceClient authServiceClient;
 
     @Override
     @Transactional
     public TripDto createTrip(Long userId, TripDto tripDto) {
+        validateRequiredFields(tripDto);
+        
         User user = userService.getUserEntityById(userId);
         
         Trip trip = tripMapper.toEntity(tripDto);
@@ -62,6 +67,92 @@ public class TripServiceImpl implements TripService {
         tripAccessRepository.save(creatorAccess);
         
         return tripMapper.toDto(trip);
+    }
+    
+    @Override
+    @Transactional
+    public TripDto createTrip(Long userId, CreateTripDto createTripDto) {
+        validateRequiredFields(createTripDto);
+        
+        User user = userService.getUserEntityById(userId);
+        
+        Trip trip = createTripMapper.toEntity(createTripDto);
+        trip.setCreator(user);
+        
+        trip = tripRepository.save(trip);
+
+        TripAccess creatorAccess = TripAccess.builder()
+                .trip(trip)
+                .user(user)
+                .accessLevel("admin")
+                .invitationStatus("accepted")
+                .build();
+        
+        tripAccessRepository.save(creatorAccess);
+        
+        return tripMapper.toDto(trip);
+    }
+
+    /**
+     * Проверяет наличие обязательных полей в DTO поездки
+     * @param tripDto DTO поездки для проверки
+     * @throws BadRequestException если какое-либо обязательное поле отсутствует
+     */
+    private void validateRequiredFields(TripDto tripDto) {
+        if (tripDto.getTitle() == null || tripDto.getTitle().trim().isEmpty()) {
+            throw new BadRequestException("Название поездки обязательно для заполнения");
+        }
+        
+        if (tripDto.getStartDate() == null) {
+            throw new BadRequestException("Дата начала поездки обязательна для заполнения");
+        }
+        
+        if (tripDto.getEndDate() == null) {
+            throw new BadRequestException("Дата окончания поездки обязательна для заполнения");
+        }
+        
+        if (tripDto.getEndDate().isBefore(tripDto.getStartDate())) {
+            throw new BadRequestException("Дата окончания поездки не может быть раньше даты начала");
+        }
+        
+        if (tripDto.getCountry() == null || tripDto.getCountry().trim().isEmpty()) {
+            throw new BadRequestException("Страна поездки обязательна для заполнения");
+        }
+        
+        if (tripDto.getCity() == null || tripDto.getCity().trim().isEmpty()) {
+            throw new BadRequestException("Город поездки обязателен для заполнения");
+        }
+    }
+    
+    /**
+     * Проверяет наличие обязательных полей в DTO создания поездки
+     * @param createTripDto DTO создания поездки для проверки
+     * @throws BadRequestException если какое-либо обязательное поле отсутствует
+     */
+    private void validateRequiredFields(CreateTripDto createTripDto) {
+        if (createTripDto.getTitle() == null || createTripDto.getTitle().trim().isEmpty()) {
+            throw new BadRequestException("Название поездки обязательно для заполнения");
+        }
+        
+        if (createTripDto.getStartDate() == null) {
+            throw new BadRequestException("Дата начала поездки обязательна для заполнения");
+        }
+        
+        if (createTripDto.getEndDate() == null) {
+            throw new BadRequestException("Дата окончания поездки обязательна для заполнения");
+        }
+        
+        if (createTripDto.getEndDate().isBefore(createTripDto.getStartDate())) {
+            throw new BadRequestException("Дата окончания поездки не может быть раньше даты начала");
+        }
+        
+        if (createTripDto.getCountry() == null || createTripDto.getCountry().trim().isEmpty()) {
+            throw new BadRequestException("Страна поездки обязательна для заполнения");
+        }
+        
+        if (createTripDto.getCity() == null || createTripDto.getCity().trim().isEmpty()) {
+            throw new BadRequestException("Город поездки обязателен для заполнения");
+        }
     }
 
     @Override

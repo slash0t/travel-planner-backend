@@ -1,6 +1,11 @@
 package ru.putevod.app.planner.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.planner.config.CurrentUser;
+import ru.putevod.app.planner.dto.CreateTripDto;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.service.TripService;
@@ -27,13 +33,38 @@ public class TripController {
     private final TripService tripService;
     
     @PostMapping
-    @Operation(summary = "Создать новую поездку")
+    @Operation(
+        summary = "Создать новую поездку", 
+        description = "Создает новую поездку с указанными параметрами. Обязательные поля: title, startDate, endDate, country, city"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "201", 
+            description = "Поездка успешно создана",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = TripDto.class))
+        ),
+        @ApiResponse(
+            responseCode = "400", 
+            description = "Некорректные данные поездки",
+            content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "401", 
+            description = "Не авторизован",
+            content = @Content
+        )
+    })
     public ResponseEntity<TripDto> createTrip(
-            @CurrentUser Long userId,
-            @RequestBody TripDto tripDto) {
-        log.info("Creating trip: {} for user: {}", tripDto, userId);
+            @Parameter(hidden = true) @CurrentUser Long userId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Данные для создания поездки",
+                required = true,
+                content = @Content(schema = @Schema(implementation = CreateTripDto.class))
+            )
+            @RequestBody CreateTripDto createTripDto) {
+        log.info("Creating trip: {} for user: {}", createTripDto, userId);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(tripService.createTrip(userId, tripDto));
+                .body(tripService.createTrip(userId, createTripDto));
     }
     
     @GetMapping
