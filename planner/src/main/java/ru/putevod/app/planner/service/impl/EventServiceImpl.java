@@ -4,19 +4,25 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.putevod.app.planner.dto.CreateEventDto;
 import ru.putevod.app.planner.dto.EventDto;
 import ru.putevod.app.planner.dto.EventReminderDto;
+import ru.putevod.app.planner.dto.PlaceDto;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
+import ru.putevod.app.planner.mapper.CreateEventMapper;
 import ru.putevod.app.planner.mapper.EventMapper;
 import ru.putevod.app.planner.mapper.EventReminderMapper;
+import ru.putevod.app.planner.mapper.PlaceMapper;
 import ru.putevod.app.planner.model.Event;
 import ru.putevod.app.planner.model.EventReminder;
+import ru.putevod.app.planner.model.Place;
 import ru.putevod.app.planner.model.Trip;
 import ru.putevod.app.planner.model.TripDay;
 import ru.putevod.app.planner.model.User;
 import ru.putevod.app.planner.repository.EventReminderRepository;
 import ru.putevod.app.planner.repository.EventRepository;
+import ru.putevod.app.planner.repository.PlaceRepository;
 import ru.putevod.app.planner.repository.TripDayRepository;
 import ru.putevod.app.planner.service.EventService;
 import ru.putevod.app.planner.service.NotificationService;
@@ -36,18 +42,20 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final TripDayRepository tripDayRepository;
     private final EventReminderRepository eventReminderRepository;
+    private final PlaceRepository placeRepository;
     private final TripService tripService;
     private final UserService userService;
     private final NotificationService notificationService;
     private final EventMapper eventMapper;
+    private final CreateEventMapper createEventMapper;
+    private final PlaceMapper placeMapper;
     private final EventReminderMapper eventReminderMapper;
 
     @Override
     @Transactional
-    public EventDto createEvent(Long userId, Long tripId, Long dayId, EventDto eventDto) {
+    public EventDto createEvent(Long userId, Long tripId, Long dayId, CreateEventDto createEventDto) {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
-        
-        // Проверяем доступ на запись
+
         User user = userService.getUserEntityById(userId);
         if (!tripService.hasAccessToTrip(user, trip, "admin", "write")) {
             throw new BadRequestException("У вас нет прав на создание событий в этой поездке");
@@ -56,26 +64,33 @@ public class EventServiceImpl implements EventService {
         TripDay day = tripDayRepository.findByTripAndDayId(trip, dayId)
                 .orElseThrow(() -> new ResourceNotFoundException("День", "id", dayId));
         
-        if (eventDto.getOrderPosition() == null) {
-            // Если не указан порядковый номер, ставим в конец списка
+        if (createEventDto.getOrderPosition() == null) {
             Integer lastPosition = 0;
             List<Event> existingEvents = eventRepository.findByDayOrderByOrderPositionAsc(day);
             if (!existingEvents.isEmpty()) {
-                Event lastEvent = existingEvents.get(existingEvents.size() - 1);
+                Event lastEvent = existingEvents.getLast();
                 lastPosition = lastEvent.getOrderPosition();
             }
-            eventDto.setOrderPosition(lastPosition + 1);
+            createEventDto.setOrderPosition(lastPosition + 1);
+        }
+
+        List<Event> events = eventRepository.findByDayOrderByOrderPositionAsc(day);
+
+        events.stream()
+                .filter(e -> e.getOrderPosition() >= createEventDto.getOrderPosition())
+                .forEach(e -> e.setOrderPosition(e.getOrderPosition() + 1));
+
+        Event event = createEventMapper.fromDto(createEventDto, day);
+
+        if (createEventDto.getPlace() != null) {
+            PlaceDto placeDto = createEventMapper.toPlaceDto(createEventDto.getPlace());
+
+            Place place = placeMapper.toEntity(placeDto);
+            place = placeRepository.save(place);
+
+            event.setPlace(place);
         }
         
-        // Сортируем элементы по позиции
-        List<Event> events = eventRepository.findByDayOrderByOrderPositionAsc(day);
-        
-        // Если новая позиция в середине списка, сдвигаем остальные элементы
-        events.stream()
-                .filter(e -> e.getOrderPosition() >= eventDto.getOrderPosition())
-                .forEach(e -> e.setOrderPosition(e.getOrderPosition() + 1));
-        
-        Event event = eventMapper.fromDto(eventDto, day);
         event = eventRepository.save(event);
         
         return eventMapper.toDto(event);
@@ -98,7 +113,6 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Событие", "id", eventId));
         
-        // Проверяем, что событие принадлежит указанному дню
         if (!event.getDay().getDayId().equals(dayId)) {
             throw new BadRequestException("Событие не принадлежит указанному дню");
         }
@@ -126,7 +140,6 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Событие", "id", eventId));
         
-        // Проверяем, что событие принадлежит указанному дню
         if (!event.getDay().getDayId().equals(dayId)) {
             throw new BadRequestException("Событие не принадлежит указанному дню");
         }
@@ -139,7 +152,6 @@ public class EventServiceImpl implements EventService {
     public List<EventDto> getDayEvents(Long userId, Long tripId, Long dayId) {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
         
-        // Проверяем доступ на чтение
         User user = userService.getUserEntityById(userId);
         if (!tripService.hasAccessToTrip(user, trip, "admin", "read", "write")) {
             throw new BadRequestException("У вас нет прав на просмотр событий в этой поездке");
@@ -160,7 +172,6 @@ public class EventServiceImpl implements EventService {
     public List<EventDto> getTripEvents(Long userId, Long tripId) {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
         
-        // Проверяем доступ на чтение
         User user = userService.getUserEntityById(userId);
         if (!tripService.hasAccessToTrip(user, trip, "admin", "read", "write")) {
             throw new BadRequestException("У вас нет прав на просмотр событий в этой поездке");
@@ -178,7 +189,6 @@ public class EventServiceImpl implements EventService {
     public void deleteEvent(Long userId, Long tripId, Long dayId, Long eventId) {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
         
-        // Проверяем доступ на запись
         User user = userService.getUserEntityById(userId);
         if (!tripService.hasAccessToTrip(user, trip, "admin", "write")) {
             throw new BadRequestException("У вас нет прав на удаление событий в этой поездке");
@@ -190,7 +200,6 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Событие", "id", eventId));
         
-        // Проверяем, что событие принадлежит указанному дню
         if (!event.getDay().getDayId().equals(dayId)) {
             throw new BadRequestException("Событие не принадлежит указанному дню");
         }
@@ -216,15 +225,11 @@ public class EventServiceImpl implements EventService {
         User user = userService.getUserEntityById(userId);
         Event event = getEventEntityById(eventId);
         
-        // Проверяем, что пользователь имеет доступ к поездке, в которой находится событие
-        Trip trip = event.getDay().getTrip();
+       Trip trip = event.getDay().getTrip();
         tripService.hasAccessToTrip(user, trip, "admin", "read", "write");
         
-        // Создаем напоминание
         EventReminder reminder = eventReminderMapper.fromDto(reminderDto, event, user);
         
-        // Если не указано точное время напоминания, но указано кол-во минут до события,
-        // вычисляем время напоминания автоматически
         if (reminderDto.getRemindAt() == null && reminderDto.getMinutesBefore() != null) {
             if (event.isHasSpecificTime() && event.getStartTime() != null) {
                 LocalDateTime eventDateTime = event.getDay().getDate().atTime(event.getStartTime());
@@ -234,9 +239,7 @@ public class EventServiceImpl implements EventService {
                 throw new BadRequestException("Невозможно создать напоминание: событие не имеет конкретного времени");
             }
         } else if (reminderDto.getRemindAt() != null && reminderDto.getMinutesBefore() == null) {
-            // Если указано точное время напоминания, но не указано кол-во минут до события,
-            // вычисляем кол-во минут автоматически
-            if (event.isHasSpecificTime() && event.getStartTime() != null) {
+           if (event.isHasSpecificTime() && event.getStartTime() != null) {
                 LocalDateTime eventDateTime = event.getDay().getDate().atTime(event.getStartTime());
                 long minutes = ChronoUnit.MINUTES.between(reminderDto.getRemindAt(), eventDateTime);
                 reminder.setMinutesBefore((int) minutes);
@@ -257,7 +260,6 @@ public class EventServiceImpl implements EventService {
         User user = userService.getUserEntityById(userId);
         Event event = getEventEntityById(eventId);
         
-        // Проверяем, что пользователь имеет доступ к поездке, в которой находится событие
         Trip trip = event.getDay().getTrip();
         tripService.hasAccessToTrip(user, trip, "admin", "read", "write");
         
@@ -274,20 +276,14 @@ public class EventServiceImpl implements EventService {
         User user = userService.getUserEntityById(userId);
         Event event = getEventEntityById(eventId);
         
-        // Проверяем, что пользователь имеет доступ к поездке, в которой находится событие
         Trip trip = event.getDay().getTrip();
-        tripService.hasAccessToTrip(user, trip, "admin", "write");
+        tripService.hasAccessToTrip(user, trip, "admin", "read", "write");
         
         EventReminder reminder = eventReminderRepository.findById(reminderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Напоминание", "id", reminderId));
         
-        // Проверяем, что напоминание принадлежит указанному событию и пользователю
-        if (!reminder.getEvent().getEventId().equals(eventId)) {
-            throw new BadRequestException("Напоминание не принадлежит указанному событию");
-        }
-        
-        if (!reminder.getUser().getUserId().equals(userId)) {
-            throw new BadRequestException("У вас нет прав на удаление этого напоминания");
+        if (!reminder.getUser().getUserId().equals(userId) || !reminder.getEvent().getEventId().equals(eventId)) {
+            throw new BadRequestException("Напоминание не принадлежит указанному пользователю или событию");
         }
         
         eventReminderRepository.delete(reminder);
@@ -297,34 +293,35 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public void processReminders() {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime endTime = now.plusMinutes(10); // Проверяем напоминания на ближайшие 10 минут
+        LocalDateTime oneHourLater = now.plusHours(1);
         
-        log.debug("Checking reminders between {} and {}", now, endTime);
+        List<EventReminder> reminders = eventReminderRepository.findUpcomingReminders(now, oneHourLater);
         
-        List<EventReminder> dueReminders = eventReminderRepository.findDueReminders(now, endTime);
-        
-        if (!dueReminders.isEmpty()) {
-            log.debug("Found {} due reminders", dueReminders.size());
-            
-            // Группируем напоминания по пользователям и событиям для отправки уведомлений
-            for (EventReminder reminder : dueReminders) {
+        for (EventReminder reminder : reminders) {
+            if (!reminder.isSent()) {
                 try {
-                    // Отправляем уведомление пользователю
+                    String content = String.format(
+                            "Напоминание о событии \"%s\" в %s",
+                            reminder.getEvent().getTitle(),
+                            reminder.getEvent().getStartTime() != null
+                                    ? reminder.getEvent().getStartTime().toString()
+                                    : "течение дня"
+                    );
+                    
                     notificationService.createEventReminderNotification(
                             reminder.getUser().getUserId(),
                             reminder.getEvent().getEventId(),
-                            reminder.getEvent().getTitle());
+                            reminder.getEvent().getTitle()
+                    );
+
+                    reminder.setSent(true);
+                    eventReminderRepository.save(reminder);
+                    
+                    log.info("Отправлено напоминание [{}] для пользователя [{}]", reminder.getReminderId(), reminder.getUser().getUserId());
                 } catch (Exception e) {
-                    log.error("Error sending notification for reminder {}", reminder.getReminderId(), e);
+                    log.error("Ошибка при отправке напоминания [{}]: {}", reminder.getReminderId(), e.getMessage());
                 }
             }
-            
-            // Отмечаем напоминания как отправленные
-            List<Long> reminderIds = dueReminders.stream()
-                    .map(EventReminder::getReminderId)
-                    .collect(Collectors.toList());
-            
-            eventReminderRepository.markAsSent(reminderIds);
         }
     }
 
