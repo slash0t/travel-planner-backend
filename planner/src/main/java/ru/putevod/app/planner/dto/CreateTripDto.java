@@ -34,4 +34,7 @@ public class CreateTripDto {
     
     @Schema(description = "Флаг публикации поездки", defaultValue = "false")
     private boolean published;
+    
+    @Schema(description = "URL превью изображения поездки (генерируется автоматически)", example = "https://example.com/image.jpg", accessMode = Schema.AccessMode.READ_ONLY)
+    private String previewUrl;
 } 

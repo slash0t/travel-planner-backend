@@ -24,6 +24,7 @@ import ru.putevod.app.planner.repository.TripAccessRepository;
 import ru.putevod.app.planner.repository.TripDayRepository;
 import ru.putevod.app.planner.repository.TripRepository;
 import ru.putevod.app.planner.service.NotificationService;
+import ru.putevod.app.planner.service.TripPreviewService;
 import ru.putevod.app.planner.service.TripService;
 import ru.putevod.app.planner.service.UserService;
 
@@ -37,14 +38,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TripServiceImpl implements TripService {
 
-    private final TripRepository tripRepository;
-    private final TripAccessRepository tripAccessRepository;
-    private final UserService userService;
-    private final NotificationService notificationService;
-    private final TripMapper tripMapper;
-    private final TripAccessMapper tripAccessMapper;
-    private final CreateTripMapper createTripMapper;
-    private final AuthServiceClient authServiceClient;
+    private final TripRepository tripRepository;    
+    private final TripAccessRepository tripAccessRepository;    
+    private final UserService userService;    
+    private final NotificationService notificationService;    
+    private final TripPreviewService tripPreviewService;    
+    private final TripMapper tripMapper;    
+    private final TripAccessMapper tripAccessMapper;    
+    private final CreateTripMapper createTripMapper;    
+    private final AuthServiceClient authServiceClient;    
     private final TripDayRepository tripDayRepository;
 
     @Override
@@ -57,6 +59,15 @@ public class TripServiceImpl implements TripService {
         Trip trip = tripMapper.toEntity(tripDto);
         trip.setCreator(user);
         trip.setDeleted(false);
+        
+        if (tripDto.getCity() != null && !tripDto.getCity().isEmpty()) {
+            String previewUrl = tripPreviewService.generatePreviewForCity(tripDto.getCity());
+            trip.setPreviewUrl(previewUrl);
+            log.info("Для поездки {} установлено превью: {}", tripDto.getTitle(), previewUrl);
+        } else {
+            trip.setPreviewUrl(tripPreviewService.getDefaultPreviewUrl());
+            log.info("Для поездки {} установлено превью по умолчанию", tripDto.getTitle());
+        }
         
         trip = tripRepository.save(trip);
 
@@ -85,6 +96,15 @@ public class TripServiceImpl implements TripService {
         
         Trip trip = createTripMapper.toEntity(createTripDto);
         trip.setCreator(user);
+        
+        if (createTripDto.getCity() != null && !createTripDto.getCity().isEmpty()) {
+            String previewUrl = tripPreviewService.generatePreviewForCity(createTripDto.getCity());
+            trip.setPreviewUrl(previewUrl);
+            log.info("Для поездки {} установлено превью: {}", createTripDto.getTitle(), previewUrl);
+        } else {
+            trip.setPreviewUrl(tripPreviewService.getDefaultPreviewUrl());
+            log.info("Для поездки {} установлено превью по умолчанию", createTripDto.getTitle());
+        }
         
         trip = tripRepository.save(trip);
 
@@ -196,7 +216,17 @@ public class TripServiceImpl implements TripService {
     public TripDto updateTrip(Long userId, Long tripId, TripDto tripDto) {
         Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin", "write");
         
+       String oldCity = trip.getCity();
+        
         tripMapper.updateEntityFromDto(tripDto, trip);
+        
+        if (tripDto.getCity() != null && !tripDto.getCity().equals(oldCity)) {
+            String previewUrl = tripPreviewService.generatePreviewForCity(tripDto.getCity());
+            trip.setPreviewUrl(previewUrl);
+            log.info("Обновлено превью для поездки {} с изменением города на {}: {}", 
+                    tripDto.getTitle(), tripDto.getCity(), previewUrl);
+        }
+        
         trip = tripRepository.save(trip);
         
         return tripMapper.toDto(trip);

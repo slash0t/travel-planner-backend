@@ -46,6 +46,9 @@ public class TripDto {
     @Schema(description = "Флаг публикации поездки", defaultValue = "false")
     private boolean published;
     
+    @Schema(description = "URL превью изображения поездки", example = "https://example.com/image.jpg")
+    private String previewUrl;
+    
     @Schema(description = "Дата создания", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDateTime createdAt;
     
