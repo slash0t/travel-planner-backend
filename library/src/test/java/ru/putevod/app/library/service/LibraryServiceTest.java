@@ -84,21 +84,16 @@ class LibraryServiceTest {
         publishedRoute.setIsApproved(false);
 
         routePreviewDto = new RoutePreviewDto();
-        routePreviewDto.setId(routeUuid);
+        routePreviewDto.setId(1L);
 
         routeDetailDto = new PublicRouteDetailDto();
-        routeDetailDto.setId(routeUuid);
+        routeDetailDto.setId(1L);
         routeDetailDto.setTitle("Test Route Detail");
 
         publicRouteDto = new PublicRouteDto();
-        publicRouteDto.setId(routeUuid);
-        publicRouteDto.setOriginalRouteId(convertToUuid(trip.getId()));
+        publicRouteDto.setId(1L);
+        publicRouteDto.setOriginalRouteId(trip.getId());
         publicRouteDto.setTitle(publishedRoute.getTitle());
-    }
-
-    private UUID convertToUuid(Long id) {
-        if (id == null) return null;
-        return UUID.nameUUIDFromBytes(id.toString().getBytes());
     }
 
     @Test
@@ -163,7 +158,7 @@ class LibraryServiceTest {
         });
         when(mapperService.toPublicRouteDto(any(PublishedRoute.class))).thenAnswer(invocation -> {
             PublishedRoute savedRoute = invocation.getArgument(0);
-            publicRouteDto.setId(convertToUuid(savedRoute.getId()));
+            publicRouteDto.setId(savedRoute.getId());
             publicRouteDto.setTitle(savedRoute.getTitle());
             return publicRouteDto;
         });
@@ -173,7 +168,7 @@ class LibraryServiceTest {
         assertNotNull(result);
         assertNotNull(result.getId());
         assertEquals(trip.getTitle(), result.getTitle());
-        assertEquals(convertToUuid(trip.getId()), result.getOriginalRouteId());
+        assertEquals(trip.getId(), result.getOriginalRouteId());
 
         verify(publishedRouteRepository).existsByOriginalRouteId(trip.getId());
         verify(userRepository).findById(user.getId());
@@ -217,7 +212,7 @@ class LibraryServiceTest {
         when(publishedRouteRepository.save(any(PublishedRoute.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(mapperService.toPublicRouteDto(any(PublishedRoute.class))).thenAnswer(invocation -> {
              PublishedRoute savedRoute = invocation.getArgument(0);
-             publicRouteDto.setId(convertToUuid(savedRoute.getId()));
+             publicRouteDto.setId(savedRoute.getId());
              return publicRouteDto;
         });
 
