@@ -1,4 +1,4 @@
-package ru.putevod.app.planner.dto.external;
+package ru.putevod.app.external.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

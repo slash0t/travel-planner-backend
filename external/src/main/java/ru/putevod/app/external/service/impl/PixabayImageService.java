@@ -1,18 +1,19 @@
-package ru.putevod.app.planner.client;
+package ru.putevod.app.external.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import ru.putevod.app.planner.dto.external.PixabayResponse;
+import ru.putevod.app.external.dto.response.PixabayResponse;
+import ru.putevod.app.external.service.ImageService;
 
-@Component
+@Service
 @RequiredArgsConstructor
 @Slf4j
-public class PixabayClient {
+public class PixabayImageService implements ImageService {
 
     private final RestTemplate restTemplate;
     
@@ -22,13 +23,8 @@ public class PixabayClient {
     @Value("${pixabay.api.url:https://pixabay.com/api/}")
     private String apiUrl;
     
-    /**
-     * Получает изображения достопримечательностей для указанного города
-     *
-     * @param city название города
-     * @return ответ от API Pixabay или null в случае ошибки
-     */
-    public PixabayResponse getImagesForCity(String city) {
+    @Override
+    public PixabayResponse getCityImages(String city) {
         if (city == null || city.trim().isEmpty()) {
             log.warn("Город не указан для поиска изображений");
             return null;
