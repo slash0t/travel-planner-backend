@@ -7,19 +7,24 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.putevod.app.planner.client.AuthServiceClient;
+import ru.putevod.app.planner.dto.CreateTripDto;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.exception.AccessDeniedException;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
+import ru.putevod.app.planner.mapper.CreateTripMapper;
 import ru.putevod.app.planner.mapper.TripAccessMapper;
 import ru.putevod.app.planner.mapper.TripMapper;
 import ru.putevod.app.planner.model.Trip;
 import ru.putevod.app.planner.model.TripAccess;
+import ru.putevod.app.planner.model.TripDay;
 import ru.putevod.app.planner.model.User;
 import ru.putevod.app.planner.repository.TripAccessRepository;
+import ru.putevod.app.planner.repository.TripDayRepository;
 import ru.putevod.app.planner.repository.TripRepository;
 import ru.putevod.app.planner.service.NotificationService;
+import ru.putevod.app.planner.service.TripPreviewService;
 import ru.putevod.app.planner.service.TripService;
 import ru.putevod.app.planner.service.UserService;
 
@@ -33,22 +38,36 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TripServiceImpl implements TripService {
 
-    private final TripRepository tripRepository;
-    private final TripAccessRepository tripAccessRepository;
-    private final UserService userService;
-    private final NotificationService notificationService;
-    private final TripMapper tripMapper;
-    private final TripAccessMapper tripAccessMapper;
-    private final AuthServiceClient authServiceClient;
+    private final TripRepository tripRepository;    
+    private final TripAccessRepository tripAccessRepository;    
+    private final UserService userService;    
+    private final NotificationService notificationService;    
+    private final TripPreviewService tripPreviewService;    
+    private final TripMapper tripMapper;    
+    private final TripAccessMapper tripAccessMapper;    
+    private final CreateTripMapper createTripMapper;    
+    private final AuthServiceClient authServiceClient;    
+    private final TripDayRepository tripDayRepository;
 
     @Override
     @Transactional
     public TripDto createTrip(Long userId, TripDto tripDto) {
+        validateRequiredFields(tripDto);
+        
         User user = userService.getUserEntityById(userId);
         
         Trip trip = tripMapper.toEntity(tripDto);
         trip.setCreator(user);
         trip.setDeleted(false);
+        
+        if (tripDto.getCity() != null && !tripDto.getCity().isEmpty()) {
+            String previewUrl = tripPreviewService.generatePreviewForCity(tripDto.getCity());
+            trip.setPreviewUrl(previewUrl);
+            log.info("Для поездки {} установлено превью: {}", tripDto.getTitle(), previewUrl);
+        } else {
+            trip.setPreviewUrl(tripPreviewService.getDefaultPreviewUrl());
+            log.info("Для поездки {} установлено превью по умолчанию", tripDto.getTitle());
+        }
         
         trip = tripRepository.save(trip);
 
@@ -61,16 +80,153 @@ public class TripServiceImpl implements TripService {
         
         tripAccessRepository.save(creatorAccess);
         
+         if (trip.getStartDate() != null && trip.getEndDate() != null) {
+            createTripDays(trip);
+        }
+        
         return tripMapper.toDto(trip);
+    }
+    
+    @Override
+    @Transactional
+    public TripDto createTrip(Long userId, CreateTripDto createTripDto) {
+        validateRequiredFields(createTripDto);
+        
+        User user = userService.getUserEntityById(userId);
+        
+        Trip trip = createTripMapper.toEntity(createTripDto);
+        trip.setCreator(user);
+        
+        if (createTripDto.getCity() != null && !createTripDto.getCity().isEmpty()) {
+            String previewUrl = tripPreviewService.generatePreviewForCity(createTripDto.getCity());
+            trip.setPreviewUrl(previewUrl);
+            log.info("Для поездки {} установлено превью: {}", createTripDto.getTitle(), previewUrl);
+        } else {
+            trip.setPreviewUrl(tripPreviewService.getDefaultPreviewUrl());
+            log.info("Для поездки {} установлено превью по умолчанию", createTripDto.getTitle());
+        }
+        
+        trip = tripRepository.save(trip);
+
+        TripAccess creatorAccess = TripAccess.builder()
+                .trip(trip)
+                .user(user)
+                .accessLevel("admin")
+                .invitationStatus("accepted")
+                .build();
+        
+        tripAccessRepository.save(creatorAccess);
+        
+        if (trip.getStartDate() != null && trip.getEndDate() != null) {
+            createTripDays(trip);
+        }
+        
+        return tripMapper.toDto(trip);
+    }
+
+    /**
+     * Создает дни поездки автоматически на основе дат начала и окончания поездки
+     * @param trip поездка
+     */
+    private void createTripDays(Trip trip) {
+        LocalDate currentDate = trip.getStartDate();
+        int dayNumber = 1;
+        
+        while (!currentDate.isAfter(trip.getEndDate())) {
+            if (tripDayRepository.findByTripAndDate(trip, currentDate).isEmpty()) {
+                TripDay tripDay = TripDay.builder()
+                        .trip(trip)
+                        .dayNumber(dayNumber)
+                        .date(currentDate)
+                        .build();
+                
+                tripDayRepository.save(tripDay);
+                log.info("Создан день {} для поездки {}: {}", dayNumber, trip.getTripId(), currentDate);
+            }
+            
+            currentDate = currentDate.plusDays(1);
+            dayNumber++;
+        }
+    }
+
+    /**
+     * Проверяет наличие обязательных полей в DTO поездки
+     * @param tripDto DTO поездки для проверки
+     * @throws BadRequestException если какое-либо обязательное поле отсутствует
+     */
+    private void validateRequiredFields(TripDto tripDto) {
+        if (tripDto.getTitle() == null || tripDto.getTitle().trim().isEmpty()) {
+            throw new BadRequestException("Название поездки обязательно для заполнения");
+        }
+        
+        if (tripDto.getStartDate() == null) {
+            throw new BadRequestException("Дата начала поездки обязательна для заполнения");
+        }
+        
+        if (tripDto.getEndDate() == null) {
+            throw new BadRequestException("Дата окончания поездки обязательна для заполнения");
+        }
+        
+        if (tripDto.getEndDate().isBefore(tripDto.getStartDate())) {
+            throw new BadRequestException("Дата окончания поездки не может быть раньше даты начала");
+        }
+        
+        if (tripDto.getCountry() == null || tripDto.getCountry().trim().isEmpty()) {
+            throw new BadRequestException("Страна поездки обязательна для заполнения");
+        }
+        
+        if (tripDto.getCity() == null || tripDto.getCity().trim().isEmpty()) {
+            throw new BadRequestException("Город поездки обязателен для заполнения");
+        }
+    }
+    
+    /**
+     * Проверяет наличие обязательных полей в DTO создания поездки
+     * @param createTripDto DTO создания поездки для проверки
+     * @throws BadRequestException если какое-либо обязательное поле отсутствует
+     */
+    private void validateRequiredFields(CreateTripDto createTripDto) {
+        if (createTripDto.getTitle() == null || createTripDto.getTitle().trim().isEmpty()) {
+            throw new BadRequestException("Название поездки обязательно для заполнения");
+        }
+        
+        if (createTripDto.getStartDate() == null) {
+            throw new BadRequestException("Дата начала поездки обязательна для заполнения");
+        }
+        
+        if (createTripDto.getEndDate() == null) {
+            throw new BadRequestException("Дата окончания поездки обязательна для заполнения");
+        }
+        
+        if (createTripDto.getEndDate().isBefore(createTripDto.getStartDate())) {
+            throw new BadRequestException("Дата окончания поездки не может быть раньше даты начала");
+        }
+        
+        if (createTripDto.getCountry() == null || createTripDto.getCountry().trim().isEmpty()) {
+            throw new BadRequestException("Страна поездки обязательна для заполнения");
+        }
+        
+        if (createTripDto.getCity() == null || createTripDto.getCity().trim().isEmpty()) {
+            throw new BadRequestException("Город поездки обязателен для заполнения");
+        }
     }
 
     @Override
     @Transactional
     public TripDto updateTrip(Long userId, Long tripId, TripDto tripDto) {
-        User user = userService.getUserEntityById(userId);
         Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin", "write");
         
+        String oldCity = trip.getCity();
+        
         tripMapper.updateEntityFromDto(tripDto, trip);
+        
+        if (tripDto.getCity() != null && !tripDto.getCity().equals(oldCity)) {
+            String previewUrl = tripPreviewService.generatePreviewForCity(tripDto.getCity());
+            trip.setPreviewUrl(previewUrl);
+            log.info("Обновлено превью для поездки {} с изменением города на {}: {}", 
+                    tripDto.getTitle(), tripDto.getCity(), previewUrl);
+        }
+        
         trip = tripRepository.save(trip);
         
         return tripMapper.toDto(trip);
@@ -126,11 +282,22 @@ public class TripServiceImpl implements TripService {
     @Transactional
     public void deleteTrip(Long userId, Long tripId) {
         User user = userService.getUserEntityById(userId);
-        Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin");
+        Trip trip = getTripEntityById(tripId);
         
-        // Выполняем "мягкое" удаление
+        if (trip.isDeleted()) {
+            throw new BadRequestException("Поездка уже была удалена");
+        }
+        
+        if (!trip.getCreator().getUserId().equals(userId)) {
+            if (!hasAccessToTrip(user, trip, "admin")) {
+                throw new AccessDeniedException("У вас нет прав на удаление этой поездки");
+            }
+        }
+        
         trip.setDeleted(true);
         tripRepository.save(trip);
+        
+        log.info("Поездка {} успешно удалена пользователем {}", tripId, userId);
     }
 
     @Override
@@ -139,26 +306,21 @@ public class TripServiceImpl implements TripService {
         User owner = userService.getUserEntityById(userId);
         Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin");
         
-        // Получаем пользователя, которому предоставляется доступ
         User sharedUser = userService.getUserEntityById(accessDto.getUser().getId());
         
-        // Проверяем, что пользователь не пытается поделиться с самим собой
         if (userId.equals(sharedUser.getUserId())) {
             throw new BadRequestException("Вы не можете предоставить доступ самому себе");
         }
         
-        // Проверяем, нет ли уже доступа у этого пользователя
         if (tripAccessRepository.existsByTripAndUser(trip, sharedUser)) {
             throw new BadRequestException("Доступ для данного пользователя уже существует");
         }
         
-        // Создаем запись о доступе
         TripAccess tripAccess = tripAccessMapper.fromDto(accessDto, trip, sharedUser);
         tripAccess.setInvitationStatus("pending");
         
         tripAccess = tripAccessRepository.save(tripAccess);
         
-        // Отправляем уведомление пользователю о приглашении
         notificationService.createTripInviteNotification(
                 sharedUser.getUserId(),
                 tripId, 
@@ -275,18 +437,23 @@ public class TripServiceImpl implements TripService {
     @Override
     @Transactional(readOnly = true)
     public boolean hasAccessToTrip(User user, Trip trip, String... requiredLevels) {
+        // Если поездка удалена, доступа нет ни у кого
         if (trip.isDeleted()) {
             return false;
         }
         
+        // Создатель поездки всегда имеет права администратора
         if (trip.getCreator().getUserId().equals(user.getUserId())) {
+            // Создатель имеет все права на свою поездку, независимо от требуемого уровня доступа
             return true;
         }
         
+        // Для публичных поездок - уровень чтения доступен всем
         if (trip.isPublished() && Arrays.asList(requiredLevels).contains("read")) {
             return true;
         }
         
+        // Проверяем уровень доступа согласно записям в базе
         return tripAccessRepository.findByTripAndUser(trip, user)
                 .filter(access -> "accepted".equals(access.getInvitationStatus()))
                 .map(access -> Arrays.asList(requiredLevels).contains(access.getAccessLevel()))

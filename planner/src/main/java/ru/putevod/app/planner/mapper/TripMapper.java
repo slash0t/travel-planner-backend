@@ -1,11 +1,13 @@
 package ru.putevod.app.planner.mapper;
 
 import org.mapstruct.*;
+import ru.putevod.app.planner.dto.TripDayDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.model.Trip;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 
 @Mapper(componentModel = "spring", 
         uses = {UserMapper.class, TripDayMapper.class, TripAccessMapper.class, FileMapper.class, TodoListMapper.class},
@@ -25,6 +27,10 @@ public interface TripMapper {
             long daysBetween = ChronoUnit.DAYS.between(tripDto.getStartDate(), tripDto.getEndDate()) + 1;
             tripDto.setTotalDays((int) daysBetween);
         }
+        
+        if (tripDto.getDays() != null && !tripDto.getDays().isEmpty()) {
+            tripDto.getDays().sort(Comparator.comparing(TripDayDto::getDayNumber));
+        }
     }
 
     @Mapping(source = "id", target = "tripId")
@@ -35,6 +41,7 @@ public interface TripMapper {
     @Mapping(source = "country", target = "country")
     @Mapping(source = "city", target = "city")
     @Mapping(source = "published", target = "published")
+    @Mapping(source = "previewUrl", target = "previewUrl")
     @Mapping(target = "isDeleted", constant = "false")
     @Mapping(target = "days", ignore = true)
     @Mapping(target = "accesses", ignore = true)
@@ -51,6 +58,8 @@ public interface TripMapper {
     @Mapping(source = "endDate", target = "endDate")
     @Mapping(source = "country", target = "country")
     @Mapping(source = "city", target = "city")
+    @Mapping(source = "published", target = "published")
+    @Mapping(source = "previewUrl", target = "previewUrl")
     @Mapping(target = "creator", ignore = true)
     @Mapping(target = "days", ignore = true)
     @Mapping(target = "accesses", ignore = true)

@@ -23,6 +23,11 @@ public interface EventReminderRepository extends JpaRepository<EventReminder, Lo
     List<EventReminder> findDueReminders(
             @Param("start") LocalDateTime start, 
             @Param("end") LocalDateTime end);
+            
+    @Query("SELECT r FROM EventReminder r WHERE r.remindAt BETWEEN :start AND :end AND r.sent = false")
+    List<EventReminder> findUpcomingReminders(
+            @Param("start") LocalDateTime start, 
+            @Param("end") LocalDateTime end);
     
     @Modifying
     @Query("UPDATE EventReminder r SET r.sent = true WHERE r.reminderId IN :ids")

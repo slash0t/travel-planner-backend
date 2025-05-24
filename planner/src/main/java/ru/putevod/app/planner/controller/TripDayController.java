@@ -61,6 +61,36 @@ public class TripDayController {
         return ResponseEntity.ok(tripDayService.getTripDayByDate(userId, tripId, date));
     }
     
+    @GetMapping("/number/{dayNumber}")
+    @Operation(summary = "Получить день поездки по номеру дня")
+    public ResponseEntity<TripDayDto> getTripDayByNumber(
+            @CurrentUser Long userId,
+            @PathVariable Long tripId,
+            @PathVariable Integer dayNumber) {
+        List<TripDayDto> days = tripDayService.getTripDays(userId, tripId);
+        TripDayDto dayDto = days.stream()
+                .filter(day -> dayNumber.equals(day.getDayNumber()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("День с номером " + dayNumber + " не найден"));
+        return ResponseEntity.ok(dayDto);
+    }
+    
+    @GetMapping("/current")
+    @Operation(summary = "Получить текущий день поездки")
+    public ResponseEntity<TripDayDto> getCurrentTripDay(
+            @CurrentUser Long userId,
+            @PathVariable Long tripId) {
+        try {
+            return ResponseEntity.ok(tripDayService.getTripDayByDate(userId, tripId, LocalDate.now()));
+        } catch (Exception e) {
+            List<TripDayDto> days = tripDayService.getTripDays(userId, tripId);
+            if (!days.isEmpty()) {
+                return ResponseEntity.ok(days.get(0));
+            }
+            throw new RuntimeException("Дни поездки не найдены");
+        }
+    }
+    
     @PutMapping("/{dayId}")
     @Operation(summary = "Обновить день поездки")
     public ResponseEntity<TripDayDto> updateTripDay(

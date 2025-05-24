@@ -56,6 +56,9 @@ public class Trip {
     
     @Column(name = "is_deleted")
     private boolean isDeleted;
+    
+    @Column(name = "preview_url")
+    private String previewUrl;
 
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
