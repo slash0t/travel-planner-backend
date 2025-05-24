@@ -51,6 +51,28 @@ public class LibraryController {
         return ResponseEntity.ok(libraryService.getPublishedRoutes(pageable));
     }
 
+    @GetMapping("/pending")
+    @Operation(summary = "Получить список неодобренных маршрутов (только для администраторов)", 
+            description = "Возвращает пагинированный список маршрутов, ожидающих одобрения (требует прав администратора)",
+            security = { @SecurityRequirement(name = "bearerAuth") })
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Список неодобренных маршрутов успешно получен",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
+        @ApiResponse(responseCode = "403", description = "Нет прав администратора"),
+        @ApiResponse(responseCode = "401", description = "Не авторизован")
+    })
+    public ResponseEntity<Page<RoutePreviewDto>> getPendingRoutes(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication.getAuthorities().stream()
+                .noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
+        return ResponseEntity.ok(libraryService.getPendingRoutes(pageable));
+    }
+
     @GetMapping("/search")
     @Operation(summary = "Поиск маршрутов по ключевому слову", description = "Выполняет поиск маршрутов по заданному ключевому слову")
     @ApiResponses(value = {
@@ -150,6 +172,8 @@ public class LibraryController {
         }
 
         Trip trip = plannerClient.getRouteDetails(tripId, token);
+        
+        plannerClient.publishRoute(tripId, userId, token, true);
 
         PublicRouteDto publishedRoute = libraryService.publishRoute(trip, userId);
         
@@ -190,8 +214,18 @@ public ResponseEntity<PublicRouteDto> approveRoute(
         @ApiResponse(responseCode = "401", description = "Не авторизован")
     })
     public ResponseEntity<Void> deleteRoute(
-            @PathVariable @Parameter(description = "ID опубликованного маршрута") Long id) {
+            @PathVariable @Parameter(description = "ID опубликованного маршрута") Long id,
+            @CurrentUser Long userId,
+            Authentication authentication) {
+        
+        var publishedRoute = libraryService.getPublishedRouteById(id);
+        Long originalRouteId = publishedRoute.getOriginalRouteId();
+        
         libraryService.deletePublishedRoute(id);
+        
+        String token = (String) authentication.getCredentials();
+        plannerClient.publishRoute(originalRouteId, userId, token, false);
+        
         return ResponseEntity.noContent().build();
     }
 } 
