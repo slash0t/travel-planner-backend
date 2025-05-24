@@ -1,10 +1,14 @@
 package ru.putevod.app.library.client;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
@@ -28,7 +32,7 @@ public class AuthServiceClient {
                     .header("X-Service-Token", serviceToken)
                     .retrieve()
                     .bodyToMono(TokenValidationResponse.class)
-                    .map(TokenValidationResponse::valid)
+                    .map(TokenValidationResponse::isValid)
                     .onErrorReturn(false)
                     .block());
         } catch (Exception e) {
@@ -50,7 +54,10 @@ public class AuthServiceClient {
                     .header("X-Service-Token", serviceToken)
                     .retrieve()
                     .bodyToMono(UserInfo.class)
-                    .onErrorReturn(null)
+                    .onErrorResume(e -> {
+                        log.error("Error getting user info from auth service", e);
+                        return Mono.empty();
+                    })
                     .block();
         } catch (Exception e) {
             log.error("Error getting user info from auth service", e);
@@ -58,15 +65,28 @@ public class AuthServiceClient {
         }
     }
 
-    record TokenValidationRequest(String token) {}
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TokenValidationRequest {
+        private String token;
+    }
 
-    record TokenValidationResponse(boolean valid) {}
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TokenValidationResponse {
+        private boolean valid;
+    }
 
-    public record UserInfo(
-            Long userId,
-            String username,
-            String email,
-            boolean isAdmin,
-            String[] roles
-    ) {}
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserInfo {
+        private Long userId;
+        private String username;
+        private String email;
+        private boolean isAdmin;
+        private String[] roles;
+    }
 } 

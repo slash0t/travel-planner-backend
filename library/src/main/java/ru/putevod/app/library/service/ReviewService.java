@@ -33,7 +33,7 @@ public class ReviewService {
             throw new ResourceNotFoundException("Route not found with id " + routeId);
         }
         
-        return ratingRepository.findByPublishedRouteId(routeId, pageable)
+        return ratingRepository.findByPublishedRouteIdAndIsDeletedFalse(routeId, pageable)
                 .map(mapperService::toReviewDto);
     }
 
@@ -52,11 +52,14 @@ public class ReviewService {
         if (existingRating.isPresent()) {
             ratingEntity = existingRating.get();
             ratingEntity.setRating(rating);
+            ratingEntity.setComment(comment);
         } else {
             ratingEntity = RouteRating.builder()
                     .publishedRoute(publishedRoute)
                     .userId(userId)
                     .rating(rating)
+                    .comment(comment)
+                    .isDeleted(false)
                     .build();
         }
         
@@ -70,16 +73,16 @@ public class ReviewService {
             throw new ResourceNotFoundException("Route not found with id " + routeId);
         }
 
-        if (!ratingRepository.existsByPublishedRouteIdAndUserId(routeId, userId)) {
-            throw new ResourceNotFoundException("Review not found for route " + routeId + " and user " + userId);
-        }
+        RouteRating rating = ratingRepository.findByPublishedRouteIdAndUserId(routeId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found for route " + routeId + " and user " + userId));
         
-        ratingRepository.deleteByPublishedRouteIdAndUserId(routeId, userId);
+        rating.setIsDeleted(true);
+        ratingRepository.save(rating);
     }
 
     @Transactional(readOnly = true)
     public ReviewDto getUserReview(Long routeId, Long userId) {
-        RouteRating rating = ratingRepository.findByPublishedRouteIdAndUserId(routeId, userId)
+        RouteRating rating = ratingRepository.findByPublishedRouteIdAndUserIdAndIsDeletedFalse(routeId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found for route " + routeId + " and user " + userId));
         
         return mapperService.toReviewDto(rating);

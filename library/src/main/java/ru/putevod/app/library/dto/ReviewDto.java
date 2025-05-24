@@ -6,15 +6,14 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewDto {
-    private UUID id;
-    private UUID routeId;
+    private Long id;
+    private Long routeId;
     private RoutePreviewDto.AuthorDto author;
     private Integer rating;
     private String comment;

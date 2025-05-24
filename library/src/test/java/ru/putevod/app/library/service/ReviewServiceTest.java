@@ -80,15 +80,10 @@ class ReviewServiceTest {
         routeRating.setRating(4);
 
         reviewDto = new ReviewDto();
-        reviewDto.setId(reviewUuid);
-        reviewDto.setRouteId(convertToUuid(routeId));
+        reviewDto.setId(500L);
+        reviewDto.setRouteId(routeId);
         reviewDto.setRating(4);
         reviewDto.setComment("DTO comment");
-    }
-
-    private UUID convertToUuid(Long id) {
-        if (id == null) return null;
-        return UUID.nameUUIDFromBytes(id.toString().getBytes());
     }
 
     @Test
@@ -107,7 +102,7 @@ class ReviewServiceTest {
         });
         when(mapperService.toReviewDto(any(RouteRating.class))).thenAnswer(invocation -> {
              RouteRating saved = invocation.getArgument(0);
-             reviewDto.setId(convertToUuid(saved.getId()));
+             reviewDto.setId(saved.getId());
              reviewDto.setRating(saved.getRating());
              return reviewDto;
         });
@@ -116,7 +111,7 @@ class ReviewServiceTest {
 
         assertNotNull(result);
         assertEquals(newRating, result.getRating());
-        assertNotEquals(reviewUuid, result.getId());
+        assertNotNull(result.getId());
 
         ArgumentCaptor<RouteRating> ratingCaptor = ArgumentCaptor.forClass(RouteRating.class);
         verify(publishedRouteRepository).findByIdAndIsApprovedTrue(routeId);
@@ -142,7 +137,7 @@ class ReviewServiceTest {
         when(mapperService.toReviewDto(any(RouteRating.class))).thenAnswer(invocation -> {
              RouteRating saved = invocation.getArgument(0);
              reviewDto.setRating(saved.getRating());
-             reviewDto.setId(reviewUuid);
+             reviewDto.setId(saved.getId());
              return reviewDto;
         });
 
@@ -150,7 +145,6 @@ class ReviewServiceTest {
 
         assertNotNull(result);
         assertEquals(3, result.getRating());
-        assertEquals(reviewUuid, result.getId());
         assertEquals(3, routeRating.getRating());
 
         verify(publishedRouteRepository).findByIdAndIsApprovedTrue(routeId);
@@ -194,8 +188,9 @@ class ReviewServiceTest {
     void testDeleteReview_Success() {
         // Arrange
         when(publishedRouteRepository.existsById(routeId)).thenReturn(true);
-        when(ratingRepository.existsByPublishedRouteIdAndUserId(routeId, userId)).thenReturn(true);
-        doNothing().when(ratingRepository).deleteByPublishedRouteIdAndUserId(routeId, userId);
+        when(ratingRepository.findByPublishedRouteIdAndUserId(routeId, userId))
+            .thenReturn(Optional.of(routeRating));
+        when(ratingRepository.save(any(RouteRating.class))).thenReturn(routeRating);
 
         // Act
         assertDoesNotThrow(() -> {
@@ -204,8 +199,8 @@ class ReviewServiceTest {
 
         // Assert
         verify(publishedRouteRepository).existsById(routeId);
-        verify(ratingRepository).existsByPublishedRouteIdAndUserId(routeId, userId);
-        verify(ratingRepository).deleteByPublishedRouteIdAndUserId(routeId, userId);
+        verify(ratingRepository).findByPublishedRouteIdAndUserId(routeId, userId);
+        verify(ratingRepository).save(routeRating);
     }
 
     @Test
@@ -220,8 +215,8 @@ class ReviewServiceTest {
         });
         assertEquals("Route not found with id " + routeId, exception.getMessage());
         verify(publishedRouteRepository).existsById(routeId);
-        verify(ratingRepository, never()).existsByPublishedRouteIdAndUserId(anyLong(), anyLong());
-        verify(ratingRepository, never()).deleteByPublishedRouteIdAndUserId(anyLong(), anyLong());
+        verify(ratingRepository, never()).findByPublishedRouteIdAndUserId(anyLong(), anyLong());
+        verify(ratingRepository, never()).save(any());
     }
 
     @Test
@@ -229,7 +224,8 @@ class ReviewServiceTest {
     void testDeleteReview_ReviewNotFound() {
         // Arrange
         when(publishedRouteRepository.existsById(routeId)).thenReturn(true);
-        when(ratingRepository.existsByPublishedRouteIdAndUserId(routeId, userId)).thenReturn(false);
+        when(ratingRepository.findByPublishedRouteIdAndUserId(routeId, userId))
+            .thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -237,8 +233,8 @@ class ReviewServiceTest {
         });
         assertEquals("Review not found for route " + routeId + " and user " + userId, exception.getMessage());
         verify(publishedRouteRepository).existsById(routeId);
-        verify(ratingRepository).existsByPublishedRouteIdAndUserId(routeId, userId);
-        verify(ratingRepository, never()).deleteByPublishedRouteIdAndUserId(anyLong(), anyLong());
+        verify(ratingRepository).findByPublishedRouteIdAndUserId(routeId, userId);
+        verify(ratingRepository, never()).save(any());
     }
 
     @Test
@@ -247,8 +243,8 @@ class ReviewServiceTest {
         // Arrange
         Page<RouteRating> ratingPage = new PageImpl<>(Collections.singletonList(routeRating), pageable, 1);
         when(publishedRouteRepository.existsById(routeId)).thenReturn(true);
-        when(ratingRepository.findByPublishedRouteId(routeId, pageable)).thenReturn(ratingPage);
-        when(mapperService.toReviewDto(any(RouteRating.class))).thenReturn(reviewDto);
+        when(ratingRepository.findByPublishedRouteIdAndIsDeletedFalse(routeId, pageable)).thenReturn(ratingPage);
+        when(mapperService.toReviewDto(routeRating)).thenReturn(reviewDto);
 
         // Act
         Page<ReviewDto> result = reviewService.getRouteReviews(routeId, pageable);
@@ -257,9 +253,9 @@ class ReviewServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(1, result.getContent().size());
-        assertEquals(reviewDto.getId(), result.getContent().get(0).getId());
+        assertEquals(reviewDto, result.getContent().get(0));
         verify(publishedRouteRepository).existsById(routeId);
-        verify(ratingRepository).findByPublishedRouteId(routeId, pageable);
+        verify(ratingRepository).findByPublishedRouteIdAndIsDeletedFalse(routeId, pageable);
         verify(mapperService).toReviewDto(routeRating);
     }
 
@@ -275,14 +271,15 @@ class ReviewServiceTest {
         });
         assertEquals("Route not found with id " + routeId, exception.getMessage());
         verify(publishedRouteRepository).existsById(routeId);
-        verify(ratingRepository, never()).findByPublishedRouteId(anyLong(), any(Pageable.class));
+        verify(ratingRepository, never()).findByPublishedRouteIdAndIsDeletedFalse(anyLong(), any(Pageable.class));
     }
 
     @Test
     @DisplayName("getUserReview - Success")
     void testGetUserReview_Success() {
         // Arrange
-        when(ratingRepository.findByPublishedRouteIdAndUserId(routeId, userId)).thenReturn(Optional.of(routeRating));
+        when(ratingRepository.findByPublishedRouteIdAndUserIdAndIsDeletedFalse(routeId, userId))
+                .thenReturn(Optional.of(routeRating));
         when(mapperService.toReviewDto(routeRating)).thenReturn(reviewDto);
 
         // Act
@@ -292,7 +289,7 @@ class ReviewServiceTest {
         assertNotNull(result);
         assertEquals(reviewDto.getId(), result.getId());
         assertEquals(reviewDto.getRating(), result.getRating());
-        verify(ratingRepository).findByPublishedRouteIdAndUserId(routeId, userId);
+        verify(ratingRepository).findByPublishedRouteIdAndUserIdAndIsDeletedFalse(routeId, userId);
         verify(mapperService).toReviewDto(routeRating);
     }
 
@@ -300,14 +297,15 @@ class ReviewServiceTest {
     @DisplayName("getUserReview - Review Not Found")
     void testGetUserReview_ReviewNotFound() {
         // Arrange
-        when(ratingRepository.findByPublishedRouteIdAndUserId(routeId, userId)).thenReturn(Optional.empty());
+        when(ratingRepository.findByPublishedRouteIdAndUserIdAndIsDeletedFalse(routeId, userId))
+                .thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             reviewService.getUserReview(routeId, userId);
         });
         assertEquals("Review not found for route " + routeId + " and user " + userId, exception.getMessage());
-        verify(ratingRepository).findByPublishedRouteIdAndUserId(routeId, userId);
-        verify(mapperService, never()).toReviewDto(any());
+        verify(ratingRepository).findByPublishedRouteIdAndUserIdAndIsDeletedFalse(routeId, userId);
+        verify(mapperService, never()).toReviewDto(any(RouteRating.class));
     }
 } 

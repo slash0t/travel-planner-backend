@@ -43,4 +43,8 @@ public interface TripService {
     List<TripDto> getPastTrips(Long userId);
     
     boolean hasAccessToTrip(User user, Trip trip, String... requiredLevels);
+    
+    boolean canPublishTrip(Long userId, Long tripId);
+    
+    TripDto publishTrip(Long userId, Long tripId, boolean publish);
 } 

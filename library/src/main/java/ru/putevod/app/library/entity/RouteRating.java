@@ -30,6 +30,12 @@ public class RouteRating {
 
     @Column(name = "rating", nullable = false)
     private Integer rating;
+    
+    @Column(name = "comment", columnDefinition = "TEXT")
+    private String comment;
+    
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
 
     @CreationTimestamp
     @Column(name = "created_at")

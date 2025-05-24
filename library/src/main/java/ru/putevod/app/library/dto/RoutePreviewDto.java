@@ -7,14 +7,13 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoutePreviewDto {
-    private UUID id;
+    private Long id;
     private String title;
     private String description;
     private AuthorDto author;
@@ -32,7 +31,7 @@ public class RoutePreviewDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AuthorDto {
-        private UUID id;
+        private Long id;
         private String username;
         private String avatarUrl;
     }

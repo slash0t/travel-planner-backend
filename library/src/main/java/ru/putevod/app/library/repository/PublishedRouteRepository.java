@@ -17,6 +17,9 @@ public interface PublishedRouteRepository extends JpaRepository<PublishedRoute, 
     @Query("SELECT p FROM PublishedRoute p WHERE p.isApproved = true ORDER BY p.createdAt DESC")
     Page<PublishedRoute> findAllApproved(Pageable pageable);
 
+    @Query("SELECT p FROM PublishedRoute p WHERE p.isApproved = false ORDER BY p.createdAt DESC")
+    Page<PublishedRoute> findAllPendingApproval(Pageable pageable);
+
     @Query(value = "SELECT * FROM published_trips p WHERE p.is_approved = true AND " +
             "(:country IS NULL OR p.country = :country) AND " +
             "(:city IS NULL OR p.city = :city) AND " +

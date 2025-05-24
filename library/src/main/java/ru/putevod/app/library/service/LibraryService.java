@@ -35,6 +35,12 @@ public class LibraryService {
     }
 
     @Transactional(readOnly = true)
+    public Page<RoutePreviewDto> getPendingRoutes(Pageable pageable) {
+        return publishedRouteRepository.findAllPendingApproval(pageable)
+                .map(mapperService::toRoutePreviewDto);
+    }
+
+    @Transactional(readOnly = true)
     public Page<RoutePreviewDto> searchRoutes(String query, Pageable pageable) {
         return publishedRouteRepository.searchByQuery(query, pageable)
                 .map(mapperService::toRoutePreviewDto);
@@ -102,7 +108,7 @@ public class LibraryService {
                 .country(trip.getCountry())
                 .city(trip.getCity())
                 .duration(trip.getDuration())
-                .isApproved(false) // По умолчанию не одобрено, нужно модерирование
+                .isApproved(false)
                 .viewCount(0)
                 .build();
         
@@ -127,5 +133,11 @@ public class LibraryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Published route not found with id " + routeId));
         
         publishedRouteRepository.delete(publishedRoute);
+    }
+
+    @Transactional(readOnly = true)
+    public PublishedRoute getPublishedRouteById(Long routeId) {
+        return publishedRouteRepository.findById(routeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Published route not found with id " + routeId));
     }
 } 

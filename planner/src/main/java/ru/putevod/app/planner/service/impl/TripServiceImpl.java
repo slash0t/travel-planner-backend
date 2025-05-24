@@ -459,4 +459,45 @@ public class TripServiceImpl implements TripService {
                 .map(access -> Arrays.asList(requiredLevels).contains(access.getAccessLevel()))
                 .orElse(false);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean canPublishTrip(Long userId, Long tripId) {
+        try {
+            Trip trip = getTripEntityById(tripId);
+            User user = userService.getUserEntityById(userId);
+            
+            boolean isCreator = trip.getCreator().getUserId().equals(userId);
+            boolean isAdmin = tripAccessRepository.findByTripAndUser(trip, user)
+                    .filter(access -> "accepted".equals(access.getInvitationStatus()))
+                    .map(access -> "admin".equals(access.getAccessLevel()))
+                    .orElse(false);
+            
+            log.info("Проверка возможности публикации маршрута {}: userId={}, isCreator={}, isAdmin={}", 
+                    tripId, userId, isCreator, isAdmin);
+            
+            return isCreator || isAdmin;
+        } catch (Exception e) {
+            log.error("Ошибка при проверке возможности публикации маршрута {}: {}", tripId, e.getMessage());
+            return false;
+        }
+    }
+    
+    @Override
+    @Transactional
+    public TripDto publishTrip(Long userId, Long tripId, boolean publish) {
+        Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin");
+        
+        if (!canPublishTrip(userId, tripId)) {
+            throw new AccessDeniedException("У вас нет прав на публикацию или снятие с публикации этого маршрута");
+        }
+        
+        trip.setPublished(publish);
+        trip = tripRepository.save(trip);
+        
+        log.info("Маршрут {} {}: userId={}", 
+                tripId, publish ? "опубликован" : "снят с публикации", userId);
+        
+        return tripMapper.toDto(trip);
+    }
 } 

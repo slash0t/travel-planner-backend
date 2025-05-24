@@ -82,15 +82,15 @@ class LibraryControllerTest {
     void setUp() {
         routeUuid = UUID.randomUUID();
         routePreviewDto = new RoutePreviewDto();
-        routePreviewDto.setId(routeUuid);
+        routePreviewDto.setId(1L);
         routePreviewDto.setTitle("Test Route Preview");
 
         routeDetailDto = new PublicRouteDetailDto();
-        routeDetailDto.setId(routeUuid);
+        routeDetailDto.setId(1L);
         routeDetailDto.setTitle("Test Route Detail");
 
         publicRouteDto = new PublicRouteDto();
-        publicRouteDto.setId(routeUuid);
+        publicRouteDto.setId(1L);
         publicRouteDto.setTitle("Published Route Title");
 
         trip = new Trip();
@@ -120,7 +120,7 @@ class LibraryControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.content[0].id").value(routeUuid.toString()))
+                .andExpect(jsonPath("$.content[0].id").value(routePreviewDto.getId()))
                 .andExpect(jsonPath("$.content[0].title").value(routePreviewDto.getTitle()))
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.pageable.pageNumber").value(0))
@@ -140,7 +140,7 @@ class LibraryControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(routeUuid.toString()))
+                .andExpect(jsonPath("$.id").value(routeDetailDto.getId()))
                 .andExpect(jsonPath("$.title").value(routeDetailDto.getTitle()));
                 // Add more assertions for detail fields
     }
@@ -169,7 +169,7 @@ class LibraryControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(routeUuid.toString()))
+                .andExpect(jsonPath("$.id").value(publicRouteDto.getId()))
                 .andExpect(jsonPath("$.title").value(publicRouteDto.getTitle()));
     }
 
@@ -229,7 +229,7 @@ class LibraryControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.content[0].id").value(routeUuid.toString()))
+                .andExpect(jsonPath("$.content[0].id").value(routePreviewDto.getId()))
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.pageable.pageNumber").value(0))
                 .andExpect(jsonPath("$.pageable.pageSize").value(15));
