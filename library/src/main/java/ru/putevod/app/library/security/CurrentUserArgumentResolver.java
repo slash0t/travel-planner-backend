@@ -47,7 +47,7 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         CurrentUser annotation = parameter.getParameterAnnotation(CurrentUser.class);
         
         if (parameter.getParameterType().equals(Long.class)) {
-            return userInfo.userId();
+            return userInfo.getUserId();
         } else if (parameter.getParameterType().equals(UserInfo.class) && annotation.info()) {
             return userInfo;
         }

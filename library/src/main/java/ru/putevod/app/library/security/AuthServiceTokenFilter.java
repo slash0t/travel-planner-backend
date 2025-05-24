@@ -56,7 +56,7 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
     }
 
     private void setAuthenticationContext(UserInfo userInfo, String token) {
-        List<SimpleGrantedAuthority> authorities = Arrays.stream(userInfo.roles())
+        List<SimpleGrantedAuthority> authorities = Arrays.stream(userInfo.getRoles())
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
@@ -64,7 +64,7 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         }
 
-        User user = new User(userInfo.email(), "", authorities);
+        User user = new User(userInfo.getEmail(), "", authorities);
         
         UsernamePasswordAuthenticationToken authentication = 
                 new UsernamePasswordAuthenticationToken(user, token, authorities);

@@ -67,63 +67,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    public static class ErrorResponse {
-        private final int status;
-        private final String message;
-        private final String path;
-        private final LocalDateTime timestamp;
-
-        public ErrorResponse(int status, String message, String path, LocalDateTime timestamp) {
-            this.status = status;
-            this.message = message;
-            this.path = path;
-            this.timestamp = timestamp;
-        }
-
-        public int getStatus() {
-            return status;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public LocalDateTime getTimestamp() {
-            return timestamp;
-        }
+    public record ErrorResponse(int status, String message, String path, LocalDateTime timestamp) {
     }
 
-    public static class ValidationErrorResponse {
-        private final int status;
-        private final String message;
-        private final Map<String, String> errors;
-        private final LocalDateTime timestamp;
-
-        public ValidationErrorResponse(int status, String message, Map<String, String> errors, LocalDateTime timestamp) {
-            this.status = status;
-            this.message = message;
-            this.errors = errors;
-            this.timestamp = timestamp;
-        }
-
-        public int getStatus() {
-            return status;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public Map<String, String> getErrors() {
-            return errors;
-        }
-
-        public LocalDateTime getTimestamp() {
-            return timestamp;
-        }
+    public record ValidationErrorResponse(int status, String message, Map<String, String> errors,
+                                          LocalDateTime timestamp) {
     }
 } 
