@@ -28,7 +28,7 @@ public class PlannerClient {
         WebClient webClient = buildWebClient(token);
         
         return webClient.get()
-                .uri("/api/v1/trips/{id}", tripId)
+                .uri("/trips/{id}", tripId)
                 .retrieve()
                 .bodyToMono(Trip.class)
                 .doOnError(e -> log.error("Error fetching trip details from planner service: {}", e.getMessage()))
@@ -46,11 +46,30 @@ public class PlannerClient {
         WebClient webClient = buildWebClient(token);
         
         return Boolean.TRUE.equals(webClient.get()
-                .uri("/api/v1/trips/{id}/can-publish?userId={userId}", tripId, userId)
+                .uri("/trips/{id}/can-publish?userId={userId}", tripId, userId)
                 .retrieve()
                 .bodyToMono(Boolean.class)
                 .onErrorReturn(false)
                 .block());
+    }
+
+    /**
+     * Публикует маршрут
+     * @param tripId id маршрута
+     * @param userId id пользователя
+     * @param token токен авторизации из сервиса auth
+     * @param publish true для публикации, false для снятия с публикации
+     * @return данные обновленного маршрута
+     */
+    public Trip publishRoute(Long tripId, Long userId, String token, boolean publish) {
+        WebClient webClient = buildWebClient(token);
+        
+        return webClient.post()
+                .uri("/trips/{id}/publish?publish={publish}", tripId, publish)
+                .retrieve()
+                .bodyToMono(Trip.class)
+                .doOnError(e -> log.error("Error publishing route in planner service: {}", e.getMessage()))
+                .block();
     }
 
     /**
