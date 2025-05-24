@@ -4,14 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.putevod.app.library.dto.*;
 import ru.putevod.app.library.entity.PublishedRoute;
-import ru.putevod.app.library.entity.RouteComment;
 import ru.putevod.app.library.entity.RouteRating;
 import ru.putevod.app.library.entity.User;
 import ru.putevod.app.library.repository.UserRepository;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +21,7 @@ public class MapperService {
         User author = userRepository.findById(publishedRoute.getUserId()).orElse(null);
         
         return RoutePreviewDto.builder()
-                .id(convertToUuid(publishedRoute.getId()))
+                .id(publishedRoute.getId())
                 .title(publishedRoute.getTitle())
                 .description(publishedRoute.getDescription())
                 .author(toAuthorDto(author))
@@ -48,8 +46,8 @@ public class MapperService {
         User author = userRepository.findById(publishedRoute.getUserId()).orElse(null);
         
         return PublicRouteDto.builder()
-                .id(convertToUuid(publishedRoute.getId()))
-                .originalRouteId(convertToUuid(publishedRoute.getOriginalRouteId()))
+                .id(publishedRoute.getId())
+                .originalRouteId(publishedRoute.getOriginalRouteId())
                 .title(publishedRoute.getTitle())
                 .description(publishedRoute.getDescription())
                 .author(toAuthorDto(author))
@@ -75,8 +73,8 @@ public class MapperService {
         User author = userRepository.findById(publishedRoute.getUserId()).orElse(null);
         
         PublicRouteDetailDto dto = PublicRouteDetailDto.builder()
-                .id(convertToUuid(publishedRoute.getId()))
-                .originalRouteId(convertToUuid(publishedRoute.getOriginalRouteId()))
+                .id(publishedRoute.getId())
+                .originalRouteId(publishedRoute.getOriginalRouteId())
                 .title(publishedRoute.getTitle())
                 .description(publishedRoute.getDescription())
                 .author(toAuthorDto(author))
@@ -105,46 +103,29 @@ public class MapperService {
         User author = userRepository.findById(rating.getUserId()).orElse(null);
         
         return ReviewDto.builder()
-                .id(convertToUuid(rating.getId()))
-                .routeId(convertToUuid(rating.getPublishedRoute().getId()))
+                .id(rating.getId())
+                .routeId(rating.getPublishedRoute().getId())
                 .author(toAuthorDto(author))
                 .rating(rating.getRating())
+                .comment(rating.getComment())
                 .createdAt(rating.getCreatedAt())
                 .updatedAt(rating.getUpdatedAt())
-                .build();
-    }
-
-    public CommentDto toCommentDto(RouteComment comment) {
-        User author = userRepository.findById(comment.getUserId()).orElse(null);
-        
-        return CommentDto.builder()
-                .id(convertToUuid(comment.getId()))
-                .routeId(convertToUuid(comment.getPublishedRoute().getId()))
-                .author(toAuthorDto(author))
-                .content(comment.getContent())
-                .createdAt(comment.getCreatedAt())
-                .updatedAt(comment.getUpdatedAt())
                 .build();
     }
 
     private RoutePreviewDto.AuthorDto toAuthorDto(User user) {
         if (user == null) {
             return RoutePreviewDto.AuthorDto.builder()
-                    .id(UUID.randomUUID())
+                    .id(0L)
                     .username("Unknown")
                     .build();
         }
         
         return RoutePreviewDto.AuthorDto.builder()
-                .id(convertToUuid(user.getId()))
+                .id(user.getId())
                 .username(user.getUsername())
                 .avatarUrl(user.getProfilePictureUrl())
                 .build();
-    }
-
-    private UUID convertToUuid(Long id) {
-        if (id == null) return null;
-        return UUID.nameUUIDFromBytes(id.toString().getBytes());
     }
 
     private String getPreviewImageUrl(PublishedRoute publishedRoute) {
