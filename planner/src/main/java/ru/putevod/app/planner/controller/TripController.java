@@ -159,4 +159,23 @@ public class TripController {
             @RequestParam String status) {
         return ResponseEntity.ok(tripService.respondToInvitation(userId, tripId, status));
     }
+    
+    @GetMapping("/{tripId}/can-publish")
+    @Operation(summary = "Проверить, может ли пользователь публиковать маршрут")
+    public ResponseEntity<Boolean> canPublishTrip(
+            @PathVariable Long tripId,
+            @RequestParam Long userId) {
+        log.info("Checking if user {} can publish trip {}", userId, tripId);
+        return ResponseEntity.ok(tripService.canPublishTrip(userId, tripId));
+    }
+    
+    @PostMapping("/{tripId}/publish")
+    @Operation(summary = "Публиковать или снять с публикации маршрут")
+    public ResponseEntity<TripDto> publishTrip(
+            @CurrentUser Long userId,
+            @PathVariable Long tripId,
+            @RequestParam boolean publish) {
+        log.info("Publishing trip {} for user {}, publish={}", tripId, userId, publish);
+        return ResponseEntity.ok(tripService.publishTrip(userId, tripId, publish));
+    }
 } 
