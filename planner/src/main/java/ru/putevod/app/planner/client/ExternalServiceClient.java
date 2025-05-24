@@ -17,7 +17,7 @@ public class ExternalServiceClient {
     
     private final WebClient webClient;
     
-    @Value("${external.service.token:defaultToken}")
+    @Value("${external.service.token:service_token_for_development}")
     private String serviceToken;
     
     public ExternalServiceClient(@Qualifier("externalServiceWebClient") WebClient webClient) {
