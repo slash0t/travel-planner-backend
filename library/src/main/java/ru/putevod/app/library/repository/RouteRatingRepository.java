@@ -13,9 +13,13 @@ public interface RouteRatingRepository extends JpaRepository<RouteRating, Long> 
     
     Page<RouteRating> findByPublishedRouteId(Long publishedRouteId, Pageable pageable);
     
+    Page<RouteRating> findByPublishedRouteIdAndIsDeletedFalse(Long publishedRouteId, Pageable pageable);
+    
     Optional<RouteRating> findByPublishedRouteIdAndUserId(Long publishedRouteId, Long userId);
+    
+    Optional<RouteRating> findByPublishedRouteIdAndUserIdAndIsDeletedFalse(Long publishedRouteId, Long userId);
     
     boolean existsByPublishedRouteIdAndUserId(Long publishedRouteId, Long userId);
     
-    void deleteByPublishedRouteIdAndUserId(Long publishedRouteId, Long userId);
+    boolean existsByPublishedRouteIdAndUserIdAndIsDeletedFalse(Long publishedRouteId, Long userId);
 } 
