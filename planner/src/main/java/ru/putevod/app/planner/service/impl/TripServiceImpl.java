@@ -216,7 +216,7 @@ public class TripServiceImpl implements TripService {
     public TripDto updateTrip(Long userId, Long tripId, TripDto tripDto) {
         Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin", "write");
         
-       String oldCity = trip.getCity();
+        String oldCity = trip.getCity();
         
         tripMapper.updateEntityFromDto(tripDto, trip);
         
@@ -306,26 +306,21 @@ public class TripServiceImpl implements TripService {
         User owner = userService.getUserEntityById(userId);
         Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin");
         
-        // Получаем пользователя, которому предоставляется доступ
         User sharedUser = userService.getUserEntityById(accessDto.getUser().getId());
         
-        // Проверяем, что пользователь не пытается поделиться с самим собой
         if (userId.equals(sharedUser.getUserId())) {
             throw new BadRequestException("Вы не можете предоставить доступ самому себе");
         }
         
-        // Проверяем, нет ли уже доступа у этого пользователя
         if (tripAccessRepository.existsByTripAndUser(trip, sharedUser)) {
             throw new BadRequestException("Доступ для данного пользователя уже существует");
         }
         
-        // Создаем запись о доступе
         TripAccess tripAccess = tripAccessMapper.fromDto(accessDto, trip, sharedUser);
         tripAccess.setInvitationStatus("pending");
         
         tripAccess = tripAccessRepository.save(tripAccess);
         
-        // Отправляем уведомление пользователю о приглашении
         notificationService.createTripInviteNotification(
                 sharedUser.getUserId(),
                 tripId, 
