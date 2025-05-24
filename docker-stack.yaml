@@ -3,6 +3,9 @@ services:
     image: postgres:17
     env_file:
       - ./envfile
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5438:5438"
     volumes:
@@ -19,8 +22,8 @@ services:
       - --changelog-file=master.xml
       - --driver=org.postgresql.Driver
       - --url=jdbc:postgresql://postgresql:5438/travelPlannerDB
-      - --username=postgres
-      - --password=postgres
+      - --username=${DB_USERNAME}
+      - --password=${DB_PASSWORD}
       - update
     volumes:
       - /home/deploy/travel-planner-backend/migrations:/changesets
@@ -35,6 +38,10 @@ services:
     depends_on:
       - postgresql
       - liquibase-migrations
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
     ports:
       - "8081:8081"
     deploy:
@@ -49,6 +56,10 @@ services:
       - postgresql
       - liquibase-migrations
       - auth-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
     ports:
       - "8082:8082"
     deploy:
@@ -62,6 +73,10 @@ services:
     depends_on:
       - postgresql
       - liquibase-migrations
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
     ports:
       - "8083:8083"
     deploy:
@@ -75,6 +90,10 @@ services:
     depends_on:
       - postgresql
       - liquibase-migrations
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
     ports:
       - "8084:8084"
     deploy:
