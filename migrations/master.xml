@@ -9,4 +9,5 @@
 
     <include relativeToChangelogFile="true" file="00-initial-schema.sql"/>
     <include relativeToChangelogFile="true" file="01-add-trip-preview.sql"/>
+    <include relativeToChangelogFile="true" file="02-combine-ratings-and-comments.sql"/>
 </databaseChangeLog>
