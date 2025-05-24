@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
-import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -31,7 +30,7 @@ public class PublicRouteDetailDto extends PublicRouteDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class PlaceDto {
-        private UUID id;
+        private Long id;
         private String name;
         private String description;
         private String category;

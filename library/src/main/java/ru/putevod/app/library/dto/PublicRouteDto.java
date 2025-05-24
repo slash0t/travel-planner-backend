@@ -7,15 +7,14 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class PublicRouteDto {
-    private UUID id;
-    private UUID originalRouteId;
+    private Long id;
+    private Long originalRouteId;
     private String title;
     private String description;
     private RoutePreviewDto.AuthorDto author;
