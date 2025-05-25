@@ -21,7 +21,7 @@ services:
       - --searchPath=/changesets
       - --changelog-file=master.xml
       - --driver=org.postgresql.Driver
-      - --url=jdbc:postgresql://postgresql:5438/travelPlannerDB
+      - --url=${DB_URL}
       - --username=${DB_USERNAME}
       - --password=${DB_PASSWORD}
       - update
@@ -39,7 +39,7 @@ services:
       - postgresql
       - liquibase-migrations
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_URL: ${DB_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
     ports:
@@ -57,7 +57,7 @@ services:
       - liquibase-migrations
       - auth-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_URL: ${DB_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
     ports:
@@ -74,7 +74,7 @@ services:
       - postgresql
       - liquibase-migrations
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_URL: ${DB_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
     ports:
@@ -91,7 +91,7 @@ services:
       - postgresql
       - liquibase-migrations
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5438/travelPlannerDB
+      SPRING_DATASOURCE_URL: ${DB_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
     ports:
