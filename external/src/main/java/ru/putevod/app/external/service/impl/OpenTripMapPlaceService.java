@@ -2,7 +2,7 @@ package ru.putevod.app.external.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.putevod.app.external.config.AppConfig;
 import ru.putevod.app.external.dto.PlaceRequestDto;
@@ -14,6 +14,7 @@ import ru.putevod.app.external.dto.response.PlaceSuggestionResponse;
 import ru.putevod.app.external.service.PlaceService;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,11 +23,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OpenTripMapPlaceService implements PlaceService {
 
-    private final RestTemplate restTemplate;
+    private final WebClient webClient;
     private final AppConfig appConfig;
     
-    public OpenTripMapPlaceService(RestTemplate restTemplate, AppConfig appConfig) {
-        this.restTemplate = restTemplate;
+    public OpenTripMapPlaceService(WebClient webClient, AppConfig appConfig) {
+        this.webClient = webClient;
         this.appConfig = appConfig;
     }
 
@@ -65,7 +66,11 @@ public class OpenTripMapPlaceService implements PlaceService {
         }
 
         try {
-            List<Map<String, Object>> response = restTemplate.getForObject(url, List.class);
+            List<Map<String, Object>> response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(List.class)
+                    .block();
 
             if (response == null || response.isEmpty()) {
                 return PlaceSearchResponse.builder()
@@ -104,7 +109,11 @@ public class OpenTripMapPlaceService implements PlaceService {
                 .toUriString();
         
         try {
-            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            Map<String, Object> response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
                     
             if (response == null || !response.containsKey("name")) {
                 return PlaceSearchResponse.builder()
@@ -151,7 +160,11 @@ public class OpenTripMapPlaceService implements PlaceService {
                 .toUriString();
 
         try {
-            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            Map<String, Object> response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
 
             if (response == null) {
                 return null;
@@ -189,7 +202,11 @@ public class OpenTripMapPlaceService implements PlaceService {
         }
         
         try {
-            List<Map<String, Object>> response = restTemplate.getForObject(url, List.class);
+            List<Map<String, Object>> response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(List.class)
+                    .block();
                     
             if (response == null || response.isEmpty()) {
                 return PlaceSuggestionResponse.builder()
@@ -238,7 +255,11 @@ public class OpenTripMapPlaceService implements PlaceService {
         }
         
         try {
-            List<Map<String, Object>> response = restTemplate.getForObject(url, List.class);
+            List<Map<String, Object>> response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(List.class)
+                    .block();
                     
             if (response == null || response.isEmpty()) {
                 return PlaceSearchResponse.builder()
@@ -272,6 +293,12 @@ public class OpenTripMapPlaceService implements PlaceService {
         
         // Возвращаем пустой список, так как это заглушка
         return new ArrayList<>();
+    }
+
+    @Override
+    public Map<String, Double> geocodeAddress(String address) {
+        log.warn("Геокодирование адреса не поддерживается в OpenTripMapPlaceService");
+        return Collections.emptyMap();
     }
 
     private PlaceResponseDto mapToPlaceResponse(Map<String, Object> data) {
