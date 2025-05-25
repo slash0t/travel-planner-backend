@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import ru.putevod.app.external.service.PlaceService;
 import ru.putevod.app.external.service.impl.OpenTripMapPlaceService;
 import ru.putevod.app.external.service.impl.YandexGeoSuggestService;
@@ -12,8 +13,8 @@ import ru.putevod.app.external.service.impl.YandexGeoSuggestService;
 public class PlaceServiceConfig {
     
     @Bean
-    public OpenTripMapPlaceService openTripMapPlaceService(RestTemplate restTemplate, AppConfig appConfig) {
-        return new OpenTripMapPlaceService(restTemplate, appConfig);
+    public OpenTripMapPlaceService openTripMapPlaceService(WebClient webClient, AppConfig appConfig) {
+        return new OpenTripMapPlaceService(webClient, appConfig);
     }
     
     @Bean

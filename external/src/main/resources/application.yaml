@@ -5,6 +5,10 @@ app:
   external-api:
     openTripMapApiKey: ${OPENTRIPMAP_API_KEY}
     openTripMapBaseUrl: ${OPENTRIPMAP_BASE_URL}
+    yandexGeoSuggestApiKey: ${YANDEX_GEOSUGGEST_API_KEY}
+    yandexGeoSuggestBaseUrl: ${YANDEX_GEOSUGGEST_BASE_URL}
+    yandex-geocoder-api-key: ${YANDEX_GEOCODER_API_KEY}
+    yandex-geocoder-base-url: ${YANDEX_GEOCODER_BASE_URL}
 
 logging:
   level:
@@ -46,6 +50,9 @@ springdoc:
     - group: ai-api
       paths-to-match: /api/v1/ai/**
       display-name: AI Services API
+
+
+
 
 auth:
   token: ${AUTH_SERVICE_TOKEN:service_token_for_development}
