@@ -86,9 +86,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         if (appProperties.getSecurity().getAllowedOrigins() != null) {
-            configuration.setAllowedOrigins(Arrays.asList(appProperties.getSecurity().getAllowedOrigins().split(",")));
+            configuration.setAllowedOrigins(
+                    Arrays.asList(appProperties.getSecurity().getAllowedOrigins().split(",")));
         } else {
-            configuration.setAllowedOrigins(List.of("*"));
+            configuration.setAllowedOriginPatterns(List.of("*"));
         }
         
         if (appProperties.getSecurity().getAllowedMethods() != null) {
@@ -105,7 +106,7 @@ public class SecurityConfig {
         
         configuration.setExposedHeaders(List.of("X-Auth-Token"));
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
