@@ -1,9 +1,8 @@
 package ru.putevod.app.external.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.putevod.app.external.config.AppConfig;
 import ru.putevod.app.external.dto.PlaceRequestDto;
@@ -20,12 +19,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class OpenTripMapPlaceService implements PlaceService {
 
-    private final WebClient webClient;
+    private final RestTemplate restTemplate;
     private final AppConfig appConfig;
+    
+    public OpenTripMapPlaceService(RestTemplate restTemplate, AppConfig appConfig) {
+        this.restTemplate = restTemplate;
+        this.appConfig = appConfig;
+    }
 
     @Override
     public PlaceSearchResponse searchPlaces(String query, Double lat, Double lon, Integer radius, Integer limit, String category) {
@@ -62,11 +65,7 @@ public class OpenTripMapPlaceService implements PlaceService {
         }
 
         try {
-            List<Map<String, Object>> response = webClient.get()
-                    .uri(url)
-                    .retrieve()
-                    .bodyToMono(List.class)
-                    .block();
+            List<Map<String, Object>> response = restTemplate.getForObject(url, List.class);
 
             if (response == null || response.isEmpty()) {
                 return PlaceSearchResponse.builder()
@@ -105,11 +104,7 @@ public class OpenTripMapPlaceService implements PlaceService {
                 .toUriString();
         
         try {
-            Map<String, Object> response = webClient.get()
-                    .uri(url)
-                    .retrieve()
-                    .bodyToMono(Map.class)
-                    .block();
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
                     
             if (response == null || !response.containsKey("name")) {
                 return PlaceSearchResponse.builder()
@@ -156,11 +151,7 @@ public class OpenTripMapPlaceService implements PlaceService {
                 .toUriString();
 
         try {
-            Map<String, Object> response = webClient.get()
-                    .uri(url)
-                    .retrieve()
-                    .bodyToMono(Map.class)
-                    .block();
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
 
             if (response == null) {
                 return null;
@@ -198,11 +189,7 @@ public class OpenTripMapPlaceService implements PlaceService {
         }
         
         try {
-            List<Map<String, Object>> response = webClient.get()
-                    .uri(url)
-                    .retrieve()
-                    .bodyToMono(List.class)
-                    .block();
+            List<Map<String, Object>> response = restTemplate.getForObject(url, List.class);
                     
             if (response == null || response.isEmpty()) {
                 return PlaceSuggestionResponse.builder()
@@ -251,11 +238,7 @@ public class OpenTripMapPlaceService implements PlaceService {
         }
         
         try {
-            List<Map<String, Object>> response = webClient.get()
-                    .uri(url)
-                    .retrieve()
-                    .bodyToMono(List.class)
-                    .block();
+            List<Map<String, Object>> response = restTemplate.getForObject(url, List.class);
                     
             if (response == null || response.isEmpty()) {
                 return PlaceSearchResponse.builder()
