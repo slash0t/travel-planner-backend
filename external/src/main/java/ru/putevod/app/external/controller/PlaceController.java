@@ -15,6 +15,8 @@ import ru.putevod.app.external.dto.response.PlaceSearchResponse;
 import ru.putevod.app.external.dto.response.PlaceSuggestionResponse;
 import ru.putevod.app.external.service.PlaceService;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/places")
 @RequiredArgsConstructor
@@ -73,6 +75,25 @@ public class PlaceController {
             @Parameter(description = "Максимальное количество результатов") @RequestParam(required = false, defaultValue = "5") Integer limit) {
         
         return ResponseEntity.ok(placeService.autocompletePlaces(input, lat, lon, limit));
+    }
+    
+    @GetMapping("/geocode")
+    @Operation(summary = "Геокодирование адреса", description = "Получение координат по адресу или названию места")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Координаты успешно получены",
+                content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "400", description = "Некорректные параметры запроса"),
+        @ApiResponse(responseCode = "404", description = "Адрес не найден"),
+        @ApiResponse(responseCode = "500", description = "Ошибка сервера")
+    })
+    public ResponseEntity<Map<String, Double>> geocodeAddress(
+            @Parameter(description = "Адрес или название места") @RequestParam String address) {
+        
+        Map<String, Double> coordinates = placeService.geocodeAddress(address);
+        if (coordinates == null || coordinates.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(coordinates);
     }
     
     @GetMapping("/nearby")

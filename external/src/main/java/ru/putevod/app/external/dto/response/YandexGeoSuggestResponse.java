@@ -14,8 +14,11 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class YandexGeoSuggestResponse {
     
-    @JsonProperty("items")
-    private List<GeoSuggestItem> items;
+    @JsonProperty("suggest_reqid")
+    private String requestId;
+    
+    @JsonProperty("results")
+    private List<GeoSuggestItem> results;
     
     @Data
     @NoArgsConstructor
@@ -23,26 +26,62 @@ public class YandexGeoSuggestResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class GeoSuggestItem {
         
-        @JsonProperty("id")
-        private String id;
-        
         @JsonProperty("title")
-        private String title;
+        private TextWithHighlight title;
         
         @JsonProperty("subtitle")
-        private String subtitle;
+        private TextWithHighlight subtitle;
         
         @JsonProperty("tags")
         private List<String> tags;
         
-        @JsonProperty("type")
-        private String type;
-        
         @JsonProperty("distance")
-        private Double distance;
+        private Distance distance;
         
         @JsonProperty("geometry")
         private Geometry geometry;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TextWithHighlight {
+        
+        @JsonProperty("text")
+        private String text;
+        
+        @JsonProperty("hl")
+        private List<Highlight> highlights;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Highlight {
+        
+        @JsonProperty("begin")
+        private Integer begin;
+        
+        @JsonProperty("end")
+        private Integer end;
+        
+        @JsonProperty("type")
+        private String type;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Distance {
+        
+        @JsonProperty("value")
+        private Double value;
+        
+        @JsonProperty("text")
+        private String text;
     }
     
     @Data
