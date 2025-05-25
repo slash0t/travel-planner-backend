@@ -239,6 +239,10 @@ jobs:
           envkey_LOG_LEVEL_HIBERNATE: ${{ secrets.LOG_LEVEL_HIBERNATE }}
           envkey_POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           envkey_PGPORT: ${{ secrets.PGPORT }}
+          envkey_YANDEX_GEOSUGGEST_API_KEY: ${{ secrets.YANDEX_GEOSUGGEST_API_KEY }}
+          envkey_YANDEX_GEOSUGGEST_BASE_URL: ${{ secrets.YANDEX_GEOSUGGEST_BASE_URL }}
+          envkey_YANDEX_GEOCODER_BASE_URL: ${{ secrets.YANDEX_GEOCODER_BASE_URL }}
+          envkey_YANDEX_GEOCODER_API_KEY: ${{ secrets.YANDEX_GEOCODER_API_KEY }}
           file_name: ./envfile
 
       - name: Import variables into environment
