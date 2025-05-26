@@ -20,17 +20,17 @@ public class User {
     @Column(name = "user_id")
     private Long userId;
     
-    @Column(unique = true, nullable = false, length = 50)
+    @Column(name = "username", unique = true, nullable = false, length = 50)
     private String username;
     
-    @Column(unique = true, nullable = false, length = 100)
+    @Column(name = "email", unique = true, nullable = false, length = 100)
     private String email;
     
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
     
     @Column(name = "is_admin")
-    private boolean admin;
+    private Boolean isAdmin;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -45,7 +45,7 @@ public class User {
     private String profilePictureUrl;
     
     @Column(name = "is_verified")
-    private boolean verified;
+    private Boolean isVerified;
     
     @PrePersist
     protected void onCreate() {
