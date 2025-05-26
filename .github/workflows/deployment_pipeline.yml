@@ -246,6 +246,8 @@ jobs:
           envkey_YANDEX_GEOSUGGEST_BASE_URL: ${{ secrets.YANDEX_GEOSUGGEST_BASE_URL }}
           envkey_YANDEX_GEOCODER_BASE_URL: ${{ secrets.YANDEX_GEOCODER_BASE_URL }}
           envkey_YANDEX_GEOCODER_API_KEY: ${{ secrets.YANDEX_GEOCODER_API_KEY }}
+          envkey_YANDEX_GPT_API_KEY: ${{ secrets.YANDEX_GPT_API_KEY }}
+          envkey_YANDEX_GPT_FOLDER_ID: ${{ secrets.YANDEX_GPT_FOLDER_ID }}
           file_name: ./envfile
 
       - name: Import variables into environment
