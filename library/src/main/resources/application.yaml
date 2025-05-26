@@ -16,10 +16,21 @@ spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:5}
+      minimum-idle: ${HIKARI_MIN_IDLE:2}
+      connection-timeout: 10000
+      idle-timeout: 180000
+      max-lifetime: 300000
+      leak-detection-threshold: 30000
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
+      auto-commit: true
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: true
+    open-in-view: false
 
 services:
   planner:
@@ -53,3 +64,31 @@ logging:
     ru.putevod.app.library: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE 
+    com.zaxxer.hikari: DEBUG
+    org.springframework.jdbc: DEBUG
+
+---
+# Профиль для CI/CD среды
+spring:
+  config:
+    activate:
+      on-profile: ci
+  datasource:
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 1
+      connection-timeout: 5000
+      idle-timeout: 180000
+      max-lifetime: 300000
+
+---
+# Профиль для тестирования
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 1
+      connection-timeout: 5000 

@@ -1,6 +1,5 @@
 package ru.putevod.app.external.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -15,17 +14,22 @@ import ru.putevod.app.external.dto.response.PlaceSuggestionResponse;
 import ru.putevod.app.external.service.PlaceService;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class OpenTripMapPlaceService implements PlaceService {
 
     private final WebClient webClient;
     private final AppConfig appConfig;
+    
+    public OpenTripMapPlaceService(WebClient webClient, AppConfig appConfig) {
+        this.webClient = webClient;
+        this.appConfig = appConfig;
+    }
 
     @Override
     public PlaceSearchResponse searchPlaces(String query, Double lat, Double lon, Integer radius, Integer limit, String category) {
@@ -284,11 +288,15 @@ public class OpenTripMapPlaceService implements PlaceService {
 
     @Override
     public List<PlaceResponseDto> getAiRecommendations(PlaceRequestDto request) {
-        // Заглушка для ИИ рекомендаций
         log.info("Getting AI recommendations for request: {}", request);
-        
-        // Возвращаем пустой список, так как это заглушка
+
         return new ArrayList<>();
+    }
+
+    @Override
+    public Map<String, Double> geocodeAddress(String address) {
+        log.warn("Геокодирование адреса не поддерживается в OpenTripMapPlaceService");
+        return Collections.emptyMap();
     }
 
     private PlaceResponseDto mapToPlaceResponse(Map<String, Object> data) {
@@ -305,8 +313,7 @@ public class OpenTripMapPlaceService implements PlaceService {
     
     private PlaceResponseDto mapToPlaceResponseWithDistance(Map<String, Object> data) {
         PlaceResponseDto dto = mapToPlaceResponse(data);
-        
-        // Добавляем информацию о расстоянии, если она есть
+
         if (data.containsKey("dist")) {
             Integer distanceMeters = parseInteger(data, "dist");
             dto.setDistanceMeters(distanceMeters);
@@ -327,25 +334,21 @@ public class OpenTripMapPlaceService implements PlaceService {
             Map<String, Object> addressData = (Map<String, Object>) data.get("address");
             address = formatAddress(addressData);
         }
-        
-        // Получаем список фотографий
+
         List<PhotoDto> photos = new ArrayList<>();
         if (previewUrl != null && !previewUrl.isEmpty()) {
             PhotoDto photo = PhotoDto.builder()
                     .url(previewUrl)
-                    .width(800) // Примерные размеры для превью
+                    .width(800)
                     .height(600)
                     .build();
             photos.add(photo);
         }
-        
-        // Получаем веб-сайт, если он есть
+
         String website = data.containsKey("url") ? data.getOrDefault("url", "").toString() : null;
-        
-        // Получаем телефон, если он есть
+
         String phone = data.containsKey("phone") ? data.getOrDefault("phone", "").toString() : null;
-        
-        // Преобразуем рейтинг в формат float
+
         Float rating = null;
         if (data.containsKey("rate") && data.get("rate") instanceof Number) {
             rating = ((Number) data.get("rate")).floatValue();
@@ -383,7 +386,6 @@ public class OpenTripMapPlaceService implements PlaceService {
     }
     
     private String getPreviewUrl(Map<String, Object> data) {
-        // Логика получения URL превью из данных
         if (data.containsKey("preview") && data.get("preview") instanceof Map) {
             Map<String, Object> preview = (Map<String, Object>) data.get("preview");
             return preview.getOrDefault("source", "").toString();
@@ -394,8 +396,7 @@ public class OpenTripMapPlaceService implements PlaceService {
     
     private String formatAddress(Map<String, Object> addressData) {
         StringBuilder address = new StringBuilder();
-        
-        // Формируем полный адрес из доступных компонентов
+
         if (addressData.containsKey("house_number")) {
             address.append(addressData.get("house_number")).append(", ");
         }
@@ -421,8 +422,7 @@ public class OpenTripMapPlaceService implements PlaceService {
         }
         
         String result = address.toString();
-        
-        // Убираем завершающую запятую, если она есть
+
         if (result.endsWith(", ")) {
             result = result.substring(0, result.length() - 2);
         }
@@ -431,7 +431,6 @@ public class OpenTripMapPlaceService implements PlaceService {
     }
     
     private String formatShortAddress(Map<String, Object> data) {
-        // Извлекаем краткий адрес или формируем его из названия и категории
         if (data.containsKey("address") && data.get("address") instanceof Map) {
             Map<String, Object> addressData = (Map<String, Object>) data.get("address");
             
@@ -439,8 +438,7 @@ public class OpenTripMapPlaceService implements PlaceService {
                 return addressData.get("city").toString();
             }
         }
-        
-        // Если адрес не найден, возвращаем пустую строку
+
         return "";
     }
 

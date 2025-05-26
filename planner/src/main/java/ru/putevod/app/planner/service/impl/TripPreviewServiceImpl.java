@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import ru.putevod.app.planner.client.PixabayClient;
-import ru.putevod.app.planner.dto.external.PixabayResponse;
+import ru.putevod.app.planner.client.ExternalServiceClient;
+import ru.putevod.app.planner.dto.external.PixabayResponseDto;
 import ru.putevod.app.planner.service.TripPreviewService;
 
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
 @Slf4j
 public class TripPreviewServiceImpl implements TripPreviewService {
 
-    private final PixabayClient pixabayClient;
+    private final ExternalServiceClient externalServiceClient;
     
     @Value("${trip.default.preview.url:https://via.placeholder.com/800x600?text=Путешествие}")
     private String defaultPreviewUrl;
@@ -27,14 +27,14 @@ public class TripPreviewServiceImpl implements TripPreviewService {
             return getDefaultPreviewUrl();
         }
         
-        PixabayResponse response = pixabayClient.getImagesForCity(city);
+        PixabayResponseDto response = externalServiceClient.getCityImages(city);
         
         if (response == null || response.getHits() == null || response.getHits().isEmpty()) {
             log.info("Для города {} не найдено изображений, используется изображение по умолчанию", city);
             return getDefaultPreviewUrl();
         }
         
-        PixabayResponse.PixabayImage image = response.getHits().get(0);
+        PixabayResponseDto.PixabayImage image = response.getHits().get(0);
         
         if (image.getLargeImageUrl() != null && !image.getLargeImageUrl().isEmpty()) {
             log.info("Используется большое изображение для города {}: {}", city, image.getLargeImageUrl());

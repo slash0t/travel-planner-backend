@@ -22,9 +22,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         in = SecuritySchemeIn.HEADER
 )
 public class ExternalApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(ExternalApplication.class, args);
     }
-
 }

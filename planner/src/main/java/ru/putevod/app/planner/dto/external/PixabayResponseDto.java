@@ -8,14 +8,11 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-/**
- * DTO для ответа от Pixabay API
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PixabayResponse {
+public class PixabayResponseDto {
     
     private Integer total;
     private Integer totalHits;

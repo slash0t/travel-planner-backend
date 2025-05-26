@@ -15,4 +15,6 @@ public class PlaceSuggestionDto {
     private String address;
     private String category;
     private String previewUrl;
+    private Double lat;
+    private Double lon;
 } 
