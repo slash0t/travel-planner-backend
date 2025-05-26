@@ -17,6 +17,14 @@ spring:
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 10000
+      idle-timeout: 300000
+      max-lifetime: 600000
+      leak-detection-threshold: 60000
+      connection-test-query: SELECT 1
   jpa:
     hibernate:
       ddl-auto: validate
@@ -58,3 +66,11 @@ app:
   verification-token-expiration-hours: 24
   reset-token-expiration-minutes: 15
   auth-token: ${AUTH_SERVICE_TOKEN:service_token_for_development}
+
+logging:
+  level:
+    com.zaxxer.hikari: DEBUG
+    org.springframework.jdbc: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    ru.putevod.app.auth: DEBUG
