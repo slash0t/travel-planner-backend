@@ -87,4 +87,10 @@ public class ReviewService {
         
         return mapperService.toReviewDto(rating);
     }
+    
+    @Transactional(readOnly = true)
+    public Page<ReviewDto> getAllReviews(Pageable pageable) {
+        return ratingRepository.findByIsDeletedFalse(pageable)
+                .map(mapperService::toReviewDto);
+    }
 } 

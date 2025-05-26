@@ -12,8 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.library.client.AuthServiceClient;
 import ru.putevod.app.library.dto.ReviewDto;
@@ -118,5 +120,38 @@ public class ReviewController {
             @CurrentUser Long userId) {
         
         return ResponseEntity.ok(reviewService.getUserReview(routeId, userId));
+    }
+
+    @RestController
+    @RequestMapping("/api/v1/admin/reviews")
+    @Tag(name = "Административная панель отзывов", description = "API для администрирования отзывов")
+    public static class ReviewAdminController {
+
+        private final ReviewService reviewService;
+
+        public ReviewAdminController(ReviewService reviewService) {
+            this.reviewService = reviewService;
+        }
+
+        @GetMapping
+        @Operation(summary = "Получить все отзывы (только для администраторов)", 
+                description = "Возвращает пагинированный список всех отзывов на маршруты (требует прав администратора)",
+                security = { @SecurityRequirement(name = "bearerAuth") })
+        @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Список всех отзывов успешно получен",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "403", description = "Нет прав администратора"),
+            @ApiResponse(responseCode = "401", description = "Не авторизован")
+        })
+        public ResponseEntity<Page<ReviewDto>> getAllReviews(@PageableDefault(size = 20) Pageable pageable) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            
+            if (authentication == null || authentication.getAuthorities().stream()
+                    .noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            
+            return ResponseEntity.ok(reviewService.getAllReviews(pageable));
+        }
     }
 } 
