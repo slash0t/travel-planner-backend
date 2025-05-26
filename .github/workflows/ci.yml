@@ -23,6 +23,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          -c max_connections=200
         ports:
           - 5438:5432
     steps:
@@ -48,10 +49,14 @@ jobs:
       run: mvn compile
 
     - name: Run tests
-      run: mvn test
+      run: |
+        mvn test -pl auth -Dspring.profiles.active=test
+        mvn test -pl library -Dspring.profiles.active=test  
+        mvn test -pl planner -Dspring.profiles.active=test
+        mvn test -pl external -Dspring.profiles.active=test
 
     - name: Package application
-      run: mvn package
+      run: mvn package -DskipTests
 
     - name: Upload auth JAR
       uses: actions/upload-artifact@v4
