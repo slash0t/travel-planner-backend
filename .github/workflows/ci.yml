@@ -49,14 +49,10 @@ jobs:
       run: mvn compile
 
     - name: Run tests
-      run: |
-        mvn test -pl auth -Dspring.profiles.active=test
-        mvn test -pl library -Dspring.profiles.active=test  
-        mvn test -pl planner -Dspring.profiles.active=test
-        mvn test -pl external -Dspring.profiles.active=test
+      run: mvn test
 
     - name: Package application
-      run: mvn package -DskipTests
+      run: mvn package
 
     - name: Upload auth JAR
       uses: actions/upload-artifact@v4
