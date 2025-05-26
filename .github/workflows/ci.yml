@@ -49,13 +49,13 @@ jobs:
         run: mvn liquibase:update
 
       - name: Compile project
-        run: mvn -pl planner compile
+        run: mvn -pl external compile
 
       - name: Run tests
-        run: mvn -pl planner test
+        run: mvn -pl external test
 
       - name: Package application
-        run: mvn -pl planner package
+        run: mvn -pl external package
 
       - name: Upload auth JAR
         uses: actions/upload-artifact@v4
