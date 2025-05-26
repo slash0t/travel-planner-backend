@@ -22,4 +22,6 @@ public interface RouteRatingRepository extends JpaRepository<RouteRating, Long> 
     boolean existsByPublishedRouteIdAndUserId(Long publishedRouteId, Long userId);
     
     boolean existsByPublishedRouteIdAndUserIdAndIsDeletedFalse(Long publishedRouteId, Long userId);
+    
+    Page<RouteRating> findByIsDeletedFalse(Pageable pageable);
 } 
