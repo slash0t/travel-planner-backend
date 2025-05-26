@@ -2,9 +2,9 @@ name: Java CI with Maven
 
 on:
   push:
-    # No branches filter means any branch
+  # No branches filter means any branch
   pull_request:
-    # No branches filter means any branch
+  # No branches filter means any branch
 
 jobs:
   build-and-test:
@@ -25,58 +25,62 @@ jobs:
           --health-retries 5
         ports:
           - 5438:5432
+
+    env:
+      DB_URL: jdbc:postgresql://localhost:5438/travelPlannerDB
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-  
-    - uses: oNaiPs/secrets-to-env-action@v1
-      with:
-        secrets: ${{ toJSON(secrets) }}
-        exclude: SPRING_DATASOURCE_URL
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up JDK 23
-      uses: actions/setup-java@v4
-      with:
-        java-version: '23'
-        distribution: 'temurin'
-        cache: maven
+      - uses: oNaiPs/secrets-to-env-action@v1
+        with:
+          secrets: ${{ toJSON(secrets) }}
+          exclude: SPRING_DATASOURCE_URL, DB_URL
 
-    - name: Run migrations
-      run: mvn liquibase:update
+      - name: Set up JDK 23
+        uses: actions/setup-java@v4
+        with:
+          java-version: '23'
+          distribution: 'temurin'
+          cache: maven
 
-    - name: Compile project
-      run: mvn compile
+      - name: Run migrations
+        run: mvn liquibase:update
 
-    - name: Run tests
-      run: mvn test
+      - name: Compile project
+        run: mvn -pl auth compile
 
-    - name: Package application
-      run: mvn package
+      - name: Run tests
+        run: mvn -pl auth test
 
-    - name: Upload auth JAR
-      uses: actions/upload-artifact@v4
-      with:
-        name: auth-target.jar
-        path: auth/target/*SNAPSHOT.jar
-        if-no-files-found: error
+      - name: Package application
+        run: mvn -pl auth package
 
-    - name: Upload external JAR
-      uses: actions/upload-artifact@v4
-      with:
-        name: external-target.jar
-        path: external/target/*SNAPSHOT.jar
-        if-no-files-found: error
+      - name: Upload auth JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: auth-target.jar
+          path: auth/target/*SNAPSHOT.jar
+          if-no-files-found: error
 
-    - name: Upload library JAR
-      uses: actions/upload-artifact@v4
-      with:
-        name: library-target.jar
-        path: library/target/*SNAPSHOT.jar
-        if-no-files-found: error
+      - name: Upload external JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: external-target.jar
+          path: external/target/*SNAPSHOT.jar
+          if-no-files-found: error
 
-    - name: Upload planner JAR
-      uses: actions/upload-artifact@v4
-      with:
-        name: planner-target.jar
-        path: planner/target/*SNAPSHOT.jar
-        if-no-files-found: error
+      - name: Upload library JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-target.jar
+          path: library/target/*SNAPSHOT.jar
+          if-no-files-found: error
+
+      - name: Upload planner JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: planner-target.jar
+          path: planner/target/*SNAPSHOT.jar
+          if-no-files-found: error
