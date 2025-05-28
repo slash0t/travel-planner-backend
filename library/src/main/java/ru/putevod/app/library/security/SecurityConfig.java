@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -40,7 +42,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/routes/{id}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/routes/{id}/reviews").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/routes/{id}/comments").permitAll()
-                .anyRequest().permitAll()
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
             )
             .addFilterBefore(authServiceTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
