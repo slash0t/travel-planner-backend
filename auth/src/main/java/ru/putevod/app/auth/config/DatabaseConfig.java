@@ -40,4 +40,4 @@ public class DatabaseConfig {
                     hikariDataSource.getHikariPoolMXBean().getThreadsAwaitingConnection());
         }
     }
-} 
+}
