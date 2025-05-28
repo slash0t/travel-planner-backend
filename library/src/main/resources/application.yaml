@@ -57,6 +57,9 @@ springdoc:
     - group: library-api
       paths-to-match: /api/v1/routes/**
       display-name: Библиотека маршрутов API
+    - group: admin-api
+      paths-to-match: /api/v1/admin/**
+      display-name: Административная панель API
 
 logging:
   level:

@@ -30,6 +30,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+    show-sql: true
     open-in-view: false
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -55,6 +56,15 @@ springdoc:
   packages-to-scan: ru.putevod.app.auth.controller
   default-produces-media-type: application/json
   default-consumes-media-type: application/json
+
+logging:
+  level:
+    org.springframework.web: INFO
+    ru.putevod.app.auth: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE 
+    com.zaxxer.hikari: DEBUG
+    org.springframework.jdbc: DEBUG
 
 app:
   frontend-url: ${FRONTEND_URL}

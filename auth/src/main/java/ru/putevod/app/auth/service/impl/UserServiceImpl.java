@@ -43,6 +43,7 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .username(user.getUsername())
                 .emailVerified(Boolean.TRUE.equals(user.getIsVerified()))
+                .isAdmin(Boolean.TRUE.equals(user.getIsAdmin()))
                 .createdAt(user.getCreatedAt())
                 .build();
     }

@@ -93,4 +93,14 @@ public class ReviewService {
         return ratingRepository.findByIsDeletedFalse(pageable)
                 .map(mapperService::toReviewDto);
     }
+    
+    @Transactional
+    public void deleteReviewById(Long reviewId) {
+        RouteRating rating = ratingRepository.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found with id " + reviewId));
+        
+        rating.setIsDeleted(true);
+        ratingRepository.save(rating);
+        log.info("Review with id {} marked as deleted by admin", reviewId);
+    }
 } 

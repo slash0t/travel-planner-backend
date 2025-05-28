@@ -30,6 +30,9 @@ public class UserInfoDto {
     @Schema(description = "Флаг подтверждения email", example = "true")
     private boolean emailVerified;
     
+    @Schema(description = "Флаг, указывающий, что пользователь является администратором", example = "false")
+    private boolean isAdmin;
+    
     @Schema(description = "Дата и время регистрации", example = "2023-10-15T12:30:45")
     private LocalDateTime createdAt;
 } 
