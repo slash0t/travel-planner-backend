@@ -30,7 +30,8 @@ class EventMapperTest {
         Event event = new Event();
         event.setEventId(1L);
         event.setTitle("Test Event");
-        event.setDescription("Test Description");        event.setStartTime(LocalTime.of(10, 0));
+        event.setDescription("Test Description");
+        event.setStartTime(LocalTime.of(10, 0));
         event.setEndTime(LocalTime.of(12, 0));
         event.setHasSpecificTime(true);
         event.setNotes("Test Notes");
@@ -74,7 +75,8 @@ class EventMapperTest {
         EventDto eventDto = EventDto.builder()
                 .id(1L)
                 .title("Test Event")
-                .description("Test Description")                .startTime(LocalTime.of(10, 0))
+                .description("Test Description")
+                .startTime(LocalTime.of(10, 0))
                 .endTime(LocalTime.of(12, 0))
                 .hasSpecificTime(true)
                 .notes("Test Notes")
@@ -117,7 +119,8 @@ class EventMapperTest {
         EventDto eventDto = EventDto.builder()
                 .id(1L)
                 .title("Updated Title")
-                .description("Updated Description")                .startTime(LocalTime.of(10, 0))
+                .description("Updated Description")
+                .startTime(LocalTime.of(10, 0))
                 .endTime(LocalTime.of(12, 0))
                 .hasSpecificTime(true)
                 .notes("Updated Notes")
@@ -133,5 +136,52 @@ class EventMapperTest {
         assertEquals(eventDto.isHasSpecificTime(), event.isHasSpecificTime());
         assertEquals(eventDto.getNotes(), event.getNotes());
         assertEquals(eventDto.getOrderPosition(), event.getOrderPosition());
+    }
+
+    @Test
+    void testFromDto() {
+        EventDto eventDto = EventDto.builder()
+                .id(1L)
+                .title("Test Event")
+                .description("Test Description")
+                .startTime(LocalTime.of(10, 0))
+                .endTime(LocalTime.of(12, 0))
+                .hasSpecificTime(true)
+                .notes("Test Notes")
+                .orderPosition(1)
+                .place(PlaceDto.builder()
+                        .id(1L)
+                        .name("Test Place")
+                        .build())
+                .build();
+
+        TripDay day = new TripDay();
+        day.setDayId(1L);
+
+        Event event = eventMapper.fromDto(eventDto, day);
+
+        assertNotNull(event);
+        assertEquals(eventDto.getId(), event.getEventId());
+        assertEquals(eventDto.getTitle(), event.getTitle());
+        assertEquals(eventDto.getDescription(), event.getDescription());
+        assertEquals(eventDto.getStartTime(), event.getStartTime());
+        assertEquals(eventDto.getEndTime(), event.getEndTime());
+        assertEquals(eventDto.isHasSpecificTime(), event.isHasSpecificTime());
+        assertEquals(eventDto.getNotes(), event.getNotes());
+        assertEquals(eventDto.getOrderPosition(), event.getOrderPosition());
+        assertEquals(day, event.getDay());
+        assertNotNull(event.getPlace());
+        assertEquals(eventDto.getPlace().getId(), event.getPlace().getPlaceId());
+        assertEquals(eventDto.getPlace().getName(), event.getPlace().getName());
+    }
+
+    @Test
+    void testFromDto_NullInput() {
+        TripDay day = new TripDay();
+        day.setDayId(1L);
+
+        Event event = eventMapper.fromDto(null, day);
+
+        assertNull(event);
     }
 }

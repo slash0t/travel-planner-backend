@@ -7,7 +7,8 @@ import ru.putevod.app.planner.model.TripDay;
 
 @Mapper(componentModel = "spring", 
         uses = {EventMapper.class},
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        collectionMappingStrategy = CollectionMappingStrategy.ACCESSOR_ONLY)
 public interface TripDayMapper {
     
     @Mapping(source = "dayId", target = "id")
@@ -19,7 +20,7 @@ public interface TripDayMapper {
     @Mapping(source = "date", target = "date")
     @Mapping(source = "note", target = "note")
     @Mapping(target = "trip", ignore = true)
-    @Mapping(target = "events", ignore = true)
+    @Mapping(target = "events", expression = "java(null)")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     TripDay toEntity(TripDayDto tripDayDto);
@@ -44,4 +45,4 @@ public interface TripDayMapper {
         
         return tripDay;
     }
-} 
+}
