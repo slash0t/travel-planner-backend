@@ -17,13 +17,13 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.putevod.app.library.client.AuthServiceClient;
+import ru.putevod.app.library.client.AuthServiceClient.UserInfo;
 import ru.putevod.app.library.client.PlannerClient;
-import ru.putevod.app.library.dto.RoutePreviewDto;
 import ru.putevod.app.library.dto.PublicRouteDetailDto;
 import ru.putevod.app.library.dto.PublicRouteDto;
+import ru.putevod.app.library.dto.RoutePreviewDto;
 import ru.putevod.app.library.entity.Trip;
 import ru.putevod.app.library.service.LibraryService;
-import ru.putevod.app.library.client.AuthServiceClient.UserInfo;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -33,9 +33,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = LibraryController.class)
@@ -48,12 +46,12 @@ class LibraryControllerTest {
         public AuthServiceClient authServiceClient() {
             return mock(AuthServiceClient.class);
         }
-        
+
         @Bean
         public PlannerClient plannerClient() {
             return mock(PlannerClient.class);
         }
-        
+
         @Bean
         public LibraryService libraryService() {
             return mock(LibraryService.class);
@@ -62,13 +60,13 @@ class LibraryControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-    
+
     @Autowired
     private LibraryService libraryService;
-    
+
     @Autowired
     private PlannerClient plannerClient;
-    
+
     @Autowired
     private AuthServiceClient authServiceClient;
 
@@ -106,7 +104,8 @@ class LibraryControllerTest {
 
     @Test
     @DisplayName("GET /api/v1/routes - Success")
-    @WithMockUser // Simulate an authenticated user (adjust roles/details if needed)
+    @WithMockUser
+        // Simulate an authenticated user (adjust roles/details if needed)
     void testGetRoutes_Success() throws Exception {
         // Arrange
         Pageable pageable = PageRequest.of(0, 20); // Default pageable from controller
@@ -115,9 +114,9 @@ class LibraryControllerTest {
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/routes")
-                .param("page", "0")
-                .param("size", "20")
-                .accept(MediaType.APPLICATION_JSON))
+                        .param("page", "0")
+                        .param("size", "20")
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.content[0].id").value(routePreviewDto.getId()))
@@ -137,17 +136,17 @@ class LibraryControllerTest {
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/routes/{id}", routeId)
-                .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(routeDetailDto.getId()))
                 .andExpect(jsonPath("$.title").value(routeDetailDto.getTitle()));
-                // Add more assertions for detail fields
+        // Add more assertions for detail fields
     }
 
     @Test
     @DisplayName("POST /api/v1/routes/publish/{tripId} - Success")
-    @WithMockUser(username="100", authorities={"ROLE_USER"}, password="mockPassword")
+    @WithMockUser(username = "100", authorities = {"ROLE_USER"}, password = "mockPassword")
     void testPublishRoute_Success() throws Exception {
         // Arrange
         Long tripId = 50L;
@@ -165,8 +164,8 @@ class LibraryControllerTest {
 
         // Act & Assert
         mockMvc.perform(post("/api/v1/routes/publish/{tripId}", tripId)
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(publicRouteDto.getId()))
@@ -175,7 +174,7 @@ class LibraryControllerTest {
 
     @Test
     @DisplayName("POST /api/v1/routes/publish/{tripId} - Cannot Publish")
-    @WithMockUser(username="100", authorities={"ROLE_USER"}, password="mockPassword")
+    @WithMockUser(username = "100", authorities = {"ROLE_USER"}, password = "mockPassword")
     void testPublishRoute_CannotPublish() throws Exception {
         // Arrange
         Long tripId = 51L;
@@ -191,14 +190,15 @@ class LibraryControllerTest {
 
         // Act & Assert
         mockMvc.perform(post("/api/v1/routes/publish/{tripId}", tripId)
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("DELETE /api/v1/routes/{id} - Success")
-    @WithMockUser // Requires authentication, specific roles might be needed depending on security config
+    @WithMockUser
+        // Requires authentication, specific roles might be needed depending on security config
     void testDeleteRoute_Success() throws Exception {
         // Arrange
         Long routeId = 1L;
@@ -207,7 +207,7 @@ class LibraryControllerTest {
 
         // Act & Assert
         mockMvc.perform(delete("/api/v1/routes/{id}", routeId)
-                .with(csrf())) // Add csrf if needed
+                        .with(csrf())) // Add csrf if needed
                 .andExpect(status().isNoContent()); // Expect 204 No Content
     }
 
@@ -223,10 +223,10 @@ class LibraryControllerTest {
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/routes/search")
-                .param("query", searchQuery)
-                .param("page", "0")
-                .param("size", "15") // Match the pageable size
-                .accept(MediaType.APPLICATION_JSON))
+                        .param("query", searchQuery)
+                        .param("page", "0")
+                        .param("size", "15") // Match the pageable size
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.content[0].id").value(routePreviewDto.getId()))

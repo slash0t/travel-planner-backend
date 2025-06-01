@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "trip_files", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"trip_id", "file_id"})
+        @UniqueConstraint(columnNames = {"trip_id", "file_id"})
 })
 @Data
 @Builder
@@ -21,21 +21,21 @@ public class TripFile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "trip_file_id")
     private Long tripFileId;
-    
+
     @ManyToOne
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
-    
+
     @ManyToOne
     @JoinColumn(name = "file_id", nullable = false)
     private File file;
-    
+
     @Column
     private String description;
-    
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

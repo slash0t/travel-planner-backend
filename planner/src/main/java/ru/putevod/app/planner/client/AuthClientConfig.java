@@ -27,6 +27,7 @@ public class AuthClientConfig {
 
     /**
      * Создает фильтр для логирования запросов к auth сервису
+     *
      * @return фильтр логирования
      */
     private ExchangeFilterFunction logRequest() {

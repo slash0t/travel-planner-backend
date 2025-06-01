@@ -53,7 +53,7 @@ class PlannerClientTest {
 
         WebClient.RequestHeadersUriSpec<?> requestHeadersUriSpec = mock(WebClient.RequestHeadersUriSpec.class);
         WebClient.RequestHeadersSpec<?> requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
-        
+
         doReturn(requestHeadersUriSpec).when(webClient).get();
         doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(anyString(), any(Object[].class));
         doReturn(responseSpec).when(requestHeadersSpec).retrieve();
@@ -78,7 +78,7 @@ class PlannerClientTest {
 
         WebClient.RequestHeadersUriSpec<?> requestHeadersUriSpec = mock(WebClient.RequestHeadersUriSpec.class);
         WebClient.RequestHeadersSpec<?> requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
-        
+
         doReturn(requestHeadersUriSpec).when(webClient).get();
         doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(anyString(), any(Object[].class));
         doReturn(responseSpec).when(requestHeadersSpec).retrieve();
@@ -105,7 +105,7 @@ class PlannerClientTest {
 
         WebClient.RequestHeadersUriSpec<?> requestHeadersUriSpec = mock(WebClient.RequestHeadersUriSpec.class);
         WebClient.RequestHeadersSpec<?> requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
-        
+
         doReturn(requestHeadersUriSpec).when(webClient).get();
         doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(anyString(), any(Object[].class));
         doReturn(responseSpec).when(requestHeadersSpec).retrieve();
@@ -130,7 +130,7 @@ class PlannerClientTest {
 
         WebClient.RequestHeadersUriSpec<?> requestHeadersUriSpec = mock(WebClient.RequestHeadersUriSpec.class);
         WebClient.RequestHeadersSpec<?> requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
-        
+
         doReturn(requestHeadersUriSpec).when(webClient).get();
         doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(anyString(), any(Object[].class));
         doReturn(responseSpec).when(requestHeadersSpec).retrieve();
@@ -163,7 +163,7 @@ class PlannerClientTest {
 
         WebClient.RequestBodyUriSpec requestBodyUriSpec = mock(WebClient.RequestBodyUriSpec.class);
         WebClient.RequestBodySpec requestBodySpec = mock(WebClient.RequestBodySpec.class);
-        
+
         doReturn(requestBodyUriSpec).when(webClient).post();
         doReturn(requestBodySpec).when(requestBodyUriSpec).uri(anyString(), any(Object[].class));
         doReturn(responseSpec).when(requestBodySpec).retrieve();
@@ -190,7 +190,7 @@ class PlannerClientTest {
 
         WebClient.RequestBodyUriSpec requestBodyUriSpec = mock(WebClient.RequestBodyUriSpec.class);
         WebClient.RequestBodySpec requestBodySpec = mock(WebClient.RequestBodySpec.class);
-        
+
         doReturn(requestBodyUriSpec).when(webClient).post();
         doReturn(requestBodySpec).when(requestBodyUriSpec).uri(anyString(), any(Object[].class));
         doReturn(responseSpec).when(requestBodySpec).retrieve();
@@ -216,7 +216,7 @@ class PlannerClientTest {
 
         WebClient.RequestHeadersUriSpec<?> requestHeadersUriSpec = mock(WebClient.RequestHeadersUriSpec.class);
         WebClient.RequestHeadersSpec<?> requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
-        
+
         doReturn(requestHeadersUriSpec).when(webClient).get();
         doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(anyString(), any(Object[].class));
         doReturn(responseSpec).when(requestHeadersSpec).retrieve();
@@ -242,7 +242,7 @@ class PlannerClientTest {
 
         WebClient.RequestHeadersUriSpec<?> requestHeadersUriSpec = mock(WebClient.RequestHeadersUriSpec.class);
         WebClient.RequestHeadersSpec<?> requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
-        
+
         doReturn(requestHeadersUriSpec).when(webClient).get();
         doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(anyString(), any(Object[].class));
         doReturn(responseSpec).when(requestHeadersSpec).retrieve();

@@ -5,7 +5,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.putevod.app.planner.dto.FileDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.dto.UserDto;
 import ru.putevod.app.planner.model.Trip;
@@ -104,7 +103,8 @@ class TripMapperTest {
         TripDto tripDto = TripDto.builder()
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(4))
-                .build();        Trip trip = new Trip();
+                .build();
+        Trip trip = new Trip();
         trip.setStartDate(LocalDate.now().minusDays(2));
         trip.setEndDate(LocalDate.now().plusDays(2));
 
@@ -155,7 +155,7 @@ class TripMapperTest {
         assertEquals(tripDto.getCity(), trip.getCity());
         assertEquals(tripDto.isPublished(), trip.isPublished());
         assertEquals(tripDto.getPreviewUrl(), trip.getPreviewUrl());
-        
+
         assertEquals(1L, trip.getTripId());
         assertEquals(user, trip.getCreator());
         assertNotNull(trip.getCreatedAt());
@@ -197,7 +197,7 @@ class TripMapperTest {
         assertEquals("Original City", trip.getCity());
         assertFalse(trip.isPublished());
         assertEquals("original-url", trip.getPreviewUrl());
-        
+
         assertEquals(1L, trip.getTripId());
         assertEquals(user, trip.getCreator());
         assertNotNull(trip.getCreatedAt());

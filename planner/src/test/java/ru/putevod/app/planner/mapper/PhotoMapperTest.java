@@ -6,14 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.putevod.app.planner.dto.PhotoDto;
-import ru.putevod.app.planner.model.Event;
-import ru.putevod.app.planner.model.File;
-import ru.putevod.app.planner.model.Photo;
-import ru.putevod.app.planner.model.Place;
-import ru.putevod.app.planner.model.Trip;
-import ru.putevod.app.planner.model.User;
+import ru.putevod.app.planner.model.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest

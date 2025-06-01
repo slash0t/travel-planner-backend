@@ -88,14 +88,14 @@ public class AuthServiceImpl implements AuthService {
         sessionRepository.findByToken(refreshToken)
                 .ifPresent(session -> sessionRepository.deleteByToken(refreshToken));
     }
-    
+
     @Override
     @Transactional
     public String registerUser(RegisterRequest registerRequest, String ipAddress, String deviceInfo) {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Пользователь с таким email уже существует");
         }
-        
+
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Пользователь с таким username уже существует");
         }
@@ -114,10 +114,10 @@ public class AuthServiceImpl implements AuthService {
 
         String verificationToken = UUID.randomUUID().toString();
         emailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getUsername(), verificationToken);
-        
+
         return savedUser.getUserId().toString();
     }
-    
+
     @Override
     @Transactional
     public AuthResponse verifyEmail(String token, String ipAddress, String deviceInfo) {
@@ -137,41 +137,41 @@ public class AuthServiceImpl implements AuthService {
                 .user(userService.mapToUserInfoDto(user))
                 .build();
     }
-    
+
     @Override
     @Transactional
     public void resendVerificationEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
-        
+
         if (Boolean.TRUE.equals(user.getIsVerified())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email уже подтвержден");
         }
-        
+
         String verificationToken = UUID.randomUUID().toString();
         emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), verificationToken);
     }
-    
+
     @Override
     @Transactional
     public void sendPasswordResetEmail(String email) {
         Optional<User> userOptional = userRepository.findByEmail(email);
-        
+
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             String resetCode = generateRandomCode();
-            
+
             emailService.sendPasswordResetEmail(user.getEmail(), user.getUsername(), resetCode);
         } else {
             log.info("Попытка сброса пароля для несуществующего email: {}", email);
         }
     }
-    
+
     @Override
     @Transactional
     public String verifyPasswordResetCode(String email, String code) {
         boolean isValid = emailService.verifyResetCode(email, code);
-        
+
         if (!isValid) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Неверный или истекший код");
         }
@@ -179,15 +179,15 @@ public class AuthServiceImpl implements AuthService {
         String resetToken = UUID.randomUUID().toString();
 
         emailService.storeResetToken(email, resetToken);
-        
+
         return resetToken;
     }
-    
+
     @Override
     @Transactional
     public void resetPassword(String resetToken, String newPassword) {
         String email = emailService.getEmailByResetToken(resetToken);
-        
+
         if (email == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Неверный или истекший токен");
         }
@@ -200,21 +200,21 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         emailService.invalidateResetToken(resetToken);
-  }
-    
+    }
+
     @Override
     public Map<String, Object> createAnonymousToken(String deviceId) {
         String anonymousToken = tokenProvider.generateAnonymousToken(deviceId);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("anonymousToken", anonymousToken);
         response.put("expiresIn", 1800);
-        
+
         return response;
     }
 
     private String generateRandomCode() {
-        return String.format("%06d", (int)(Math.random() * 1000000));
+        return String.format("%06d", (int) (Math.random() * 1000000));
     }
 
     @Override
@@ -227,7 +227,7 @@ public class AuthServiceImpl implements AuthService {
                     .errorType("AccessDenied")
                     .build();
         }
-        
+
         try {
             if (!tokenProvider.validateToken(token)) {
                 return TokenValidationResponse.builder().valid(false).build();
@@ -247,7 +247,7 @@ public class AuthServiceImpl implements AuthService {
                 log.warn("Токен содержит email несуществующего пользователя: {}", email);
                 return TokenValidationResponse.builder().valid(false).build();
             }
-            
+
             return TokenValidationResponse.builder()
                     .valid(true)
                     .userId(userId)
@@ -255,7 +255,7 @@ public class AuthServiceImpl implements AuthService {
                     .username(username)
                     .admin(isAdmin != null ? isAdmin : false)
                     .build();
-            
+
         } catch (io.jsonwebtoken.ExpiredJwtException e) {
             log.warn("JWT токен истек: {}", e.getMessage());
             return TokenValidationResponse.builder()
@@ -300,14 +300,14 @@ public class AuthServiceImpl implements AuthService {
                     .build();
         }
     }
-    
+
     @Override
     public Map<String, Object> getUserInfoFromToken(String token, String serviceToken) {
         if (!tokenProvider.validateServiceToken(serviceToken)) {
             log.warn("Попытка получения информации с неверным сервисным токеном");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Неверный сервисный токен");
         }
-        
+
         try {
             if (!tokenProvider.validateToken(token)) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Неверный токен пользователя");
@@ -336,9 +336,9 @@ public class AuthServiceImpl implements AuthService {
                 userInfo.put("verified", user.getIsVerified());
                 userInfo.put("roles", user.getIsAdmin() ? new String[]{"ROLE_USER", "ROLE_ADMIN"} : new String[]{"ROLE_USER"});
             }
-            
+
             return userInfo;
-            
+
         } catch (ExpiredJwtException e) {
             log.warn("JWT токен истек: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Срок действия токена истек");

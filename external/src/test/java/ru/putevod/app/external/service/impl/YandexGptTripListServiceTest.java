@@ -8,19 +8,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 import ru.putevod.app.external.client.PlannerClient;
-import ru.putevod.app.external.dto.ai.YandexGptRequest;
-import ru.putevod.app.external.exception.ServiceUnavailableException;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class YandexGptTripListServiceTest {
@@ -217,7 +216,7 @@ class YandexGptTripListServiceTest {
         List<Map<String, Object>> alternatives = new ArrayList<>();
         Map<String, Object> alternative = new HashMap<>();
         Map<String, Object> message = new HashMap<>();
-        
+
         message.put("text", response);
         alternative.put("message", message);
         alternatives.add(alternative);

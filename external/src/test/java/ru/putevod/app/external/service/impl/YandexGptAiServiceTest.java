@@ -9,13 +9,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import ru.putevod.app.external.dto.ai.*;
-import ru.putevod.app.external.exception.ServiceUnavailableException;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -107,7 +104,7 @@ class YandexGptAiServiceTest {
         assertEquals("Стандартный набор вещей для любой поездки", content.getDescription());
         assertEquals(12, content.getTotalItems());
         assertFalse(content.getCategories().isEmpty());
-        
+
         PackingCategoryDto documents = findCategory(content.getCategories(), "Документы");
         assertNotNull(documents);
         assertEquals(3, documents.getItems().size());
@@ -137,18 +134,18 @@ class YandexGptAiServiceTest {
 
     private void mockYandexGptResponse(String response) throws Exception {
         String mockResponseJson = String.format("""
-            {
-                "result": {
-                    "alternatives": [
-                        {
-                            "message": {
-                                "text": "%s"
+                {
+                    "result": {
+                        "alternatives": [
+                            {
+                                "message": {
+                                    "text": "%s"
+                                }
                             }
-                        }
-                    ]
+                        ]
+                    }
                 }
-            }
-            """, response.replace("\n", "\\n").replace("\"", "\\\""));
+                """, response.replace("\n", "\\n").replace("\"", "\\\""));
 
         when(restTemplate.postForObject(eq(API_URL), any(HttpEntity.class), eq(String.class)))
                 .thenReturn(mockResponseJson);

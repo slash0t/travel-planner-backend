@@ -14,26 +14,26 @@ import java.util.List;
 
 @Repository
 public interface EventReminderRepository extends JpaRepository<EventReminder, Long> {
-    
+
     List<EventReminder> findByEvent(Event event);
-    
+
     List<EventReminder> findByEventAndUser(Event event, User user);
-    
+
     @Query("SELECT r FROM EventReminder r WHERE r.remindAt BETWEEN :start AND :end AND r.sent = false")
     List<EventReminder> findDueReminders(
-            @Param("start") LocalDateTime start, 
+            @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
-            
+
     @Query("SELECT r FROM EventReminder r WHERE r.remindAt BETWEEN :start AND :end AND r.sent = false")
     List<EventReminder> findUpcomingReminders(
-            @Param("start") LocalDateTime start, 
+            @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
-    
+
     @Modifying
     @Query("UPDATE EventReminder r SET r.sent = true WHERE r.reminderId IN :ids")
     void markAsSent(@Param("ids") List<Long> reminderIds);
-    
+
     void deleteByEvent(Event event);
-    
+
     void deleteByEventAndUser(Event event, User user);
 } 

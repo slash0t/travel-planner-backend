@@ -39,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
-        
+
         try {
             userEmail = jwtTokenProvider.getEmailFromToken(jwt);
 
@@ -57,7 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-            
+
             filterChain.doFilter(request, response);
         } catch (Exception ex) {
             log.error("Ошибка аутентификации: {}", ex.getMessage());

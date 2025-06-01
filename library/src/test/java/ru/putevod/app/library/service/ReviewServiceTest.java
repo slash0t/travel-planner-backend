@@ -1,14 +1,17 @@
 package ru.putevod.app.library.service;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import ru.putevod.app.library.dto.ReviewDto;
 import ru.putevod.app.library.entity.PublishedRoute;
 import ru.putevod.app.library.entity.RouteRating;
@@ -17,10 +20,6 @@ import ru.putevod.app.library.exception.ResourceNotFoundException;
 import ru.putevod.app.library.repository.PublishedRouteRepository;
 import ru.putevod.app.library.repository.RouteRatingRepository;
 import ru.putevod.app.library.repository.UserRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -28,7 +27,6 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -101,10 +99,10 @@ class ReviewServiceTest {
             return saved;
         });
         when(mapperService.toReviewDto(any(RouteRating.class))).thenAnswer(invocation -> {
-             RouteRating saved = invocation.getArgument(0);
-             reviewDto.setId(saved.getId());
-             reviewDto.setRating(saved.getRating());
-             return reviewDto;
+            RouteRating saved = invocation.getArgument(0);
+            reviewDto.setId(saved.getId());
+            reviewDto.setRating(saved.getRating());
+            return reviewDto;
         });
 
         ReviewDto result = reviewService.addOrUpdateReview(routeId, userId, newRating, newComment);
@@ -135,10 +133,10 @@ class ReviewServiceTest {
         when(ratingRepository.findByPublishedRouteIdAndUserId(routeId, userId)).thenReturn(Optional.of(routeRating));
         when(ratingRepository.save(any(RouteRating.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(mapperService.toReviewDto(any(RouteRating.class))).thenAnswer(invocation -> {
-             RouteRating saved = invocation.getArgument(0);
-             reviewDto.setRating(saved.getRating());
-             reviewDto.setId(saved.getId());
-             return reviewDto;
+            RouteRating saved = invocation.getArgument(0);
+            reviewDto.setRating(saved.getRating());
+            reviewDto.setId(saved.getId());
+            return reviewDto;
         });
 
         ReviewDto result = reviewService.addOrUpdateReview(routeId, userId, 3, "It was okay.");
@@ -189,7 +187,7 @@ class ReviewServiceTest {
         // Arrange
         when(publishedRouteRepository.existsById(routeId)).thenReturn(true);
         when(ratingRepository.findByPublishedRouteIdAndUserId(routeId, userId))
-            .thenReturn(Optional.of(routeRating));
+                .thenReturn(Optional.of(routeRating));
         when(ratingRepository.save(any(RouteRating.class))).thenReturn(routeRating);
 
         // Act
@@ -225,7 +223,7 @@ class ReviewServiceTest {
         // Arrange
         when(publishedRouteRepository.existsById(routeId)).thenReturn(true);
         when(ratingRepository.findByPublishedRouteIdAndUserId(routeId, userId))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {

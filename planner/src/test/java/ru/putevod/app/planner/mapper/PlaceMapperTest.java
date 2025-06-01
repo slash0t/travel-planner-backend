@@ -58,7 +58,7 @@ class PlaceMapperTest {
     void testToEntity() {
         PlaceDto placeDto = PlaceDto.builder()
                 .id(1L)
-                .name("Test Place")                .latitude(new BigDecimal("12.34"))
+                .name("Test Place").latitude(new BigDecimal("12.34"))
                 .longitude(new BigDecimal("56.78"))
                 .address("Test Address")
                 .placeType("Test Type")
@@ -86,12 +86,13 @@ class PlaceMapperTest {
 
     @Test
     void testUpdateEntityFromDto() {
-        Place place = new Place();        place.setPlaceId(1L);
+        Place place = new Place();
+        place.setPlaceId(1L);
         place.setName("Original Name");
         place.setLatitude(new BigDecimal("11.11"));
         place.setLongitude(new BigDecimal("22.22"));
 
-        PlaceDto placeDto = PlaceDto.builder()                .id(1L)
+        PlaceDto placeDto = PlaceDto.builder().id(1L)
                 .name("Updated Name")
                 .latitude(new BigDecimal("33.33"))
                 .longitude(new BigDecimal("44.44"))

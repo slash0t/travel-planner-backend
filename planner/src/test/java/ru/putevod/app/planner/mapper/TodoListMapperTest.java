@@ -7,7 +7,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.putevod.app.planner.dto.TodoItemDto;
 import ru.putevod.app.planner.dto.TodoListDto;
-import ru.putevod.app.planner.model.*;
+import ru.putevod.app.planner.model.TodoItem;
+import ru.putevod.app.planner.model.TodoList;
+import ru.putevod.app.planner.model.Trip;
+import ru.putevod.app.planner.model.User;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -63,10 +66,10 @@ class TodoListMapperTest {
         assertEquals(todoList.getCreatedAt(), todoListDto.getCreatedAt());
         assertEquals(todoList.getUpdatedAt(), todoListDto.getUpdatedAt());
         assertEquals(0, todoListDto.getCompletedCount());
-        
+
         assertNotNull(todoListDto.getItems());
         assertEquals(1, todoListDto.getItems().size());
-        
+
         TodoItemDto itemDto = todoListDto.getItems().get(0);
         assertEquals(todoItem.getItemId(), itemDto.getId());
         assertEquals(todoItem.getContent(), itemDto.getContent());

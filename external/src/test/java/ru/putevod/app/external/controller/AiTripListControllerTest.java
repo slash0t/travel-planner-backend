@@ -1,6 +1,5 @@
 package ru.putevod.app.external.controller;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,11 +12,11 @@ import ru.putevod.app.external.exception.ServiceUnavailableException;
 import ru.putevod.app.external.service.AiTripListService;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -39,9 +38,9 @@ class AiTripListControllerTest {
         String destination = "Сочи";
         String season = "лето";
         List<String> expectedItems = Arrays.asList(
-            "Плавательные шорты/купальник",
-            "Солнцезащитный крем",
-            "Пляжное полотенце"
+                "Плавательные шорты/купальник",
+                "Солнцезащитный крем",
+                "Пляжное полотенце"
         );
 
         when(aiTripListService.isSafePrompt(prompt)).thenReturn(true);
@@ -103,9 +102,9 @@ class AiTripListControllerTest {
         Long tripId = 1L;
         String additionalPrompt = "Добавить спортивное снаряжение";
         List<String> expectedItems = Arrays.asList(
-            "Паспорт и документы",
-            "Деньги и банковские карты",
-            "Спортивное снаряжение"
+                "Паспорт и документы",
+                "Деньги и банковские карты",
+                "Спортивное снаряжение"
         );
 
         when(aiTripListService.isSafePrompt(additionalPrompt)).thenReturn(true);
@@ -153,16 +152,16 @@ class AiTripListControllerTest {
         String season = "весна";
         String additionalPrompt = "Добавить фотоаппарат";
         List<String> expectedItems = Arrays.asList(
-            "Паспорт и документы",
-            "Деньги и банковские карты",
-            "Фотоаппарат"
+                "Паспорт и документы",
+                "Деньги и банковские карты",
+                "Фотоаппарат"
         );
 
         when(aiTripListService.isSafePrompt(additionalPrompt)).thenReturn(true);
         when(aiTripListService.generateTripListFromTemplate(eq(templateId), any())).thenReturn(expectedItems);
 
         ResponseEntity<Object> response = controller.generateTripListFromTemplate(
-            templateId, duration, destination, season, additionalPrompt);
+                templateId, duration, destination, season, additionalPrompt);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedItems, response.getBody());
@@ -172,7 +171,7 @@ class AiTripListControllerTest {
     @DisplayName("generateTripListFromTemplate - Invalid template ID")
     void generateTripListFromTemplate_InvalidTemplateId() {
         ResponseEntity<Object> response = controller.generateTripListFromTemplate(
-            0L, null, null, null, null);
+                0L, null, null, null, null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         Map<String, Object> body = (Map<String, Object>) response.getBody();
@@ -189,7 +188,7 @@ class AiTripListControllerTest {
                 .thenReturn(List.of("Не удалось получить информацию о шаблоне. Проверьте ID и попробуйте снова."));
 
         ResponseEntity<Object> response = controller.generateTripListFromTemplate(
-            templateId, null, null, null, null);
+                templateId, null, null, null, null);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         Map<String, Object> body = (Map<String, Object>) response.getBody();

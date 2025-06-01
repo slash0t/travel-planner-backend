@@ -21,17 +21,17 @@ public class RegisterRequest {
     @NotBlank(message = "Пароль не может быть пустым")
     @Schema(description = "Пароль пользователя", example = "password123", required = true)
     private String password;
-    
+
     @NotBlank(message = "Имя пользователя не может быть пустым")
     @Schema(description = "Имя пользователя (никнейм)", example = "johndoe", required = true)
     private String username;
-    
+
     @Schema(description = "Имя пользователя", example = "John")
     private String firstName;
-    
+
     @Schema(description = "Фамилия пользователя", example = "Doe")
     private String lastName;
-    
+
     @Schema(description = "Идентификатор устройства для push-уведомлений", example = "fcm-token-123")
     private String deviceId;
 } 

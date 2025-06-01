@@ -102,7 +102,7 @@ class PixabayImageServiceTest {
         assertEquals(1, response.getTotal());
         assertEquals(1, response.getTotalHits());
         assertEquals(1, response.getHits().size());
-        
+
         PixabayResponse.PixabayImage resultImage = response.getHits().get(0);
         assertEquals(1L, resultImage.getId());
         assertEquals("https://example.com/page1", resultImage.getPageURL());

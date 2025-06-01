@@ -57,12 +57,12 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
     @SuppressWarnings("unchecked")
     private void setAuthenticationContext(Map<String, Object> userInfo, String token) {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        
+
         if (userInfo.containsKey("roles") && userInfo.get("roles") instanceof List) {
             List<String> roles = (List<String>) userInfo.get("roles");
             roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role)));
         }
-        
+
         if (Boolean.TRUE.equals(userInfo.get("isAdmin"))) {
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         } else {
@@ -71,10 +71,10 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
 
         String email = (String) userInfo.get("email");
         User user = new User(email, "", authorities);
-        
-        UsernamePasswordAuthenticationToken authentication = 
+
+        UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(user, token, authorities);
-        
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 } 

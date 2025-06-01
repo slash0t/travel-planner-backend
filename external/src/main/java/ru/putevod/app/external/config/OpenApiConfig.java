@@ -17,10 +17,10 @@ import java.util.List;
 
 @Configuration
 public class OpenApiConfig {
-    
+
     @Value("${server.servlet.context-path:}")
     private String contextPath;
-    
+
     @Bean
     public GroupedOpenApi placesApi() {
         return GroupedOpenApi.builder()
@@ -29,7 +29,7 @@ public class OpenApiConfig {
                 .displayName("Places API")
                 .build();
     }
-    
+
     @Bean
     public GroupedOpenApi aiApi() {
         return GroupedOpenApi.builder()
@@ -38,7 +38,7 @@ public class OpenApiConfig {
                 .displayName("AI Services API")
                 .build();
     }
-    
+
     @Bean
     public OpenAPI customOpenAPI() {
         List<Server> servers = new ArrayList<>();
@@ -46,7 +46,7 @@ public class OpenApiConfig {
         server.setUrl(contextPath);
         server.setDescription("Сервер внешних интеграций TravelPlanner");
         servers.add(server);
-        
+
         return new OpenAPI()
                 .servers(servers)
                 .info(new Info()

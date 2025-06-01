@@ -1,7 +1,6 @@
 package ru.putevod.app.library.service;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,15 +11,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import ru.putevod.app.library.dto.RoutePreviewDto;
 import ru.putevod.app.library.dto.PublicRouteDetailDto;
 import ru.putevod.app.library.dto.PublicRouteDto;
+import ru.putevod.app.library.dto.RoutePreviewDto;
 import ru.putevod.app.library.entity.PublishedRoute;
 import ru.putevod.app.library.entity.Trip;
 import ru.putevod.app.library.entity.User;
+import ru.putevod.app.library.exception.ResourceNotFoundException;
 import ru.putevod.app.library.repository.PublishedRouteRepository;
 import ru.putevod.app.library.repository.UserRepository;
-import ru.putevod.app.library.exception.ResourceNotFoundException;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -211,9 +210,9 @@ class LibraryServiceTest {
         when(publishedRouteRepository.findById(routeId)).thenReturn(Optional.of(publishedRoute));
         when(publishedRouteRepository.save(any(PublishedRoute.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(mapperService.toPublicRouteDto(any(PublishedRoute.class))).thenAnswer(invocation -> {
-             PublishedRoute savedRoute = invocation.getArgument(0);
-             publicRouteDto.setId(savedRoute.getId());
-             return publicRouteDto;
+            PublishedRoute savedRoute = invocation.getArgument(0);
+            publicRouteDto.setId(savedRoute.getId());
+            return publicRouteDto;
         });
 
         PublicRouteDto result = libraryService.approvePublishedRoute(routeId);

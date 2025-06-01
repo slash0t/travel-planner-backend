@@ -24,7 +24,8 @@ import java.io.StringWriter;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class JwtExceptionHandlerTest {    @Mock
+class JwtExceptionHandlerTest {
+    @Mock
     private HttpServletRequest request;
 
     @Mock(lenient = true)
@@ -53,9 +54,9 @@ class JwtExceptionHandlerTest {    @Mock
     @Test
     void doFilterInternal_whenExpiredJwtException_shouldHandleCorrectly() throws Exception {
         doThrow(new ExpiredJwtException(null, null, "Token expired"))
-            .when(filterChain).doFilter(request, response);
+                .when(filterChain).doFilter(request, response);
         when(request.getRequestURI()).thenReturn("/api/test");
-        
+
         jwtExceptionHandler.doFilterInternal(request, response, filterChain);
 
         verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
@@ -66,7 +67,7 @@ class JwtExceptionHandlerTest {    @Mock
     @Test
     void doFilterInternal_whenSignatureException_shouldHandleCorrectly() throws Exception {
         doThrow(new SignatureException("Invalid signature"))
-            .when(filterChain).doFilter(request, response);
+                .when(filterChain).doFilter(request, response);
         when(request.getRequestURI()).thenReturn("/api/test");
 
         jwtExceptionHandler.doFilterInternal(request, response, filterChain);
@@ -79,7 +80,7 @@ class JwtExceptionHandlerTest {    @Mock
     @Test
     void doFilterInternal_whenMalformedJwtException_shouldHandleCorrectly() throws Exception {
         doThrow(new MalformedJwtException("Invalid token format"))
-            .when(filterChain).doFilter(request, response);
+                .when(filterChain).doFilter(request, response);
         when(request.getRequestURI()).thenReturn("/api/test");
 
         jwtExceptionHandler.doFilterInternal(request, response, filterChain);
@@ -92,7 +93,7 @@ class JwtExceptionHandlerTest {    @Mock
     @Test
     void doFilterInternal_whenUnsupportedJwtException_shouldHandleCorrectly() throws Exception {
         doThrow(new UnsupportedJwtException("Unsupported token"))
-            .when(filterChain).doFilter(request, response);
+                .when(filterChain).doFilter(request, response);
         when(request.getRequestURI()).thenReturn("/api/test");
 
         jwtExceptionHandler.doFilterInternal(request, response, filterChain);
@@ -105,7 +106,7 @@ class JwtExceptionHandlerTest {    @Mock
     @Test
     void doFilterInternal_whenIllegalArgumentException_shouldHandleCorrectly() throws Exception {
         doThrow(new IllegalArgumentException("Invalid argument"))
-            .when(filterChain).doFilter(request, response);
+                .when(filterChain).doFilter(request, response);
         when(request.getRequestURI()).thenReturn("/api/test");
 
         jwtExceptionHandler.doFilterInternal(request, response, filterChain);

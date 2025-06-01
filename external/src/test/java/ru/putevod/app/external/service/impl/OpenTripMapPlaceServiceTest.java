@@ -1,6 +1,5 @@
 package ru.putevod.app.external.service.impl;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,15 +11,14 @@ import reactor.core.publisher.Mono;
 import ru.putevod.app.external.config.AppConfig;
 import ru.putevod.app.external.dto.PlaceRequestDto;
 import ru.putevod.app.external.dto.PlaceResponseDto;
-import ru.putevod.app.external.dto.PhotoDto;
 import ru.putevod.app.external.dto.response.PlaceSearchResponse;
 import ru.putevod.app.external.dto.response.PlaceSuggestionResponse;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OpenTripMapPlaceServiceTest {
@@ -110,8 +108,8 @@ class OpenTripMapPlaceServiceTest {
         setupAppConfig();
         setupWebClient();
         String placeId = "123";
-        Map<String, Object> placeDetails = createDetailedPlace(placeId, "Test Place", "restaurants", 
-            55.7558, 37.6173, "Test description", "Test address", 4.5f, "123-456-789", "http://test.com");
+        Map<String, Object> placeDetails = createDetailedPlace(placeId, "Test Place", "restaurants",
+                55.7558, 37.6173, "Test description", "Test address", 4.5f, "123-456-789", "http://test.com");
 
         when(responseSpec.bodyToMono(Map.class)).thenReturn(Mono.just(placeDetails));
 
@@ -234,7 +232,7 @@ class OpenTripMapPlaceServiceTest {
         place.put("xid", id);
         place.put("name", name);
         place.put("kinds", category);
-        
+
         Map<String, Object> point = new HashMap<>();
         point.put("lat", lat);
         point.put("lon", lon);
@@ -247,11 +245,11 @@ class OpenTripMapPlaceServiceTest {
         return place;
     }
 
-    private Map<String, Object> createDetailedPlace(String id, String name, String category, 
-            Double lat, Double lon, String description, String address, Float rating, 
-            String phone, String website) {
+    private Map<String, Object> createDetailedPlace(String id, String name, String category,
+                                                    Double lat, Double lon, String description, String address, Float rating,
+                                                    String phone, String website) {
         Map<String, Object> place = createMockPlace(id, name, category, lat, lon);
-        
+
         Map<String, Object> wikipediaExtracts = new HashMap<>();
         wikipediaExtracts.put("text", description);
         place.put("wikipedia_extracts", wikipediaExtracts);

@@ -103,7 +103,7 @@ class EventMapperTest {
         assertEquals(eventDto.isHasSpecificTime(), event.isHasSpecificTime());
         assertEquals(eventDto.getNotes(), event.getNotes());
         assertEquals(eventDto.getOrderPosition(), event.getOrderPosition());
-        
+
         assertNotNull(event.getPlace());
         assertEquals(eventDto.getPlace().getId(), event.getPlace().getPlaceId());
         assertEquals(eventDto.getPlace().getName(), event.getPlace().getName());

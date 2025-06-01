@@ -27,7 +27,7 @@ public class PlaceDto {
     private String previewUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
+
     @Builder.Default
     private List<PhotoDto> photos = new ArrayList<>();
 } 

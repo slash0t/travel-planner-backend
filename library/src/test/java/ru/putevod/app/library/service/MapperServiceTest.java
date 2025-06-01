@@ -6,7 +6,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.putevod.app.library.dto.*;
+import ru.putevod.app.library.dto.PublicRouteDetailDto;
+import ru.putevod.app.library.dto.PublicRouteDto;
+import ru.putevod.app.library.dto.ReviewDto;
+import ru.putevod.app.library.dto.RoutePreviewDto;
 import ru.putevod.app.library.entity.PublishedRoute;
 import ru.putevod.app.library.entity.RouteRating;
 import ru.putevod.app.library.entity.User;
@@ -16,7 +19,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MapperServiceTest {

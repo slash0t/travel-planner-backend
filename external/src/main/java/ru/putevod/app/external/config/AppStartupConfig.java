@@ -10,14 +10,14 @@ import org.springframework.context.event.EventListener;
 @Slf4j
 @RequiredArgsConstructor
 public class AppStartupConfig {
-    
+
     private final AppConfig appConfig;
-    
+
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
         checkYandexApiKey();
     }
-    
+
     private void checkYandexApiKey() {
         if (appConfig.getYandexGeoSuggestApiKey() == null || appConfig.getYandexGeoSuggestApiKey().isEmpty()) {
             log.warn("ВНИМАНИЕ: Ключ API Яндекс Геосаджест не настроен!");

@@ -1,14 +1,11 @@
 package ru.putevod.app.external.client;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
@@ -18,7 +15,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import ru.putevod.app.external.exception.ServiceUnavailableException;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -29,23 +25,24 @@ import java.util.Map;
 public class PlannerClient {
 
     private final RestTemplate restTemplate;
-    
+
     @Value("${app.services.planner-url:http://localhost:8082}")
     private String plannerServiceUrl;
-    
+
     public Map<String, Object> getTripDetails(Long tripId) {
         String url = plannerServiceUrl + "/api/v1/trips/" + tripId;
 
         HttpEntity<?> entity = createHttpEntityWithAuthHeader();
-        
+
         try {
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
                     entity,
-                    new ParameterizedTypeReference<Map<String, Object>>() {}
+                    new ParameterizedTypeReference<Map<String, Object>>() {
+                    }
             );
-            
+
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 return response.getBody();
             } else {
@@ -71,20 +68,21 @@ public class PlannerClient {
             throw new ServiceUnavailableException("Ошибка при получении информации о поездке: " + e.getMessage());
         }
     }
-    
+
     public Map<String, Object> getTemplateDetails(Long templateId) {
         String url = plannerServiceUrl + "/api/v1/templates/" + templateId;
 
         HttpEntity<?> entity = createHttpEntityWithAuthHeader();
-        
+
         try {
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
                     entity,
-                    new ParameterizedTypeReference<Map<String, Object>>() {}
+                    new ParameterizedTypeReference<Map<String, Object>>() {
+                    }
             );
-            
+
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 return response.getBody();
             } else {
@@ -110,21 +108,22 @@ public class PlannerClient {
             throw new ServiceUnavailableException("Ошибка при получении информации о шаблоне: " + e.getMessage());
         }
     }
-    
+
     public List<String> getTemplateItems(Long templateId) {
         String url = plannerServiceUrl + "/api/v1/templates/" + templateId + "/items";
-        
+
         // Создаем HttpEntity с заголовками авторизации
         HttpEntity<?> entity = createHttpEntityWithAuthHeader();
-        
+
         try {
             ResponseEntity<List<String>> response = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
                     entity,
-                    new ParameterizedTypeReference<List<String>>() {}
+                    new ParameterizedTypeReference<List<String>>() {
+                    }
             );
-            
+
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 return response.getBody();
             } else {
@@ -150,7 +149,7 @@ public class PlannerClient {
             throw new ServiceUnavailableException("Ошибка при получении элементов шаблона: " + e.getMessage());
         }
     }
-    
+
     /**
      * Создает HttpEntity с заголовками авторизации из текущего запроса
      */

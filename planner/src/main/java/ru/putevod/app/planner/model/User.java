@@ -19,40 +19,40 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
-    
+
     @Column(name = "username", unique = true, nullable = false, length = 50)
     private String username;
-    
+
     @Column(name = "email", unique = true, nullable = false, length = 100)
     private String email;
-    
+
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
-    
+
     @Column(name = "is_admin")
     private Boolean isAdmin;
-    
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
-    
+
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
-    
+
     @Column(name = "is_verified")
     private Boolean isVerified;
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
-    
+
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();

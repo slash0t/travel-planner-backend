@@ -32,7 +32,7 @@ class JwtUserDetailsServiceTest {
         user.setEmail(email);
         user.setPasswordHash("hashedPassword");
         user.setIsAdmin(false);
-        
+
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -51,7 +51,7 @@ class JwtUserDetailsServiceTest {
         user.setEmail(email);
         user.setPasswordHash("hashedPassword");
         user.setIsAdmin(true);
-        
+
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -68,7 +68,7 @@ class JwtUserDetailsServiceTest {
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
         assertThrows(UsernameNotFoundException.class, () ->
-            userDetailsService.loadUserByUsername(email)
+                userDetailsService.loadUserByUsername(email)
         );
     }
 }

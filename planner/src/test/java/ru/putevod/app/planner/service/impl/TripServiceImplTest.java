@@ -4,12 +4,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.putevod.app.planner.dto.TripDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import ru.putevod.app.planner.dto.TripAccessDto;
+import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.dto.UserDto;
+import ru.putevod.app.planner.exception.AccessDeniedException;
+import ru.putevod.app.planner.exception.ResourceNotFoundException;
+import ru.putevod.app.planner.mapper.TripAccessMapper;
 import ru.putevod.app.planner.mapper.TripMapper;
 import ru.putevod.app.planner.model.Trip;
 import ru.putevod.app.planner.model.TripAccess;
@@ -19,24 +27,14 @@ import ru.putevod.app.planner.repository.TripDayRepository;
 import ru.putevod.app.planner.repository.TripRepository;
 import ru.putevod.app.planner.service.TripPreviewService;
 import ru.putevod.app.planner.service.UserService;
-import ru.putevod.app.planner.exception.ResourceNotFoundException;
-import ru.putevod.app.planner.exception.AccessDeniedException;
-import ru.putevod.app.planner.mapper.TripAccessMapper;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class TripServiceImplTest {
@@ -589,8 +587,8 @@ class TripServiceImplTest {
         Long tripId = savedTripEntity.getTripId();
         List<TripAccess> shares = List.of(createTripAccess("admin"), createTripAccess("read"));
         List<TripAccessDto> shareDtos = List.of(
-            createTripAccessDto("admin"),
-            createTripAccessDto("read")
+                createTripAccessDto("admin"),
+                createTripAccessDto("read")
         );
 
         when(userService.getUserEntityById(userId)).thenReturn(currentUser);

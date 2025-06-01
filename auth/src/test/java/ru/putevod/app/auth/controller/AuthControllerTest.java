@@ -1,7 +1,6 @@
 package ru.putevod.app.auth.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,14 +11,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import ru.putevod.app.auth.dto.*;
 import ru.putevod.app.auth.service.AuthService;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -56,7 +55,7 @@ class AuthControllerTest {
     void login_shouldReturnAuthResponse() {
         when(request.getRemoteAddr()).thenReturn(TEST_IP);
         when(request.getHeader("User-Agent")).thenReturn(TEST_USER_AGENT);
-        
+
         LoginRequest loginRequest = new LoginRequest(TEST_EMAIL, TEST_PASSWORD, TEST_DEVICE_ID);
         AuthResponse authResponse = AuthResponse.builder()
                 .accessToken(TEST_TOKEN)
@@ -81,7 +80,7 @@ class AuthControllerTest {
     void refreshToken_shouldReturnAuthResponse() {
         when(request.getRemoteAddr()).thenReturn(TEST_IP);
         when(request.getHeader("User-Agent")).thenReturn(TEST_USER_AGENT);
-        
+
         RefreshTokenRequest refreshRequest = new RefreshTokenRequest(TEST_REFRESH_TOKEN);
         AuthResponse authResponse = AuthResponse.builder()
                 .accessToken(TEST_TOKEN)
@@ -103,7 +102,7 @@ class AuthControllerTest {
     void register_shouldReturnCreatedResponse() {
         when(request.getRemoteAddr()).thenReturn(TEST_IP);
         when(request.getHeader("User-Agent")).thenReturn(TEST_USER_AGENT);
-        
+
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setEmail(TEST_EMAIL);
         registerRequest.setPassword(TEST_PASSWORD);
@@ -117,7 +116,7 @@ class AuthControllerTest {
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("Регистрация успешно завершена. Проверьте почту для подтверждения аккаунта.", 
+        assertEquals("Регистрация успешно завершена. Проверьте почту для подтверждения аккаунта.",
                 response.getBody().get("message"));
         assertEquals(userId, response.getBody().get("userId"));
         verify(authService).registerUser(registerRequest, TEST_IP, TEST_USER_AGENT);
@@ -127,7 +126,7 @@ class AuthControllerTest {
     void verifyEmail_shouldReturnAuthResponse() {
         when(request.getRemoteAddr()).thenReturn(TEST_IP);
         when(request.getHeader("User-Agent")).thenReturn(TEST_USER_AGENT);
-        
+
         EmailVerificationRequest verificationRequest = new EmailVerificationRequest(TEST_TOKEN);
         AuthResponse authResponse = AuthResponse.builder()
                 .accessToken(TEST_TOKEN)
@@ -257,8 +256,8 @@ class AuthControllerTest {
         Map<String, String> params = new HashMap<>();
         params.put("deviceId", TEST_DEVICE_ID);
         Map<String, Object> tokenResponse = Map.of(
-            "anonymousToken", TEST_TOKEN,
-            "expiresIn", 1800
+                "anonymousToken", TEST_TOKEN,
+                "expiresIn", 1800
         );
 
         when(authService.createAnonymousToken(TEST_DEVICE_ID)).thenReturn(tokenResponse);

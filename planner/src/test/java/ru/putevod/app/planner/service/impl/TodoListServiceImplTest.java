@@ -28,9 +28,9 @@ import ru.putevod.app.planner.service.UserService;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class TodoListServiceImplTest {
@@ -119,7 +119,7 @@ class TodoListServiceImplTest {
         when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("write"))).thenReturn(false);
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            todoListService.createTripTodoList(1L, 1L, todoListDto)
+                todoListService.createTripTodoList(1L, 1L, todoListDto)
         );
         assertEquals("У вас нет прав на создание списков задач в этой поездке", exception.getMessage());
     }
@@ -143,7 +143,7 @@ class TodoListServiceImplTest {
         when(todoListRepository.findByUserAndListId(any(), anyLong())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-            todoListService.updateTodoList(1L, 1L, todoListDto)
+                todoListService.updateTodoList(1L, 1L, todoListDto)
         );
         assertEquals("Список задач not found with id: '1'", exception.getMessage());
     }
@@ -156,7 +156,7 @@ class TodoListServiceImplTest {
         when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("write"))).thenReturn(false);
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            todoListService.updateTodoList(1L, 1L, todoListDto)
+                todoListService.updateTodoList(1L, 1L, todoListDto)
         );
         assertEquals("У вас нет прав на редактирование этого списка задач", exception.getMessage());
     }
@@ -178,7 +178,7 @@ class TodoListServiceImplTest {
         when(todoListRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-            todoListService.getTodoListById(1L, 1L)
+                todoListService.getTodoListById(1L, 1L)
         );
         assertEquals("Список задач not found with id: '1'", exception.getMessage());
     }
@@ -191,7 +191,7 @@ class TodoListServiceImplTest {
         when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("read"), eq("write"))).thenReturn(false);
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            todoListService.getTodoListById(1L, 1L)
+                todoListService.getTodoListById(1L, 1L)
         );
         assertEquals("У вас нет доступа к этому списку задач", exception.getMessage());
     }
@@ -205,7 +205,7 @@ class TodoListServiceImplTest {
         when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            todoListService.getTodoListById(1L, 1L)
+                todoListService.getTodoListById(1L, 1L)
         );
         assertEquals("У вас нет доступа к этому списку задач", exception.getMessage());
     }
@@ -244,7 +244,7 @@ class TodoListServiceImplTest {
         when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("read"), eq("write"))).thenReturn(false);
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            todoListService.getTripTodoLists(1L, 1L)
+                todoListService.getTripTodoLists(1L, 1L)
         );
         assertEquals("У вас нет прав на просмотр списков задач в этой поездке", exception.getMessage());
     }
@@ -265,7 +265,7 @@ class TodoListServiceImplTest {
         when(todoListRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-            todoListService.deleteTodoList(1L, 1L)
+                todoListService.deleteTodoList(1L, 1L)
         );
         assertEquals("Список задач not found with id: '1'", exception.getMessage());
     }
@@ -278,7 +278,7 @@ class TodoListServiceImplTest {
         when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("write"))).thenReturn(false);
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            todoListService.deleteTodoList(1L, 1L)
+                todoListService.deleteTodoList(1L, 1L)
         );
         assertEquals("У вас нет прав на удаление этого списка задач", exception.getMessage());
     }
@@ -292,7 +292,7 @@ class TodoListServiceImplTest {
         when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            todoListService.deleteTodoList(1L, 1L)
+                todoListService.deleteTodoList(1L, 1L)
         );
         assertEquals("У вас нет прав на удаление этого списка задач", exception.getMessage());
     }
@@ -317,7 +317,7 @@ class TodoListServiceImplTest {
         when(todoListRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-            todoListService.addTodoItem(1L, 1L, todoItemDto)
+                todoListService.addTodoItem(1L, 1L, todoItemDto)
         );
         assertEquals("Список задач not found with id: '1'", exception.getMessage());
     }
@@ -330,7 +330,7 @@ class TodoListServiceImplTest {
         when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("write"))).thenReturn(false);
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            todoListService.addTodoItem(1L, 1L, todoItemDto)
+                todoListService.addTodoItem(1L, 1L, todoItemDto)
         );
         assertEquals("У вас нет прав на добавление задач в этот список", exception.getMessage());
     }
@@ -344,7 +344,7 @@ class TodoListServiceImplTest {
         when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            todoListService.addTodoItem(1L, 1L, todoItemDto)
+                todoListService.addTodoItem(1L, 1L, todoItemDto)
         );
         assertEquals("У вас нет прав на добавление задач в этот список", exception.getMessage());
     }
@@ -370,7 +370,7 @@ class TodoListServiceImplTest {
         when(todoItemRepository.findByTodoListAndItemId(any(), anyLong())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-            todoListService.updateTodoItem(1L, 1L, 1L, todoItemDto)
+                todoListService.updateTodoItem(1L, 1L, 1L, todoItemDto)
         );
         assertEquals("Задача not found with id: '1'", exception.getMessage());
     }
@@ -395,7 +395,7 @@ class TodoListServiceImplTest {
         when(todoItemRepository.findByTodoListAndItemId(any(), anyLong())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-            todoListService.toggleTodoItemComplete(1L, 1L, 1L)
+                todoListService.toggleTodoItemComplete(1L, 1L, 1L)
         );
         assertEquals("Задача not found with id: '1'", exception.getMessage());
     }
@@ -416,7 +416,7 @@ class TodoListServiceImplTest {
         when(todoListRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-            todoListService.toggleAllTodoItemsComplete(1L, 1L, true)
+                todoListService.toggleAllTodoItemsComplete(1L, 1L, true)
         );
         assertEquals("Список задач not found with id: '1'", exception.getMessage());
     }
@@ -439,7 +439,7 @@ class TodoListServiceImplTest {
         when(todoItemRepository.findByTodoListAndItemId(any(), anyLong())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-            todoListService.deleteTodoItem(1L, 1L, 1L)
+                todoListService.deleteTodoItem(1L, 1L, 1L)
         );
         assertEquals("Задача not found with id: '1'", exception.getMessage());
     }

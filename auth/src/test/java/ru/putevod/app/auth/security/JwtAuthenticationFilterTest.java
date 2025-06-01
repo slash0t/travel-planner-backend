@@ -16,9 +16,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
@@ -104,7 +103,7 @@ class JwtAuthenticationFilterTest {
         when(jwtTokenProvider.getEmailFromToken(TEST_TOKEN)).thenThrow(new RuntimeException("Token validation failed"));
 
         assertThrows(RuntimeException.class, () ->
-            jwtAuthenticationFilter.doFilterInternal(request, response, filterChain)
+                jwtAuthenticationFilter.doFilterInternal(request, response, filterChain)
         );
     }
 }

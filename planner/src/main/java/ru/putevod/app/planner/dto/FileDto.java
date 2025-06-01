@@ -23,7 +23,7 @@ public class FileDto {
     private String description;
     private LocalDateTime createdAt;
     private String downloadUrl;
-    
+
     // Поля для работы с локальным хранилищем мобильного приложения
     private Boolean requiresLocalStorage;
     private String localStorageId;

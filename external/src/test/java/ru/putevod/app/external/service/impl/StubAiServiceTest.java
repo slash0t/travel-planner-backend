@@ -7,7 +7,6 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.putevod.app.external.dto.ai.*;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,7 +40,7 @@ class StubAiServiceTest {
 
         List<PackingCategoryDto> categories = response.getCategories();
         assertEquals(3, categories.size());
-        
+
         PackingCategoryDto documentsCategory = categories.stream()
                 .filter(c -> c.getName().equals("Документы"))
                 .findFirst()

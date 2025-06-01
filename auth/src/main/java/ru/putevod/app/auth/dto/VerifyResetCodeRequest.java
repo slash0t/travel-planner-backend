@@ -14,7 +14,7 @@ public class VerifyResetCodeRequest {
     @NotBlank(message = "Email не может быть пустым")
     @Email(message = "Некорректный формат email")
     private String email;
-    
+
     @NotBlank(message = "Код не может быть пустым")
     private String code;
 } 

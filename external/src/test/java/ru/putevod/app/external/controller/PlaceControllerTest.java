@@ -4,26 +4,25 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.putevod.app.external.service.PlaceService;
+import ru.putevod.app.external.client.AuthServiceClient;
 import ru.putevod.app.external.dto.PlaceResponseDto;
 import ru.putevod.app.external.dto.PlaceSuggestionDto;
 import ru.putevod.app.external.dto.response.PlaceSearchResponse;
 import ru.putevod.app.external.dto.response.PlaceSuggestionResponse;
-import ru.putevod.app.external.client.AuthServiceClient;
+import ru.putevod.app.external.service.PlaceService;
 
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 
 @WebMvcTest(value = PlaceController.class,
         excludeAutoConfiguration = SecurityAutoConfiguration.class)

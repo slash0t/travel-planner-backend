@@ -1,6 +1,5 @@
 package ru.putevod.app.external.service.impl;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,8 +13,8 @@ import org.springframework.web.client.RestTemplate;
 import ru.putevod.app.external.config.AppConfig;
 import ru.putevod.app.external.dto.PlaceSuggestionDto;
 import ru.putevod.app.external.dto.response.PlaceSuggestionResponse;
-import ru.putevod.app.external.dto.response.YandexGeocoderResponse;
 import ru.putevod.app.external.dto.response.YandexGeoSuggestResponse;
+import ru.putevod.app.external.dto.response.YandexGeocoderResponse;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -112,7 +111,7 @@ class YandexGeoSuggestServiceTest {
 
         assertNotNull(response);
         assertEquals(1, response.getSuggestions().size());
-        
+
         PlaceSuggestionDto suggestion = response.getSuggestions().get(0);
         assertEquals("москва", suggestion.getId());
         assertEquals("Москва", suggestion.getName());
@@ -264,29 +263,29 @@ class YandexGeoSuggestServiceTest {
     private YandexGeoSuggestResponse.GeoSuggestItem createMockGeoSuggestItem(
             String title, String subtitle, List<String> tags, Double distance, Double lat, Double lon) {
         YandexGeoSuggestResponse.GeoSuggestItem item = new YandexGeoSuggestResponse.GeoSuggestItem();
-        
+
         YandexGeoSuggestResponse.TextWithHighlight titleObj = new YandexGeoSuggestResponse.TextWithHighlight();
         titleObj.setText(title);
         item.setTitle(titleObj);
-        
+
         YandexGeoSuggestResponse.TextWithHighlight subtitleObj = new YandexGeoSuggestResponse.TextWithHighlight();
         subtitleObj.setText(subtitle);
         item.setSubtitle(subtitleObj);
-        
+
         item.setTags(tags);
-        
+
         YandexGeoSuggestResponse.Distance distanceObj = new YandexGeoSuggestResponse.Distance();
         distanceObj.setValue(distance);
         distanceObj.setText(distance + " м");
         item.setDistance(distanceObj);
-        
+
         YandexGeoSuggestResponse.Geometry geometry = new YandexGeoSuggestResponse.Geometry();
         YandexGeoSuggestResponse.Location location = new YandexGeoSuggestResponse.Location();
         location.setLat(lat);
         location.setLon(lon);
         geometry.setLocation(location);
         item.setGeometry(geometry);
-        
+
         return item;
     }
 
@@ -294,18 +293,18 @@ class YandexGeoSuggestServiceTest {
         YandexGeocoderResponse response = new YandexGeocoderResponse();
         YandexGeocoderResponse.GeocoderResponse geocoderResponse = new YandexGeocoderResponse.GeocoderResponse();
         YandexGeocoderResponse.GeoObjectCollection collection = new YandexGeocoderResponse.GeoObjectCollection();
-        
+
         YandexGeocoderResponse.FeatureMember member = new YandexGeocoderResponse.FeatureMember();
         YandexGeocoderResponse.GeoObject geoObject = new YandexGeocoderResponse.GeoObject();
         YandexGeocoderResponse.Point point = new YandexGeocoderResponse.Point();
         point.setPos(lon + " " + lat);
         geoObject.setPoint(point);
         member.setGeoObject(geoObject);
-        
+
         collection.setFeatureMembers(Collections.singletonList(member));
         geocoderResponse.setGeoObjectCollection(collection);
         response.setResponse(geocoderResponse);
-        
+
         return response;
     }
 } 

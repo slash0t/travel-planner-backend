@@ -29,10 +29,10 @@ public class EventDto {
     private Integer orderPosition;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
+
     @Builder.Default
     private List<FileDto> files = new ArrayList<>();
-    
+
     @Builder.Default
     private List<EventReminderDto> reminders = new ArrayList<>();
 } 

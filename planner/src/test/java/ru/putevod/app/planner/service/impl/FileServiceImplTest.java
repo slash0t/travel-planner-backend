@@ -12,13 +12,7 @@ import ru.putevod.app.planner.dto.FileDto;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
 import ru.putevod.app.planner.mapper.FileMapper;
-import ru.putevod.app.planner.model.Event;
-import ru.putevod.app.planner.model.EventFile;
-import ru.putevod.app.planner.model.File;
-import ru.putevod.app.planner.model.Trip;
-import ru.putevod.app.planner.model.TripDay;
-import ru.putevod.app.planner.model.TripFile;
-import ru.putevod.app.planner.model.User;
+import ru.putevod.app.planner.model.*;
 import ru.putevod.app.planner.repository.EventFileRepository;
 import ru.putevod.app.planner.repository.FileRepository;
 import ru.putevod.app.planner.repository.TripFileRepository;
@@ -31,7 +25,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class FileServiceImplTest {

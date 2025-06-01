@@ -25,7 +25,7 @@ class TodoItemMapperTest {
         TodoList todoList = new TodoList();
         todoList.setListId(1L);
         todoList.setTitle("Test List");
-        
+
         TodoItem todoItem = new TodoItem();
         todoItem.setItemId(1L);
         todoItem.setContent("Test Content");

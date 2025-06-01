@@ -33,7 +33,7 @@ public class WebClientConfig {
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient));
     }
-    
+
     @Bean("authServiceWebClient")
     public WebClient authServiceWebClient() {
         HttpClient httpClient = HttpClient.create()
@@ -50,7 +50,7 @@ public class WebClientConfig {
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
-    
+
     @Bean("webClient")
     public WebClient webClient() {
         HttpClient httpClient = HttpClient.create()

@@ -31,32 +31,32 @@ public class AiController {
     private final AiService aiService;
 
     @PostMapping("/packing-list")
-    @Operation(summary = "Генерация списка вещей для поездки", 
-              description = "Создает персонализированный список вещей для поездки на основе параметров запроса")
+    @Operation(summary = "Генерация списка вещей для поездки",
+            description = "Создает персонализированный список вещей для поездки на основе параметров запроса")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Список вещей успешно сгенерирован",
-                content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = PackingListResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Некорректные параметры запроса"),
-        @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
-        @ApiResponse(responseCode = "500", description = "Ошибка сервера")
+            @ApiResponse(responseCode = "200", description = "Список вещей успешно сгенерирован",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PackingListResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Некорректные параметры запроса"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     public ResponseEntity<PackingListResponse> generatePackingList(
-            @Parameter(description = "Параметры для генерации списка вещей", required = true) 
+            @Parameter(description = "Параметры для генерации списка вещей", required = true)
             @Valid @RequestBody PackingListRequest request,
             @CurrentUser(info = true) Map<String, Object> userInfo) {
         return ResponseEntity.ok(aiService.generatePackingList(request));
     }
 
     @GetMapping("/packing-list/templates")
-    @Operation(summary = "Получение шаблонов списков вещей", 
-              description = "Возвращает список доступных шаблонов для создания списка вещей")
+    @Operation(summary = "Получение шаблонов списков вещей",
+            description = "Возвращает список доступных шаблонов для создания списка вещей")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Шаблоны успешно получены",
-                content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = PackingListTemplatesResponse.class))),
-        @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
-        @ApiResponse(responseCode = "500", description = "Ошибка сервера")
+            @ApiResponse(responseCode = "200", description = "Шаблоны успешно получены",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PackingListTemplatesResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     public ResponseEntity<PackingListTemplatesResponse> getPackingListTemplates(
             @CurrentUser(info = true) Map<String, Object> userInfo) {
@@ -64,18 +64,18 @@ public class AiController {
     }
 
     @GetMapping("/packing-list/template/{templateId}")
-    @Operation(summary = "Получение содержимого шаблона списка вещей", 
-              description = "Возвращает содержимое конкретного шаблона списка вещей по его ID")
+    @Operation(summary = "Получение содержимого шаблона списка вещей",
+            description = "Возвращает содержимое конкретного шаблона списка вещей по его ID")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Содержимое шаблона успешно получено",
-                content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = PackingListTemplateContent.class))),
-        @ApiResponse(responseCode = "404", description = "Шаблон не найден"),
-        @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
-        @ApiResponse(responseCode = "500", description = "Ошибка сервера")
+            @ApiResponse(responseCode = "200", description = "Содержимое шаблона успешно получено",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PackingListTemplateContent.class))),
+            @ApiResponse(responseCode = "404", description = "Шаблон не найден"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     public ResponseEntity<PackingListTemplateContent> getPackingListTemplateContent(
-            @Parameter(description = "ID шаблона", required = true) 
+            @Parameter(description = "ID шаблона", required = true)
             @PathVariable String templateId,
             @CurrentUser(info = true) Map<String, Object> userInfo) {
         return ResponseEntity.ok(aiService.getPackingListTemplateContent(templateId));

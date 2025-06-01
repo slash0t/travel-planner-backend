@@ -21,8 +21,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class TodoTemplateControllerTest {
 
@@ -189,7 +189,7 @@ class TodoTemplateControllerTest {
         assertEquals(mockTemplate.getUpdatedAt(), dto.getUpdatedAt());
         assertNotNull(dto.getItems());
         assertEquals(1, dto.getItems().size());
-        
+
         TemplateItemDto itemDto = dto.getItems().get(0);
         assertEquals(mockItem.getItemId(), itemDto.getItemId());
         assertEquals(mockItem.getTemplate().getTemplateId(), itemDto.getTemplateId());

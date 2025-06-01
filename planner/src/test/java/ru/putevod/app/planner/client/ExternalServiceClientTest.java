@@ -17,7 +17,8 @@ import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ExternalServiceClientTest {
@@ -63,7 +64,7 @@ class ExternalServiceClientTest {
     void getCityImages_WhenValidCity_ReturnsImages() {
         String city = "Moscow";
         PixabayResponseDto expectedResponse = new PixabayResponseDto();
-        
+
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.header(any(), any())).thenReturn(requestHeadersSpec);
@@ -84,7 +85,7 @@ class ExternalServiceClientTest {
     @DisplayName("Should handle 4xx client error")
     void getCityImages_WhenClientError_ReturnsNull() {
         String city = "Moscow";
-        
+
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.header(any(), any())).thenReturn(requestHeadersSpec);
@@ -108,7 +109,7 @@ class ExternalServiceClientTest {
                 null,
                 null
         );
-        
+
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.header(any(), any())).thenReturn(requestHeadersSpec);
@@ -125,7 +126,7 @@ class ExternalServiceClientTest {
     @DisplayName("Should handle general exception")
     void getCityImages_WhenGeneralException_ReturnsNull() {
         String city = "Moscow";
-        
+
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.header(any(), any())).thenReturn(requestHeadersSpec);

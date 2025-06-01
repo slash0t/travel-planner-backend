@@ -37,7 +37,7 @@ class JwtTokenProviderTest {
         jwt.setAccessTokenExpirationMs(3600000L);
         jwt.setRefreshTokenExpirationMs(86400000L);
         jwt.setAnonymousTokenExpirationMs(1800000L);
-        
+
         when(appProperties.getJwt()).thenReturn(jwt);
 
         testUser = new User();
@@ -50,7 +50,7 @@ class JwtTokenProviderTest {
     @Test
     void generateAccessToken_shouldCreateValidToken() {
         String token = jwtTokenProvider.generateAccessToken(testUser);
-        
+
         assertNotNull(token);
         assertTrue(token.length() > 0);
         assertTrue(jwtTokenProvider.validateToken(token));
@@ -64,7 +64,7 @@ class JwtTokenProviderTest {
     void generateAnonymousToken_shouldCreateValidToken() {
         String deviceId = "test-device";
         String token = jwtTokenProvider.generateAnonymousToken(deviceId);
-        
+
         assertNotNull(token);
         assertTrue(token.length() > 0);
         assertTrue(jwtTokenProvider.validateToken(token));
@@ -77,9 +77,9 @@ class JwtTokenProviderTest {
         jwt.setSecret("testSecretKeyThatIsLongEnoughForHS256Algoritm12345");
         jwt.setAccessTokenExpirationMs(-3600000L);
         when(appProperties.getJwt()).thenReturn(jwt);
-        
+
         String token = jwtTokenProvider.generateAccessToken(testUser);
-        
+
         assertThrows(ExpiredJwtException.class, () -> jwtTokenProvider.validateToken(token));
     }
 
@@ -88,7 +88,7 @@ class JwtTokenProviderTest {
         String token = jwtTokenProvider.generateAccessToken(testUser);
         jwt.setSecret("differentSecretKeyThatIsLongEnoughForHS256Algoritm12345");
         when(appProperties.getJwt()).thenReturn(jwt);
-        
+
         assertThrows(SignatureException.class, () -> jwtTokenProvider.validateToken(token));
     }
 
@@ -96,7 +96,7 @@ class JwtTokenProviderTest {
     void validateServiceToken_withValidToken_shouldReturnTrue() {
         String serviceToken = "valid-service-token";
         when(appProperties.getAuthToken()).thenReturn(serviceToken);
-        
+
         assertTrue(jwtTokenProvider.validateServiceToken(serviceToken));
     }
 
@@ -104,7 +104,7 @@ class JwtTokenProviderTest {
     void validateServiceToken_withInvalidToken_shouldReturnFalse() {
         String serviceToken = "valid-service-token";
         when(appProperties.getAuthToken()).thenReturn(serviceToken);
-        
+
         assertFalse(jwtTokenProvider.validateServiceToken("invalid-token"));
     }
 
@@ -112,9 +112,9 @@ class JwtTokenProviderTest {
     void generateRefreshToken_shouldCreateValidTokenAndSaveSession() {
         String deviceInfo = "test-device";
         String ipAddress = "127.0.0.1";
-        
+
         String token = jwtTokenProvider.generateRefreshToken(testUser, deviceInfo, ipAddress);
-        
+
         assertNotNull(token);
         assertTrue(token.length() > 0);
         verify(userSessionRepository).save(any());

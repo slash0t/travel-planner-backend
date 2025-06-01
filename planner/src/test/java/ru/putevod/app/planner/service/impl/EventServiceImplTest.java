@@ -12,7 +12,6 @@ import org.mockito.quality.Strictness;
 import ru.putevod.app.planner.dto.CreateEventDto;
 import ru.putevod.app.planner.dto.EventDto;
 import ru.putevod.app.planner.dto.EventReminderDto;
-import ru.putevod.app.planner.dto.PlaceDto;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
 import ru.putevod.app.planner.mapper.CreateEventMapper;
@@ -34,9 +33,9 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -262,7 +261,7 @@ class EventServiceImplTest {
         when(eventReminderMapper.fromDto(any(), any(), any())).thenReturn(eventReminder);
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            eventService.addEventReminder(1L, 1L, eventReminderDto)
+                eventService.addEventReminder(1L, 1L, eventReminderDto)
         );
         assertEquals("Невозможно создать напоминание: событие не имеет конкретного времени", exception.getMessage());
     }
@@ -300,7 +299,7 @@ class EventServiceImplTest {
         when(eventReminderRepository.findById(anyLong())).thenReturn(Optional.of(eventReminder));
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            eventService.deleteEventReminder(1L, 1L, 1L)
+                eventService.deleteEventReminder(1L, 1L, 1L)
         );
         assertEquals("Напоминание не принадлежит указанному пользователю или событию", exception.getMessage());
     }
@@ -315,7 +314,7 @@ class EventServiceImplTest {
         when(eventReminderRepository.findById(anyLong())).thenReturn(Optional.of(eventReminder));
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            eventService.deleteEventReminder(1L, 1L, 1L)
+                eventService.deleteEventReminder(1L, 1L, 1L)
         );
         assertEquals("Напоминание не принадлежит указанному пользователю или событию", exception.getMessage());
     }
@@ -329,9 +328,9 @@ class EventServiceImplTest {
         eventService.processReminders();
 
         verify(notificationService).createEventReminderNotification(
-            eq(user.getUserId()),
-            eq(event.getEventId()),
-            eq(event.getTitle())
+                eq(user.getUserId()),
+                eq(event.getEventId()),
+                eq(event.getTitle())
         );
         verify(eventReminderRepository).save(any());
         assertTrue(eventReminder.isSent());
@@ -343,15 +342,15 @@ class EventServiceImplTest {
         List<EventReminder> reminders = List.of(eventReminder);
         when(eventReminderRepository.findUpcomingReminders(any(), any())).thenReturn(reminders);
         doThrow(new RuntimeException("Notification error"))
-            .when(notificationService)
-            .createEventReminderNotification(anyLong(), anyLong(), anyString());
+                .when(notificationService)
+                .createEventReminderNotification(anyLong(), anyLong(), anyString());
 
         eventService.processReminders();
 
         verify(notificationService).createEventReminderNotification(
-            eq(user.getUserId()),
-            eq(event.getEventId()),
-            eq(event.getTitle())
+                eq(user.getUserId()),
+                eq(event.getEventId()),
+                eq(event.getTitle())
         );
         verify(eventReminderRepository, never()).save(any());
         assertFalse(eventReminder.isSent());
@@ -363,7 +362,7 @@ class EventServiceImplTest {
         when(eventRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-            eventService.getEventReminders(1L, 1L)
+                eventService.getEventReminders(1L, 1L)
         );
         assertEquals("Событие not found with id: '1'", exception.getMessage());
     }
@@ -374,7 +373,7 @@ class EventServiceImplTest {
         when(eventReminderRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-            eventService.deleteEventReminder(1L, 1L, 1L)
+                eventService.deleteEventReminder(1L, 1L, 1L)
         );
         assertEquals("Напоминание not found with id: '1'", exception.getMessage());
     }

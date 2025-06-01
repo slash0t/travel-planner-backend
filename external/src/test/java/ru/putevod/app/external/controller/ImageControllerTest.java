@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -69,7 +68,7 @@ class ImageControllerTest {
         assertEquals(1, response.getBody().getTotal());
         assertEquals(1, response.getBody().getTotalHits());
         assertEquals(1, response.getBody().getHits().size());
-        
+
         PixabayResponse.PixabayImage resultImage = response.getBody().getHits().get(0);
         assertEquals(1L, resultImage.getId());
         assertEquals("https://example.com/page1", resultImage.getPageURL());
