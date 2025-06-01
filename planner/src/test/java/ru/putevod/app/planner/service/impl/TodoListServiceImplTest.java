@@ -1,6 +1,7 @@
 package ru.putevod.app.planner.service.impl;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,6 +12,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import ru.putevod.app.planner.dto.TodoItemDto;
 import ru.putevod.app.planner.dto.TodoListDto;
+import ru.putevod.app.planner.exception.BadRequestException;
+import ru.putevod.app.planner.exception.ResourceNotFoundException;
 import ru.putevod.app.planner.mapper.TodoItemMapper;
 import ru.putevod.app.planner.mapper.TodoListMapper;
 import ru.putevod.app.planner.model.TodoItem;
@@ -76,14 +79,17 @@ class TodoListServiceImplTest {
 
         todoItemDto = new TodoItemDto();
         todoItemDto.setId(1L);
+
+        // Common stubs
+        when(userService.getUserEntityById(anyLong())).thenReturn(user);
     }
 
     @Test
+    @DisplayName("Should create todo list successfully")
     void createTodoList_Success() {
-        doReturn(user).when(userService).getUserEntityById(anyLong());
-        doReturn(todoList).when(todoListMapper).toEntity(any());
-        doReturn(todoList).when(todoListRepository).save(any());
-        doReturn(todoListDto).when(todoListMapper).toDto(any());
+        when(todoListMapper.toEntity(any())).thenReturn(todoList);
+        when(todoListRepository.save(any())).thenReturn(todoList);
+        when(todoListMapper.toDto(any())).thenReturn(todoListDto);
 
         TodoListDto result = todoListService.createTodoList(1L, todoListDto);
 
@@ -92,13 +98,13 @@ class TodoListServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should create trip todo list successfully")
     void createTripTodoList_Success() {
-        doReturn(user).when(userService).getUserEntityById(anyLong());
-        doReturn(trip).when(tripService).getTripEntityWithAccessCheck(anyLong(), anyLong());
-        doReturn(true).when(tripService).hasAccessToTrip(any(User.class), any(Trip.class), eq("admin"), eq("write"));
-        doReturn(todoList).when(todoListMapper).toEntity(any());
-        doReturn(todoList).when(todoListRepository).save(any());
-        doReturn(todoListDto).when(todoListMapper).toDto(any());
+        when(tripService.getTripEntityWithAccessCheck(anyLong(), anyLong())).thenReturn(trip);
+        when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("write"))).thenReturn(true);
+        when(todoListMapper.toEntity(any())).thenReturn(todoList);
+        when(todoListRepository.save(any())).thenReturn(todoList);
+        when(todoListMapper.toDto(any())).thenReturn(todoListDto);
 
         TodoListDto result = todoListService.createTripTodoList(1L, 1L, todoListDto);
 
@@ -107,11 +113,23 @@ class TodoListServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when user has no write access to trip")
+    void createTripTodoList_NoWriteAccess_ThrowsException() {
+        when(tripService.getTripEntityWithAccessCheck(anyLong(), anyLong())).thenReturn(trip);
+        when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("write"))).thenReturn(false);
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+            todoListService.createTripTodoList(1L, 1L, todoListDto)
+        );
+        assertEquals("У вас нет прав на создание списков задач в этой поездке", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should update todo list successfully")
     void updateTodoList_Success() {
-        doReturn(user).when(userService).getUserEntityById(anyLong());
-        doReturn(Optional.of(todoList)).when(todoListRepository).findByUserAndListId(any(), anyLong());
-        doReturn(todoList).when(todoListRepository).save(any());
-        doReturn(todoListDto).when(todoListMapper).toDto(any());
+        when(todoListRepository.findByUserAndListId(any(), anyLong())).thenReturn(Optional.of(todoList));
+        when(todoListRepository.save(any())).thenReturn(todoList);
+        when(todoListMapper.toDto(any())).thenReturn(todoListDto);
 
         TodoListDto result = todoListService.updateTodoList(1L, 1L, todoListDto);
 
@@ -120,10 +138,34 @@ class TodoListServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when todo list not found")
+    void updateTodoList_NotFound_ThrowsException() {
+        when(todoListRepository.findByUserAndListId(any(), anyLong())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+            todoListService.updateTodoList(1L, 1L, todoListDto)
+        );
+        assertEquals("Список задач not found with id: '1'", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when user has no write access to trip todo list")
+    void updateTodoList_NoWriteAccess_ThrowsException() {
+        todoList.setTrip(trip);
+        when(todoListRepository.findByUserAndListId(any(), anyLong())).thenReturn(Optional.of(todoList));
+        when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("write"))).thenReturn(false);
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+            todoListService.updateTodoList(1L, 1L, todoListDto)
+        );
+        assertEquals("У вас нет прав на редактирование этого списка задач", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should get todo list by id successfully")
     void getTodoListById_Success() {
-        doReturn(user).when(userService).getUserEntityById(anyLong());
-        doReturn(Optional.of(todoList)).when(todoListRepository).findById(anyLong());
-        doReturn(todoListDto).when(todoListMapper).toDto(any());
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+        when(todoListMapper.toDto(any())).thenReturn(todoListDto);
 
         TodoListDto result = todoListService.getTodoListById(1L, 1L);
 
@@ -131,11 +173,49 @@ class TodoListServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when todo list not found")
+    void getTodoListById_NotFound_ThrowsException() {
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+            todoListService.getTodoListById(1L, 1L)
+        );
+        assertEquals("Список задач not found with id: '1'", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when user has no access to trip todo list")
+    void getTodoListById_NoAccess_ThrowsException() {
+        todoList.setTrip(trip);
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+        when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("read"), eq("write"))).thenReturn(false);
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+            todoListService.getTodoListById(1L, 1L)
+        );
+        assertEquals("У вас нет доступа к этому списку задач", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when user has no access to other user's todo list")
+    void getTodoListById_OtherUser_ThrowsException() {
+        User otherUser = new User();
+        otherUser.setUserId(2L);
+        todoList.setUser(otherUser);
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+            todoListService.getTodoListById(1L, 1L)
+        );
+        assertEquals("У вас нет доступа к этому списку задач", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should get user todo lists successfully")
     void getUserTodoLists_Success() {
         Page<TodoList> todoListPage = new PageImpl<>(List.of(todoList));
-        doReturn(user).when(userService).getUserEntityById(anyLong());
-        doReturn(todoListPage).when(todoListRepository).findAllActiveByUser(any(), any(Pageable.class));
-        doReturn(todoListDto).when(todoListMapper).toDto(any());
+        when(todoListRepository.findAllActiveByUser(any(), any(Pageable.class))).thenReturn(todoListPage);
+        when(todoListMapper.toDto(any())).thenReturn(todoListDto);
 
         Page<TodoListDto> result = todoListService.getUserTodoLists(1L, mock(Pageable.class));
 
@@ -144,12 +224,12 @@ class TodoListServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should get trip todo lists successfully")
     void getTripTodoLists_Success() {
-        doReturn(user).when(userService).getUserEntityById(anyLong());
-        doReturn(trip).when(tripService).getTripEntityWithAccessCheck(anyLong(), anyLong());
-        doReturn(true).when(tripService).hasAccessToTrip(any(User.class), any(Trip.class), eq("admin"), eq("read"), eq("write"));
-        doReturn(List.of(todoList)).when(trip).getTodoLists();
-        doReturn(todoListDto).when(todoListMapper).toDto(any());
+        when(tripService.getTripEntityWithAccessCheck(anyLong(), anyLong())).thenReturn(trip);
+        when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("read"), eq("write"))).thenReturn(true);
+        when(trip.getTodoLists()).thenReturn(List.of(todoList));
+        when(todoListMapper.toDto(any())).thenReturn(todoListDto);
 
         List<TodoListDto> result = todoListService.getTripTodoLists(1L, 1L);
 
@@ -158,9 +238,21 @@ class TodoListServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when user has no access to trip todo lists")
+    void getTripTodoLists_NoAccess_ThrowsException() {
+        when(tripService.getTripEntityWithAccessCheck(anyLong(), anyLong())).thenReturn(trip);
+        when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("read"), eq("write"))).thenReturn(false);
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+            todoListService.getTripTodoLists(1L, 1L)
+        );
+        assertEquals("У вас нет прав на просмотр списков задач в этой поездке", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should delete todo list successfully")
     void deleteTodoList_Success() {
-        doReturn(user).when(userService).getUserEntityById(anyLong());
-        doReturn(Optional.of(todoList)).when(todoListRepository).findById(anyLong());
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
 
         todoListService.deleteTodoList(1L, 1L);
 
@@ -168,13 +260,50 @@ class TodoListServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when todo list not found")
+    void deleteTodoList_NotFound_ThrowsException() {
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+            todoListService.deleteTodoList(1L, 1L)
+        );
+        assertEquals("Список задач not found with id: '1'", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when user has no write access to trip todo list")
+    void deleteTodoList_NoWriteAccess_ThrowsException() {
+        todoList.setTrip(trip);
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+        when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("write"))).thenReturn(false);
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+            todoListService.deleteTodoList(1L, 1L)
+        );
+        assertEquals("У вас нет прав на удаление этого списка задач", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when user has no access to other user's todo list")
+    void deleteTodoList_OtherUser_ThrowsException() {
+        User otherUser = new User();
+        otherUser.setUserId(2L);
+        todoList.setUser(otherUser);
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+            todoListService.deleteTodoList(1L, 1L)
+        );
+        assertEquals("У вас нет прав на удаление этого списка задач", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should add todo item successfully")
     void addTodoItem_Success() {
-        doReturn(user).when(userService).getUserEntityById(anyLong());
-        doReturn(Optional.of(todoList)).when(todoListRepository).findById(anyLong());
-        doReturn(List.of()).when(todoItemRepository).findByTodoListOrderByOrderPositionAsc(any());
-        doReturn(todoItem).when(todoItemMapper).fromDto(any(), any());
-        doReturn(todoItem).when(todoItemRepository).save(any());
-        doReturn(todoItemDto).when(todoItemMapper).toDto(any());
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+        when(todoItemMapper.fromDto(any(), any())).thenReturn(todoItem);
+        when(todoItemRepository.save(any())).thenReturn(todoItem);
+        when(todoItemMapper.toDto(any())).thenReturn(todoItemDto);
 
         TodoItemDto result = todoListService.addTodoItem(1L, 1L, todoItemDto);
 
@@ -183,12 +312,50 @@ class TodoListServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when todo list not found")
+    void addTodoItem_ListNotFound_ThrowsException() {
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+            todoListService.addTodoItem(1L, 1L, todoItemDto)
+        );
+        assertEquals("Список задач not found with id: '1'", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when user has no write access to trip todo list")
+    void addTodoItem_NoWriteAccess_ThrowsException() {
+        todoList.setTrip(trip);
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+        when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("write"))).thenReturn(false);
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+            todoListService.addTodoItem(1L, 1L, todoItemDto)
+        );
+        assertEquals("У вас нет прав на добавление задач в этот список", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when user has no access to other user's todo list")
+    void addTodoItem_OtherUser_ThrowsException() {
+        User otherUser = new User();
+        otherUser.setUserId(2L);
+        todoList.setUser(otherUser);
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+            todoListService.addTodoItem(1L, 1L, todoItemDto)
+        );
+        assertEquals("У вас нет прав на добавление задач в этот список", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should update todo item successfully")
     void updateTodoItem_Success() {
-        doReturn(user).when(userService).getUserEntityById(anyLong());
-        doReturn(Optional.of(todoList)).when(todoListRepository).findById(anyLong());
-        doReturn(Optional.of(todoItem)).when(todoItemRepository).findByTodoListAndItemId(any(), anyLong());
-        doReturn(todoItem).when(todoItemRepository).save(any());
-        doReturn(todoItemDto).when(todoItemMapper).toDto(any());
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+        when(todoItemRepository.findByTodoListAndItemId(any(), anyLong())).thenReturn(Optional.of(todoItem));
+        when(todoItemRepository.save(any())).thenReturn(todoItem);
+        when(todoItemMapper.toDto(any())).thenReturn(todoItemDto);
 
         TodoItemDto result = todoListService.updateTodoItem(1L, 1L, 1L, todoItemDto);
 
@@ -197,11 +364,23 @@ class TodoListServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when todo item not found")
+    void updateTodoItem_ItemNotFound_ThrowsException() {
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+        when(todoItemRepository.findByTodoListAndItemId(any(), anyLong())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+            todoListService.updateTodoItem(1L, 1L, 1L, todoItemDto)
+        );
+        assertEquals("Задача not found with id: '1'", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should toggle todo item complete successfully")
     void toggleTodoItemComplete_Success() {
-        doReturn(user).when(userService).getUserEntityById(anyLong());
-        doReturn(Optional.of(todoList)).when(todoListRepository).findById(anyLong());
-        doReturn(Optional.of(todoItem)).when(todoItemRepository).findByTodoListAndItemId(any(), anyLong());
-        doReturn(todoItemDto).when(todoItemMapper).toDto(any());
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+        when(todoItemRepository.findByTodoListAndItemId(any(), anyLong())).thenReturn(Optional.of(todoItem));
+        when(todoItemMapper.toDto(any())).thenReturn(todoItemDto);
 
         TodoItemDto result = todoListService.toggleTodoItemComplete(1L, 1L, 1L);
 
@@ -210,9 +389,21 @@ class TodoListServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when todo item not found")
+    void toggleTodoItemComplete_ItemNotFound_ThrowsException() {
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+        when(todoItemRepository.findByTodoListAndItemId(any(), anyLong())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+            todoListService.toggleTodoItemComplete(1L, 1L, 1L)
+        );
+        assertEquals("Задача not found with id: '1'", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should toggle all todo items complete successfully")
     void toggleAllTodoItemsComplete_Success() {
-        doReturn(user).when(userService).getUserEntityById(anyLong());
-        doReturn(Optional.of(todoList)).when(todoListRepository).findById(anyLong());
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
 
         todoListService.toggleAllTodoItemsComplete(1L, 1L, true);
 
@@ -220,13 +411,36 @@ class TodoListServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when todo list not found")
+    void toggleAllTodoItemsComplete_ListNotFound_ThrowsException() {
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+            todoListService.toggleAllTodoItemsComplete(1L, 1L, true)
+        );
+        assertEquals("Список задач not found with id: '1'", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should delete todo item successfully")
     void deleteTodoItem_Success() {
-        doReturn(user).when(userService).getUserEntityById(anyLong());
-        doReturn(Optional.of(todoList)).when(todoListRepository).findById(anyLong());
-        doReturn(Optional.of(todoItem)).when(todoItemRepository).findByTodoListAndItemId(any(), anyLong());
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+        when(todoItemRepository.findByTodoListAndItemId(any(), anyLong())).thenReturn(Optional.of(todoItem));
 
         todoListService.deleteTodoItem(1L, 1L, 1L);
 
         verify(todoItemRepository).delete(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when todo item not found")
+    void deleteTodoItem_ItemNotFound_ThrowsException() {
+        when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
+        when(todoItemRepository.findByTodoListAndItemId(any(), anyLong())).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+            todoListService.deleteTodoItem(1L, 1L, 1L)
+        );
+        assertEquals("Задача not found with id: '1'", exception.getMessage());
     }
 } 

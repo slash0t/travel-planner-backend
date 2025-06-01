@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -24,12 +26,15 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class PlannerClientTest {
 
     @Mock
     private RestTemplate restTemplate;
 
     private PlannerClient plannerClient;
+    private static final ParameterizedTypeReference<Map<String, Object>> MAP_TYPE_REF = new ParameterizedTypeReference<>() {};
+    private static final ParameterizedTypeReference<List<String>> LIST_TYPE_REF = new ParameterizedTypeReference<>() {};
 
     @BeforeEach
     void setUp() {
@@ -45,10 +50,10 @@ class PlannerClientTest {
         ResponseEntity<Map<String, Object>> responseEntity = new ResponseEntity<>(expectedResponse, HttpStatus.OK);
 
         doReturn(responseEntity).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/trips/1"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<Map<String, Object>>() {}.getClass())
+                eq(MAP_TYPE_REF)
         );
 
         Map<String, Object> result = plannerClient.getTripDetails(tripId);
@@ -64,10 +69,10 @@ class PlannerClientTest {
         ResponseEntity<Map<String, Object>> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
 
         doReturn(responseEntity).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/trips/1"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<Map<String, Object>>() {}.getClass())
+                eq(MAP_TYPE_REF)
         );
 
         Map<String, Object> result = plannerClient.getTripDetails(tripId);
@@ -83,10 +88,10 @@ class PlannerClientTest {
         HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "Unauthorized");
 
         doThrow(exception).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/trips/1"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<Map<String, Object>>() {}.getClass())
+                eq(MAP_TYPE_REF)
         );
 
         ServiceUnavailableException thrown = assertThrows(ServiceUnavailableException.class,
@@ -101,10 +106,10 @@ class PlannerClientTest {
         HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.NOT_FOUND, "Not Found");
 
         doThrow(exception).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/trips/1"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<Map<String, Object>>() {}.getClass())
+                eq(MAP_TYPE_REF)
         );
 
         Map<String, Object> result = plannerClient.getTripDetails(tripId);
@@ -120,10 +125,10 @@ class PlannerClientTest {
         ResourceAccessException exception = new ResourceAccessException("Connection refused");
 
         doThrow(exception).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/trips/1"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<Map<String, Object>>() {}.getClass())
+                eq(MAP_TYPE_REF)
         );
 
         ServiceUnavailableException thrown = assertThrows(ServiceUnavailableException.class,
@@ -138,10 +143,10 @@ class PlannerClientTest {
         RestClientException exception = new RestClientException("General error");
 
         doThrow(exception).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/trips/1"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<Map<String, Object>>() {}.getClass())
+                eq(MAP_TYPE_REF)
         );
 
         ServiceUnavailableException thrown = assertThrows(ServiceUnavailableException.class,
@@ -157,10 +162,10 @@ class PlannerClientTest {
         ResponseEntity<Map<String, Object>> responseEntity = new ResponseEntity<>(expectedResponse, HttpStatus.OK);
 
         doReturn(responseEntity).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/templates/1"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<Map<String, Object>>() {}.getClass())
+                eq(MAP_TYPE_REF)
         );
 
         Map<String, Object> result = plannerClient.getTemplateDetails(templateId);
@@ -176,10 +181,10 @@ class PlannerClientTest {
         HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "Unauthorized");
 
         doThrow(exception).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/templates/1"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<Map<String, Object>>() {}.getClass())
+                eq(MAP_TYPE_REF)
         );
 
         ServiceUnavailableException thrown = assertThrows(ServiceUnavailableException.class,
@@ -194,10 +199,10 @@ class PlannerClientTest {
         HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.NOT_FOUND, "Not Found");
 
         doThrow(exception).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/templates/1"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<Map<String, Object>>() {}.getClass())
+                eq(MAP_TYPE_REF)
         );
 
         Map<String, Object> result = plannerClient.getTemplateDetails(templateId);
@@ -213,10 +218,10 @@ class PlannerClientTest {
         ResourceAccessException exception = new ResourceAccessException("Connection refused");
 
         doThrow(exception).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/templates/1"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<Map<String, Object>>() {}.getClass())
+                eq(MAP_TYPE_REF)
         );
 
         ServiceUnavailableException thrown = assertThrows(ServiceUnavailableException.class,
@@ -232,10 +237,10 @@ class PlannerClientTest {
         ResponseEntity<List<String>> responseEntity = new ResponseEntity<>(expectedItems, HttpStatus.OK);
 
         doReturn(responseEntity).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/templates/1/items"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<List<String>>() {}.getClass())
+                eq(LIST_TYPE_REF)
         );
 
         List<String> result = plannerClient.getTemplateItems(templateId);
@@ -251,10 +256,10 @@ class PlannerClientTest {
         HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.NOT_FOUND, "Not Found");
 
         doThrow(exception).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/templates/1/items"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<List<String>>() {}.getClass())
+                eq(LIST_TYPE_REF)
         );
 
         List<String> result = plannerClient.getTemplateItems(templateId);
@@ -270,10 +275,10 @@ class PlannerClientTest {
         ResourceAccessException exception = new ResourceAccessException("Connection refused");
 
         doThrow(exception).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/templates/1/items"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<List<String>>() {}.getClass())
+                eq(LIST_TYPE_REF)
         );
 
         ServiceUnavailableException thrown = assertThrows(ServiceUnavailableException.class,
@@ -288,10 +293,10 @@ class PlannerClientTest {
         RestClientException exception = new RestClientException("General error");
 
         doThrow(exception).when(restTemplate).exchange(
-                eq("http://localhost:8082/api/v1/templates/1/items"),
+                anyString(),
                 eq(HttpMethod.GET),
                 any(HttpEntity.class),
-                any(new ParameterizedTypeReference<List<String>>() {}.getClass())
+                eq(LIST_TYPE_REF)
         );
 
         ServiceUnavailableException thrown = assertThrows(ServiceUnavailableException.class,

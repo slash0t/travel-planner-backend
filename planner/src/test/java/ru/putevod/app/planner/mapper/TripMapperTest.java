@@ -113,4 +113,95 @@ class TripMapperTest {
         assertEquals("ongoing", tripDto.getStatus());
         assertEquals(5, tripDto.getTotalDays());
     }
+
+    @Test
+    void testUpdateEntityFromDto() {
+        TripDto tripDto = new TripDto();
+        tripDto.setTitle("Updated Title");
+        tripDto.setDescription("Updated Description");
+        tripDto.setStartDate(LocalDate.now().plusDays(1));
+        tripDto.setEndDate(LocalDate.now().plusDays(5));
+        tripDto.setCountry("Updated Country");
+        tripDto.setCity("Updated City");
+        tripDto.setPublished(true);
+        tripDto.setPreviewUrl("updated-url");
+
+        Trip trip = new Trip();
+        trip.setTripId(1L);
+        trip.setTitle("Original Title");
+        trip.setDescription("Original Description");
+        trip.setStartDate(LocalDate.now());
+        trip.setEndDate(LocalDate.now().plusDays(3));
+        trip.setCountry("Original Country");
+        trip.setCity("Original City");
+        trip.setPublished(false);
+        trip.setPreviewUrl("original-url");
+        trip.setCreatedAt(LocalDateTime.now());
+        trip.setUpdatedAt(LocalDateTime.now());
+        trip.setDeleted(false);
+
+        User user = new User();
+        user.setUserId(1L);
+        user.setUsername("Test User");
+        trip.setCreator(user);
+
+        tripMapper.updateEntityFromDto(tripDto, trip);
+
+        assertEquals(tripDto.getTitle(), trip.getTitle());
+        assertEquals(tripDto.getDescription(), trip.getDescription());
+        assertEquals(tripDto.getStartDate(), trip.getStartDate());
+        assertEquals(tripDto.getEndDate(), trip.getEndDate());
+        assertEquals(tripDto.getCountry(), trip.getCountry());
+        assertEquals(tripDto.getCity(), trip.getCity());
+        assertEquals(tripDto.isPublished(), trip.isPublished());
+        assertEquals(tripDto.getPreviewUrl(), trip.getPreviewUrl());
+        
+        assertEquals(1L, trip.getTripId());
+        assertEquals(user, trip.getCreator());
+        assertNotNull(trip.getCreatedAt());
+        assertNotNull(trip.getUpdatedAt());
+        assertFalse(trip.isDeleted());
+    }
+
+    @Test
+    void testUpdateEntityFromDto_WithNullValues() {
+        TripDto tripDto = new TripDto();
+        tripDto.setTitle("Updated Title");
+
+        Trip trip = new Trip();
+        trip.setTripId(1L);
+        trip.setTitle("Original Title");
+        trip.setDescription("Original Description");
+        trip.setStartDate(LocalDate.now());
+        trip.setEndDate(LocalDate.now().plusDays(3));
+        trip.setCountry("Original Country");
+        trip.setCity("Original City");
+        trip.setPublished(false);
+        trip.setPreviewUrl("original-url");
+        trip.setCreatedAt(LocalDateTime.now());
+        trip.setUpdatedAt(LocalDateTime.now());
+        trip.setDeleted(false);
+
+        User user = new User();
+        user.setUserId(1L);
+        user.setUsername("Test User");
+        trip.setCreator(user);
+
+        tripMapper.updateEntityFromDto(tripDto, trip);
+
+        assertEquals(tripDto.getTitle(), trip.getTitle());
+        assertEquals("Original Description", trip.getDescription());
+        assertEquals(LocalDate.now(), trip.getStartDate());
+        assertEquals(LocalDate.now().plusDays(3), trip.getEndDate());
+        assertEquals("Original Country", trip.getCountry());
+        assertEquals("Original City", trip.getCity());
+        assertFalse(trip.isPublished());
+        assertEquals("original-url", trip.getPreviewUrl());
+        
+        assertEquals(1L, trip.getTripId());
+        assertEquals(user, trip.getCreator());
+        assertNotNull(trip.getCreatedAt());
+        assertNotNull(trip.getUpdatedAt());
+        assertFalse(trip.isDeleted());
+    }
 }
