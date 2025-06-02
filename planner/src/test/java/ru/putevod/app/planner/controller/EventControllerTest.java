@@ -8,6 +8,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import ru.putevod.app.planner.dto.CreateEventDto;
+import ru.putevod.app.planner.dto.UpdateEventDto;
+import ru.putevod.app.planner.dto.CreateEventReminderDto;
 import ru.putevod.app.planner.dto.EventDto;
 import ru.putevod.app.planner.dto.EventReminderDto;
 import ru.putevod.app.planner.service.EventService;
@@ -37,6 +39,8 @@ class EventControllerTest {
     private Long eventId;
     private Long reminderId;
     private CreateEventDto mockCreateEventDto;
+    private UpdateEventDto mockUpdateEventDto;
+    private CreateEventReminderDto mockCreateEventReminderDto;
     private EventDto mockEventDto;
     private EventReminderDto mockEventReminderDto;
 
@@ -58,6 +62,21 @@ class EventControllerTest {
                 .hasSpecificTime(true)
                 .notes("Test Notes")
                 .orderPosition(1)
+                .build();
+
+        mockUpdateEventDto = UpdateEventDto.builder()
+                .title("Updated Event")
+                .description("Updated Description")
+                .startTime(LocalTime.of(11, 0))
+                .endTime(LocalTime.of(12, 0))
+                .hasSpecificTime(true)
+                .notes("Updated Notes")
+                .orderPosition(1)
+                .build();
+
+        mockCreateEventReminderDto = CreateEventReminderDto.builder()
+                .remindAt(LocalDateTime.now().plusHours(1))
+                .minutesBefore(60)
                 .build();
 
         mockEventDto = EventDto.builder()
@@ -129,16 +148,16 @@ class EventControllerTest {
 
     @Test
     void updateEvent_ShouldReturnUpdatedEvent() {
-        when(eventService.updateEvent(eq(userId), eq(tripId), eq(dayId), eq(eventId), any(EventDto.class)))
+        when(eventService.updateEvent(eq(userId), eq(tripId), eq(dayId), eq(eventId), any(UpdateEventDto.class)))
                 .thenReturn(mockEventDto);
 
-        ResponseEntity<EventDto> response = eventController.updateEvent(userId, tripId, dayId, eventId, mockEventDto);
+        ResponseEntity<EventDto> response = eventController.updateEvent(userId, tripId, dayId, eventId, mockUpdateEventDto);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(mockEventDto.getId(), response.getBody().getId());
-        verify(eventService).updateEvent(eq(userId), eq(tripId), eq(dayId), eq(eventId), any(EventDto.class));
+        verify(eventService).updateEvent(eq(userId), eq(tripId), eq(dayId), eq(eventId), any(UpdateEventDto.class));
     }
 
     @Test
@@ -154,17 +173,17 @@ class EventControllerTest {
 
     @Test
     void addEventReminder_ShouldReturnCreatedReminder() {
-        when(eventService.addEventReminder(eq(userId), eq(eventId), any(EventReminderDto.class)))
+        when(eventService.addEventReminder(eq(userId), eq(eventId), any(CreateEventReminderDto.class)))
                 .thenReturn(mockEventReminderDto);
 
-        ResponseEntity<EventReminderDto> response = eventController.addEventReminder(userId, eventId, mockEventReminderDto);
+        ResponseEntity<EventReminderDto> response = eventController.addEventReminder(userId, eventId, mockCreateEventReminderDto);
 
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(mockEventReminderDto.getId(), response.getBody().getId());
         assertEquals(mockEventReminderDto.getEventId(), response.getBody().getEventId());
-        verify(eventService).addEventReminder(eq(userId), eq(eventId), any(EventReminderDto.class));
+        verify(eventService).addEventReminder(eq(userId), eq(eventId), any(CreateEventReminderDto.class));
     }
 
     @Test

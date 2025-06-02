@@ -109,28 +109,21 @@ class FileServiceImplTest {
     }
 
     @Test
-    void uploadFile_Success() {
+    void registerLocalFile_Success() {
         doReturn(user).when(userService).getUserEntityById(anyLong());
         doReturn(file).when(fileRepository).save(any());
         doReturn(fileDto).when(fileMapper).toDto(any());
 
-        FileDto result = fileService.uploadFile(1L, multipartFile, "Test description");
+        FileDto result = fileService.registerLocalFile(1L, "test.txt", "/local/path/test.txt", "text/plain", 100, "Test description");
 
         assertNotNull(result);
         verify(fileRepository).save(any());
     }
 
     @Test
-    void uploadFile_InvalidPath() {
-        MultipartFile invalidFile = new MockMultipartFile(
-                "../test.txt",
-                "../test.txt",
-                "text/plain",
-                "test content".getBytes()
-        );
-
+    void uploadFile_NotSupported() {
         assertThrows(BadRequestException.class, () ->
-                fileService.uploadFile(1L, invalidFile, "Test description"));
+                fileService.uploadFile(1L, multipartFile, "Test description"));
     }
 
     @Test
@@ -219,7 +212,6 @@ class FileServiceImplTest {
         doReturn(user).when(userService).getUserEntityById(anyLong());
         doReturn(trip).when(tripService).getTripEntityWithAccessCheck(anyLong(), anyLong());
         doReturn(List.of(file)).when(fileRepository).findByTripId(anyLong());
-        doReturn(Optional.of(tripFile)).when(tripFileRepository).findByTripAndFile(any(), any());
         doReturn(fileDto).when(fileMapper).toDto(any());
 
         List<FileDto> result = fileService.getTripFiles(1L, 1L);
@@ -234,7 +226,6 @@ class FileServiceImplTest {
         doReturn(event).when(eventService).getEventEntityById(anyLong());
         doReturn(true).when(tripService).hasAccessToTrip(any(), any(), eq("admin"), eq("read"), eq("write"));
         doReturn(List.of(file)).when(fileRepository).findByEventId(anyLong());
-        doReturn(Optional.of(eventFile)).when(eventFileRepository).findByEventAndFile(any(), any());
         doReturn(fileDto).when(fileMapper).toDto(any());
 
         List<FileDto> result = fileService.getEventFiles(1L, 1L);

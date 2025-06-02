@@ -1,16 +1,20 @@
 package ru.putevod.app.planner.mapper;
 
 import org.mapstruct.*;
+import ru.putevod.app.planner.dto.CreateTodoListDto;
 import ru.putevod.app.planner.dto.TodoListDto;
 import ru.putevod.app.planner.model.TodoList;
 import ru.putevod.app.planner.model.Trip;
 import ru.putevod.app.planner.model.User;
 
-@Mapper(componentModel = "spring",
+@Mapper(
+        config = MapstructConfig.class,
         uses = {TodoItemMapper.class},
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
 public interface TodoListMapper {
 
+    @BeanMapping(unmappedTargetPolicy = ReportingPolicy.IGNORE)
     @Mapping(source = "listId", target = "id")
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "trip.tripId", target = "tripId")
@@ -24,6 +28,7 @@ public interface TodoListMapper {
         dto.setCompletedCount(entity.getCompletedCount());
     }
 
+    @BeanMapping(unmappedTargetPolicy = ReportingPolicy.IGNORE)
     @Mapping(source = "id", target = "listId")
     @Mapping(source = "title", target = "title")
     @Mapping(source = "description", target = "description")
@@ -35,6 +40,7 @@ public interface TodoListMapper {
     @Mapping(target = "updatedAt", ignore = true)
     TodoList toEntity(TodoListDto todoListDto);
 
+    @BeanMapping(unmappedTargetPolicy = ReportingPolicy.IGNORE)
     @Mapping(target = "listId", ignore = true)
     @Mapping(source = "title", target = "title")
     @Mapping(source = "description", target = "description")
@@ -45,6 +51,19 @@ public interface TodoListMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntityFromDto(TodoListDto todoListDto, @MappingTarget TodoList todoList);
+
+    // Маппинг из CreateTodoListDto в TodoList
+    @BeanMapping(unmappedTargetPolicy = ReportingPolicy.IGNORE)
+    @Mapping(target = "listId", ignore = true)
+    @Mapping(source = "createTodoListDto.title", target = "title")
+    @Mapping(source = "createTodoListDto.description", target = "description")
+    @Mapping(source = "createTodoListDto.listType", target = "listType")
+    @Mapping(source = "user", target = "user")
+    @Mapping(source = "trip", target = "trip")
+    @Mapping(target = "items", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    TodoList toEntityFromCreate(CreateTodoListDto createTodoListDto, User user, Trip trip);
 
     default TodoList fromDto(TodoListDto todoListDto, User user, Trip trip) {
         if (todoListDto == null) {
@@ -58,5 +77,13 @@ public interface TodoListMapper {
         }
 
         return todoList;
+    }
+
+    default TodoList fromCreateDto(CreateTodoListDto createTodoListDto, User user, Trip trip) {
+        if (createTodoListDto == null) {
+            return null;
+        }
+
+        return toEntityFromCreate(createTodoListDto, user, trip);
     }
 } 

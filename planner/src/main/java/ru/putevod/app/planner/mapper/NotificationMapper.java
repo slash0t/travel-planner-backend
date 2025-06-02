@@ -1,20 +1,22 @@
 package ru.putevod.app.planner.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 import ru.putevod.app.planner.dto.NotificationDto;
 import ru.putevod.app.planner.model.Notification;
 import ru.putevod.app.planner.model.User;
 
-@Mapper(componentModel = "spring",
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(
+        config = MapstructConfig.class,
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
 public interface NotificationMapper {
 
+    @BeanMapping(unmappedTargetPolicy = ReportingPolicy.IGNORE)
     @Mapping(source = "notificationId", target = "id")
     @Mapping(source = "user.userId", target = "userId")
     NotificationDto toDto(Notification notification);
 
+    @BeanMapping(unmappedTargetPolicy = ReportingPolicy.IGNORE)
     @Mapping(source = "id", target = "notificationId")
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -27,7 +29,6 @@ public interface NotificationMapper {
         notification.setRelatedId(relatedId);
         notification.setUser(user);
         notification.setRead(false);
-
         return notification;
     }
 } 

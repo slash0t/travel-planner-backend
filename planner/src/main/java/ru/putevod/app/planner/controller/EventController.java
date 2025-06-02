@@ -3,6 +3,7 @@ package ru.putevod.app.planner.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -10,8 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.planner.config.CurrentUser;
 import ru.putevod.app.planner.dto.CreateEventDto;
+import ru.putevod.app.planner.dto.UpdateEventDto;
 import ru.putevod.app.planner.dto.EventDto;
 import ru.putevod.app.planner.dto.EventReminderDto;
+import ru.putevod.app.planner.dto.CreateEventReminderDto;
 import ru.putevod.app.planner.service.EventService;
 
 import java.util.List;
@@ -31,7 +34,7 @@ public class EventController {
             @CurrentUser Long userId,
             @PathVariable Long tripId,
             @PathVariable Long dayId,
-            @RequestBody CreateEventDto createEventDto) {
+            @Valid @RequestBody CreateEventDto createEventDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(eventService.createEvent(userId, tripId, dayId, createEventDto));
     }
@@ -62,8 +65,8 @@ public class EventController {
             @PathVariable Long tripId,
             @PathVariable Long dayId,
             @PathVariable Long eventId,
-            @RequestBody EventDto eventDto) {
-        return ResponseEntity.ok(eventService.updateEvent(userId, tripId, dayId, eventId, eventDto));
+            @Valid @RequestBody UpdateEventDto updateEventDto) {
+        return ResponseEntity.ok(eventService.updateEvent(userId, tripId, dayId, eventId, updateEventDto));
     }
 
     @DeleteMapping("/{eventId}")
@@ -82,7 +85,7 @@ public class EventController {
     public ResponseEntity<EventReminderDto> addEventReminder(
             @CurrentUser Long userId,
             @PathVariable Long eventId,
-            @RequestBody EventReminderDto reminderDto) {
+            @Valid @RequestBody CreateEventReminderDto reminderDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(eventService.addEventReminder(userId, eventId, reminderDto));
     }

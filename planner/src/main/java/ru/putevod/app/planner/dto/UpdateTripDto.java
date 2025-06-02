@@ -15,8 +15,8 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Данные для создания поездки")
-public class CreateTripDto {
+@Schema(description = "Данные для обновления поездки")
+public class UpdateTripDto {
     @NotBlank(message = "Название поездки обязательно для заполнения")
     @Size(min = 3, max = 100, message = "Название поездки должно содержать от 3 до 100 символов")
     @Schema(description = "Название поездки", example = "Поездка в Санкт-Петербург", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -45,8 +45,5 @@ public class CreateTripDto {
     private String city;
 
     @Schema(description = "Флаг публикации поездки", defaultValue = "false")
-    private boolean published = false;
-
-    @Schema(description = "URL превью изображения поездки (генерируется автоматически)", example = "https://example.com/image.jpg", accessMode = Schema.AccessMode.READ_ONLY)
-    private String previewUrl;
+    private boolean published;
 } 

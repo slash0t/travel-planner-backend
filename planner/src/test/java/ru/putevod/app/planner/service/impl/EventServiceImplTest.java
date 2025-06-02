@@ -9,12 +9,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import ru.putevod.app.planner.dto.CreateEventDto;
-import ru.putevod.app.planner.dto.EventDto;
-import ru.putevod.app.planner.dto.EventReminderDto;
+import ru.putevod.app.planner.dto.*;
+
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
-import ru.putevod.app.planner.mapper.CreateEventMapper;
 import ru.putevod.app.planner.mapper.EventMapper;
 import ru.putevod.app.planner.mapper.EventReminderMapper;
 import ru.putevod.app.planner.mapper.PlaceMapper;
@@ -58,8 +56,6 @@ class EventServiceImplTest {
     @Mock
     private EventMapper eventMapper;
     @Mock
-    private CreateEventMapper createEventMapper;
-    @Mock
     private PlaceMapper placeMapper;
     @Mock
     private EventReminderMapper eventReminderMapper;
@@ -72,9 +68,11 @@ class EventServiceImplTest {
     private TripDay tripDay;
     private Event event;
     private EventDto eventDto;
+    private UpdateEventDto updateEventDto;
     private CreateEventDto createEventDto;
     private EventReminder eventReminder;
     private EventReminderDto eventReminderDto;
+    private CreateEventReminderDto createEventReminderDto;
 
     @BeforeEach
     void setUp() {
@@ -99,6 +97,8 @@ class EventServiceImplTest {
         eventDto = new EventDto();
         eventDto.setId(1L);
 
+        updateEventDto = new UpdateEventDto();
+
         createEventDto = new CreateEventDto();
         createEventDto.setOrderPosition(1);
 
@@ -110,6 +110,8 @@ class EventServiceImplTest {
 
         eventReminderDto = new EventReminderDto();
         eventReminderDto.setId(1L);
+
+        createEventReminderDto = new CreateEventReminderDto();
 
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
         when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
@@ -123,7 +125,7 @@ class EventServiceImplTest {
         doReturn(true).when(tripService).hasAccessToTrip(any(User.class), any(Trip.class), eq("admin"), eq("write"));
         doReturn(Optional.of(tripDay)).when(tripDayRepository).findByTripAndDayId(any(), any());
         doReturn(List.of()).when(eventRepository).findByDayOrderByOrderPositionAsc(any());
-        doReturn(event).when(createEventMapper).fromDto(any(), any());
+        doReturn(event).when(eventMapper).toEntityFromCreate(any(), any());
         doReturn(event).when(eventRepository).save(any());
         doReturn(eventDto).when(eventMapper).toDto(any());
 
@@ -143,7 +145,7 @@ class EventServiceImplTest {
         doReturn(event).when(eventRepository).save(any());
         doReturn(eventDto).when(eventMapper).toDto(any());
 
-        EventDto result = eventService.updateEvent(1L, 1L, 1L, 1L, eventDto);
+        EventDto result = eventService.updateEvent(1L, 1L, 1L, 1L, updateEventDto);
 
         assertNotNull(result);
         verify(eventRepository).save(any());
@@ -220,48 +222,64 @@ class EventServiceImplTest {
     @Test
     @DisplayName("Should create event reminder with minutes before")
     void addEventReminder_WithMinutesBefore_Success() {
-        eventReminderDto.setMinutesBefore(30);
-        eventReminderDto.setRemindAt(null);
+        createEventReminderDto.setMinutesBefore(30);
+        createEventReminderDto.setRemindAt(null);
 
-        when(eventReminderMapper.fromDto(any(), any(), any())).thenReturn(eventReminder);
-        when(eventReminderRepository.save(any())).thenReturn(eventReminder);
+        // Создаем mock объект EventReminder для возврата из mapper
+        EventReminder mockReminder = new EventReminder();
+        mockReminder.setReminderId(1L);
+        mockReminder.setEvent(event);
+        mockReminder.setUser(user);
+        mockReminder.setMinutesBefore(30);
+        mockReminder.setSent(false);
+
+        when(eventReminderMapper.toEntityFromCreate(any(), any(), any())).thenReturn(mockReminder);
+        when(eventReminderRepository.save(any())).thenReturn(mockReminder);
         when(eventReminderMapper.toDto(any())).thenReturn(eventReminderDto);
 
-        EventReminderDto result = eventService.addEventReminder(1L, 1L, eventReminderDto);
+        EventReminderDto result = eventService.addEventReminder(1L, 1L, createEventReminderDto);
 
         assertNotNull(result);
         verify(eventReminderRepository).save(any());
-        verify(eventReminderMapper).fromDto(any(), any(), any());
+        verify(eventReminderMapper).toEntityFromCreate(any(), any(), any());
     }
 
     @Test
     @DisplayName("Should create event reminder with remind at time")
     void addEventReminder_WithRemindAt_Success() {
-        eventReminderDto.setMinutesBefore(null);
-        eventReminderDto.setRemindAt(LocalDateTime.now().plusHours(1));
+        createEventReminderDto.setMinutesBefore(null);
+        createEventReminderDto.setRemindAt(LocalDateTime.now().plusHours(1));
 
-        when(eventReminderMapper.fromDto(any(), any(), any())).thenReturn(eventReminder);
-        when(eventReminderRepository.save(any())).thenReturn(eventReminder);
+        // Создаем mock объект EventReminder для возврата из mapper
+        EventReminder mockReminder = new EventReminder();
+        mockReminder.setReminderId(1L);
+        mockReminder.setEvent(event);
+        mockReminder.setUser(user);
+        mockReminder.setRemindAt(LocalDateTime.now().plusHours(1));
+        mockReminder.setSent(false);
+
+        when(eventReminderMapper.toEntityFromCreate(any(), any(), any())).thenReturn(mockReminder);
+        when(eventReminderRepository.save(any())).thenReturn(mockReminder);
         when(eventReminderMapper.toDto(any())).thenReturn(eventReminderDto);
 
-        EventReminderDto result = eventService.addEventReminder(1L, 1L, eventReminderDto);
+        EventReminderDto result = eventService.addEventReminder(1L, 1L, createEventReminderDto);
 
         assertNotNull(result);
         verify(eventReminderRepository).save(any());
-        verify(eventReminderMapper).fromDto(any(), any(), any());
+        verify(eventReminderMapper).toEntityFromCreate(any(), any(), any());
     }
 
     @Test
     @DisplayName("Should throw exception when creating reminder for event without specific time")
     void addEventReminder_EventWithoutSpecificTime_ThrowsException() {
         event.setHasSpecificTime(false);
-        eventReminderDto.setMinutesBefore(30);
-        eventReminderDto.setRemindAt(null);
+        createEventReminderDto.setMinutesBefore(30);
+        createEventReminderDto.setRemindAt(null);
 
-        when(eventReminderMapper.fromDto(any(), any(), any())).thenReturn(eventReminder);
+        when(eventReminderMapper.toEntityFromCreate(any(), any(), any())).thenReturn(eventReminder);
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-                eventService.addEventReminder(1L, 1L, eventReminderDto)
+                eventService.addEventReminder(1L, 1L, createEventReminderDto)
         );
         assertEquals("Невозможно создать напоминание: событие не имеет конкретного времени", exception.getMessage());
     }

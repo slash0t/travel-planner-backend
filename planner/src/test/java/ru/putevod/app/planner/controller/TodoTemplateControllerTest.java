@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import ru.putevod.app.planner.dto.TemplateItemDto;
 import ru.putevod.app.planner.dto.TodoTemplateDto;
 import ru.putevod.app.planner.model.TemplateItem;
 import ru.putevod.app.planner.model.TodoTemplate;
@@ -17,7 +17,6 @@ import ru.putevod.app.planner.repository.TodoTemplateRepository;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,7 +49,7 @@ class TodoTemplateControllerTest {
                 .templateId(1L)
                 .title("Test Template")
                 .description("Test Description")
-                .category("Test Category")
+                .category("business")
                 .isSystem(false)
                 .createdBy(mockUser)
                 .createdAt(LocalDateTime.now())
@@ -75,21 +74,22 @@ class TodoTemplateControllerTest {
         ResponseEntity<List<TodoTemplateDto>> response = todoTemplateController.getAllTemplates();
 
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
         verify(todoTemplateRepository).findAll();
     }
 
     @Test
-    void getAllTemplates_ShouldReturnNoContent() {
+    void getAllTemplates_ShouldReturnEmptyList() {
         when(todoTemplateRepository.findAll()).thenReturn(List.of());
 
         ResponseEntity<List<TodoTemplateDto>> response = todoTemplateController.getAllTemplates();
 
         assertNotNull(response);
-        assertEquals(204, response.getStatusCodeValue());
-        assertNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(0, response.getBody().size());
         verify(todoTemplateRepository).findAll();
     }
 
@@ -97,13 +97,15 @@ class TodoTemplateControllerTest {
     void getTemplateDetails_ShouldReturnTemplate() {
         when(todoTemplateRepository.findById(1L)).thenReturn(Optional.of(mockTemplate));
 
-        ResponseEntity<Map<String, Object>> response = todoTemplateController.getTemplateDetails(1L);
+        ResponseEntity<TodoTemplateDto> response = todoTemplateController.getTemplateDetails(1L);
 
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(mockTemplate.getTemplateId(), response.getBody().get("templateId"));
-        assertEquals(mockTemplate.getTitle(), response.getBody().get("title"));
+        assertEquals(mockTemplate.getTemplateId(), response.getBody().getTemplateId());
+        assertEquals(mockTemplate.getTitle(), response.getBody().getTitle());
+        assertEquals(mockTemplate.getDescription(), response.getBody().getDescription());
+        assertEquals(mockTemplate.getCategory(), response.getBody().getCategory());
         verify(todoTemplateRepository).findById(1L);
     }
 
@@ -111,10 +113,10 @@ class TodoTemplateControllerTest {
     void getTemplateDetails_ShouldReturnNotFound() {
         when(todoTemplateRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<Map<String, Object>> response = todoTemplateController.getTemplateDetails(1L);
+        ResponseEntity<TodoTemplateDto> response = todoTemplateController.getTemplateDetails(1L);
 
         assertNotNull(response);
-        assertEquals(404, response.getStatusCodeValue());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNull(response.getBody());
         verify(todoTemplateRepository).findById(1L);
     }
@@ -128,7 +130,7 @@ class TodoTemplateControllerTest {
         ResponseEntity<List<String>> response = todoTemplateController.getTemplateItems(1L);
 
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
         assertEquals(mockItem.getContent(), response.getBody().get(0));
@@ -143,58 +145,36 @@ class TodoTemplateControllerTest {
         ResponseEntity<List<String>> response = todoTemplateController.getTemplateItems(1L);
 
         assertNotNull(response);
-        assertEquals(404, response.getStatusCodeValue());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNull(response.getBody());
         verify(todoTemplateRepository).findById(1L);
     }
 
     @Test
     void getTemplatesByCategory_ShouldReturnTemplates() {
-        when(todoTemplateRepository.findByCategory("Test Category"))
+        when(todoTemplateRepository.findByCategory("business"))
                 .thenReturn(Arrays.asList(mockTemplate));
 
-        ResponseEntity<List<TodoTemplateDto>> response = todoTemplateController.getTemplatesByCategory("Test Category");
+        ResponseEntity<List<TodoTemplateDto>> response = todoTemplateController.getTemplatesByCategory("business");
 
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
-        verify(todoTemplateRepository).findByCategory("Test Category");
+        assertEquals("business", response.getBody().get(0).getCategory());
+        verify(todoTemplateRepository).findByCategory("business");
     }
 
     @Test
-    void getTemplatesByCategory_ShouldReturnNoContent() {
-        when(todoTemplateRepository.findByCategory("Test Category")).thenReturn(List.of());
+    void getTemplatesByCategory_ShouldReturnEmptyList() {
+        when(todoTemplateRepository.findByCategory("business")).thenReturn(List.of());
 
-        ResponseEntity<List<TodoTemplateDto>> response = todoTemplateController.getTemplatesByCategory("Test Category");
+        ResponseEntity<List<TodoTemplateDto>> response = todoTemplateController.getTemplatesByCategory("business");
 
         assertNotNull(response);
-        assertEquals(204, response.getStatusCodeValue());
-        assertNull(response.getBody());
-        verify(todoTemplateRepository).findByCategory("Test Category");
-    }
-
-    @Test
-    void convertToDto_ShouldConvertCorrectly() {
-        TodoTemplateDto dto = todoTemplateController.convertToDto(mockTemplate);
-
-        assertNotNull(dto);
-        assertEquals(mockTemplate.getTemplateId(), dto.getTemplateId());
-        assertEquals(mockTemplate.getTitle(), dto.getTitle());
-        assertEquals(mockTemplate.getDescription(), dto.getDescription());
-        assertEquals(mockTemplate.getCategory(), dto.getCategory());
-        assertEquals(mockTemplate.getIsSystem(), dto.getIsSystem());
-        assertEquals(mockTemplate.getCreatedBy().getUserId(), dto.getCreatedBy());
-        assertEquals(mockTemplate.getCreatedAt(), dto.getCreatedAt());
-        assertEquals(mockTemplate.getUpdatedAt(), dto.getUpdatedAt());
-        assertNotNull(dto.getItems());
-        assertEquals(1, dto.getItems().size());
-
-        TemplateItemDto itemDto = dto.getItems().get(0);
-        assertEquals(mockItem.getItemId(), itemDto.getItemId());
-        assertEquals(mockItem.getTemplate().getTemplateId(), itemDto.getTemplateId());
-        assertEquals(mockItem.getContent(), itemDto.getContent());
-        assertEquals(mockItem.getOrderPosition(), itemDto.getOrderPosition());
-        assertEquals(mockItem.getCreatedAt(), itemDto.getCreatedAt());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(0, response.getBody().size());
+        verify(todoTemplateRepository).findByCategory("business");
     }
 } 

@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
+import ru.putevod.app.planner.dto.UpdateTripDto;
 import ru.putevod.app.planner.dto.UserDto;
 import ru.putevod.app.planner.exception.AccessDeniedException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
@@ -69,7 +70,7 @@ class TripServiceImplTest {
     private Trip tripEntityFromMapper;
     private Trip savedTripEntity;
     private TripDto createdTripDto;
-    private TripDto tripDtoToUpdate;
+    private UpdateTripDto tripDtoToUpdate;
 
     @BeforeEach
     void setUp() {
@@ -123,7 +124,7 @@ class TripServiceImplTest {
         createdTripDto.setCountry("Россия");
         createdTripDto.setCity("Москва");
 
-        tripDtoToUpdate = new TripDto();
+        tripDtoToUpdate = new UpdateTripDto();
         tripDtoToUpdate.setTitle("Updated Test Trip");
         tripDtoToUpdate.setDescription("Updated Description");
         tripDtoToUpdate.setCountry("Россия");
@@ -288,7 +289,7 @@ class TripServiceImplTest {
 
         verify(userService, times(1)).getUserEntityById(userId);
         verify(tripRepository, times(1)).findById(tripId);
-        verify(tripMapper, times(1)).updateEntityFromDto(eq(tripDtoToUpdate), tripCaptor.capture());
+        verify(tripMapper, times(1)).updateEntityFromUpdate(eq(tripDtoToUpdate), tripCaptor.capture());
         assertEquals(savedTripEntity, tripCaptor.getValue());
         verify(tripRepository, times(1)).save(tripCaptor.getValue());
         verify(tripMapper, times(1)).toDto(tripCaptor.getValue());
@@ -307,7 +308,7 @@ class TripServiceImplTest {
             tripService.updateTrip(userId, nonExistentTripId, tripDtoToUpdate);
         });
 
-        verify(tripMapper, never()).updateEntityFromDto(any(), any());
+        verify(tripMapper, never()).updateEntityFromUpdate(any(), any());
         verify(tripRepository, never()).save(any());
         verify(tripMapper, never()).toDto(any());
     }
@@ -331,7 +332,7 @@ class TripServiceImplTest {
 
         assertEquals("У вас нет доступа к этой поездке", exception.getMessage());
 
-        verify(tripMapper, never()).updateEntityFromDto(any(), any());
+        verify(tripMapper, never()).updateEntityFromUpdate(any(), any());
         verify(tripRepository, never()).save(any());
         verify(tripMapper, never()).toDto(any());
         verify(tripAccessRepository, times(1)).findByTripAndUser(savedTripEntity, anotherUser);

@@ -25,6 +25,7 @@ import ru.putevod.app.auth.security.JwtTokenProvider;
 import ru.putevod.app.auth.service.AuthService;
 import ru.putevod.app.auth.service.EmailService;
 import ru.putevod.app.auth.service.UserService;
+import ru.putevod.app.auth.config.AppProperties;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserSessionRepository sessionRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final AppProperties appProperties;
 
     @Override
     @Transactional
@@ -58,7 +60,7 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .expiresIn(3600) // 1 час в секундах
+                .expiresIn((int) (appProperties.getJwt().getAccessTokenExpirationMs() / 1000)) // Конвертируем мс в секунды
                 .user(userService.mapToUserInfoDto(user))
                 .build();
     }
@@ -79,7 +81,7 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(newRefreshToken)
-                .expiresIn(360000000)
+                .expiresIn((int) (appProperties.getJwt().getAccessTokenExpirationMs() / 1000)) // Конвертируем мс в секунды
                 .user(userService.mapToUserInfoDto(user))
                 .build();
     }
@@ -135,7 +137,7 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .expiresIn(3600)
+                .expiresIn((int) (appProperties.getJwt().getAccessTokenExpirationMs() / 1000))
                 .user(userService.mapToUserInfoDto(user))
                 .build();
     }
@@ -210,7 +212,7 @@ public class AuthServiceImpl implements AuthService {
 
         Map<String, Object> response = new HashMap<>();
         response.put("anonymousToken", anonymousToken);
-        response.put("expiresIn", 1800);
+        response.put("expiresIn", (int) (appProperties.getJwt().getAnonymousTokenExpirationMs() / 1000)); 
 
         return response;
     }

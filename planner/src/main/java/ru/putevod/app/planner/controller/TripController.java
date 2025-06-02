@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -17,8 +18,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.planner.config.CurrentUser;
 import ru.putevod.app.planner.dto.CreateTripDto;
+import ru.putevod.app.planner.dto.CreateTripAccessDto;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
+import ru.putevod.app.planner.dto.UpdateTripDto;
 import ru.putevod.app.planner.service.TripService;
 
 import java.util.List;
@@ -61,7 +64,7 @@ public class TripController {
                     required = true,
                     content = @Content(schema = @Schema(implementation = CreateTripDto.class))
             )
-            @RequestBody CreateTripDto createTripDto) {
+            @Valid @RequestBody CreateTripDto createTripDto) {
         log.info("Creating trip: {} for user: {}", createTripDto, userId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(tripService.createTrip(userId, createTripDto));
@@ -110,8 +113,8 @@ public class TripController {
     public ResponseEntity<TripDto> updateTrip(
             @CurrentUser Long userId,
             @PathVariable Long tripId,
-            @RequestBody TripDto tripDto) {
-        return ResponseEntity.ok(tripService.updateTrip(userId, tripId, tripDto));
+            @Valid @RequestBody UpdateTripDto updateTripDto) {
+        return ResponseEntity.ok(tripService.updateTrip(userId, tripId, updateTripDto));
     }
 
     @DeleteMapping("/{tripId}")
@@ -128,7 +131,7 @@ public class TripController {
     public ResponseEntity<TripAccessDto> shareTrip(
             @CurrentUser Long userId,
             @PathVariable Long tripId,
-            @RequestBody TripAccessDto accessDto) {
+            @Valid @RequestBody CreateTripAccessDto accessDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(tripService.shareTrip(userId, tripId, accessDto));
     }

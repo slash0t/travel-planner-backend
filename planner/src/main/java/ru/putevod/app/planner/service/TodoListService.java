@@ -2,8 +2,11 @@ package ru.putevod.app.planner.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import ru.putevod.app.planner.dto.CreateTodoItemDto;
+import ru.putevod.app.planner.dto.CreateTodoListDto;
 import ru.putevod.app.planner.dto.TodoItemDto;
 import ru.putevod.app.planner.dto.TodoListDto;
+import ru.putevod.app.planner.dto.UpdateTodoItemDto;
 
 import java.util.List;
 
@@ -23,9 +26,9 @@ public interface TodoListService {
 
     void deleteTodoList(Long userId, Long listId);
 
-    TodoItemDto addTodoItem(Long userId, Long listId, TodoItemDto todoItemDto);
+    TodoItemDto addTodoItem(Long userId, Long listId, CreateTodoItemDto createTodoItemDto);
 
-    TodoItemDto updateTodoItem(Long userId, Long listId, Long itemId, TodoItemDto todoItemDto);
+    TodoItemDto updateTodoItem(Long userId, Long listId, Long itemId, UpdateTodoItemDto updateTodoItemDto);
 
     TodoItemDto toggleTodoItemComplete(Long userId, Long listId, Long itemId);
 

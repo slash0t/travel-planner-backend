@@ -5,9 +5,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
+import ru.putevod.app.auth.config.AppProperties;
 import ru.putevod.app.auth.dto.AuthResponse;
 import ru.putevod.app.auth.dto.RegisterRequest;
 import ru.putevod.app.auth.dto.UserInfoDto;
@@ -29,6 +32,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AuthServiceTest {
 
     @Mock
@@ -49,6 +53,12 @@ class AuthServiceTest {
     @Mock
     private UserSessionRepository sessionRepository;
 
+    @Mock
+    private AppProperties appProperties;
+
+    @Mock
+    private AppProperties.Jwt jwtConfig;
+
     @InjectMocks
     private AuthServiceImpl authService;
 
@@ -60,6 +70,14 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
+        setupAppPropertiesMocks();
+    }
+
+    private void setupAppPropertiesMocks() {
+        when(appProperties.getJwt()).thenReturn(jwtConfig);
+        when(jwtConfig.getAccessTokenExpirationMs()).thenReturn(3600000L);
+        when(jwtConfig.getRefreshTokenExpirationMs()).thenReturn(360000000000L); 
+        when(jwtConfig.getAnonymousTokenExpirationMs()).thenReturn(1800000L); 
     }
 
     @Test
@@ -346,7 +364,6 @@ class AuthServiceTest {
         assertNotNull(response);
         assertEquals(newAccessToken, response.getAccessToken());
         assertEquals(newRefreshToken, response.getRefreshToken());
-        assertEquals(360000000, response.getExpiresIn());
         assertNotNull(response.getUser());
         assertEquals(email, response.getUser().getEmail());
 

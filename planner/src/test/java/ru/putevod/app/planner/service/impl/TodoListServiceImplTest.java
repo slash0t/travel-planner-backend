@@ -10,8 +10,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import ru.putevod.app.planner.dto.CreateTodoItemDto;
 import ru.putevod.app.planner.dto.TodoItemDto;
 import ru.putevod.app.planner.dto.TodoListDto;
+import ru.putevod.app.planner.dto.UpdateTodoItemDto;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
 import ru.putevod.app.planner.mapper.TodoItemMapper;
@@ -57,6 +59,8 @@ class TodoListServiceImplTest {
     private TodoListDto todoListDto;
     private TodoItem todoItem;
     private TodoItemDto todoItemDto;
+    private CreateTodoItemDto createTodoItemDto;
+    private UpdateTodoItemDto updateTodoItemDto;
 
     @BeforeEach
     void setUp() {
@@ -79,6 +83,16 @@ class TodoListServiceImplTest {
 
         todoItemDto = new TodoItemDto();
         todoItemDto.setId(1L);
+
+        createTodoItemDto = new CreateTodoItemDto();
+        createTodoItemDto.setContent("Test item");
+        createTodoItemDto.setCompleted(false);
+        createTodoItemDto.setOrderPosition(1);
+
+        updateTodoItemDto = new UpdateTodoItemDto();
+        updateTodoItemDto.setContent("Updated item");
+        updateTodoItemDto.setCompleted(true);
+        updateTodoItemDto.setOrderPosition(2);
 
         // Common stubs
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
@@ -301,11 +315,11 @@ class TodoListServiceImplTest {
     @DisplayName("Should add todo item successfully")
     void addTodoItem_Success() {
         when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
-        when(todoItemMapper.fromDto(any(), any())).thenReturn(todoItem);
+        when(todoItemMapper.fromCreateDto(any(), any())).thenReturn(todoItem);
         when(todoItemRepository.save(any())).thenReturn(todoItem);
         when(todoItemMapper.toDto(any())).thenReturn(todoItemDto);
 
-        TodoItemDto result = todoListService.addTodoItem(1L, 1L, todoItemDto);
+        TodoItemDto result = todoListService.addTodoItem(1L, 1L, createTodoItemDto);
 
         assertNotNull(result);
         verify(todoItemRepository).save(any());
@@ -317,7 +331,7 @@ class TodoListServiceImplTest {
         when(todoListRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                todoListService.addTodoItem(1L, 1L, todoItemDto)
+                todoListService.addTodoItem(1L, 1L, createTodoItemDto)
         );
         assertEquals("Список задач not found with id: '1'", exception.getMessage());
     }
@@ -330,7 +344,7 @@ class TodoListServiceImplTest {
         when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("write"))).thenReturn(false);
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-                todoListService.addTodoItem(1L, 1L, todoItemDto)
+                todoListService.addTodoItem(1L, 1L, createTodoItemDto)
         );
         assertEquals("У вас нет прав на добавление задач в этот список", exception.getMessage());
     }
@@ -344,7 +358,7 @@ class TodoListServiceImplTest {
         when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
 
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
-                todoListService.addTodoItem(1L, 1L, todoItemDto)
+                todoListService.addTodoItem(1L, 1L, createTodoItemDto)
         );
         assertEquals("У вас нет прав на добавление задач в этот список", exception.getMessage());
     }
@@ -357,7 +371,7 @@ class TodoListServiceImplTest {
         when(todoItemRepository.save(any())).thenReturn(todoItem);
         when(todoItemMapper.toDto(any())).thenReturn(todoItemDto);
 
-        TodoItemDto result = todoListService.updateTodoItem(1L, 1L, 1L, todoItemDto);
+        TodoItemDto result = todoListService.updateTodoItem(1L, 1L, 1L, updateTodoItemDto);
 
         assertNotNull(result);
         verify(todoItemRepository).save(any());
@@ -370,7 +384,7 @@ class TodoListServiceImplTest {
         when(todoItemRepository.findByTodoListAndItemId(any(), anyLong())).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                todoListService.updateTodoItem(1L, 1L, 1L, todoItemDto)
+                todoListService.updateTodoItem(1L, 1L, 1L, updateTodoItemDto)
         );
         assertEquals("Задача not found with id: '1'", exception.getMessage());
     }

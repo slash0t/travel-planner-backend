@@ -6,8 +6,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.putevod.app.planner.dto.CreateTodoItemDto;
 import ru.putevod.app.planner.dto.TodoItemDto;
 import ru.putevod.app.planner.dto.TodoListDto;
+import ru.putevod.app.planner.dto.UpdateTodoItemDto;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
 import ru.putevod.app.planner.mapper.TodoItemMapper;
@@ -162,7 +164,7 @@ public class TodoListServiceImpl implements TodoListService {
 
     @Override
     @Transactional
-    public TodoItemDto addTodoItem(Long userId, Long listId, TodoItemDto todoItemDto) {
+    public TodoItemDto addTodoItem(Long userId, Long listId, CreateTodoItemDto createTodoItemDto) {
         User user = userService.getUserEntityById(userId);
 
         TodoList todoList = todoListRepository.findById(listId)
@@ -178,16 +180,16 @@ public class TodoListServiceImpl implements TodoListService {
         }
 
         // Если позиция не указана, устанавливаем в конец списка
-        if (todoItemDto.getOrderPosition() == null) {
+        if (createTodoItemDto.getOrderPosition() == null) {
             Integer maxPosition = todoItemRepository.findByTodoListOrderByOrderPositionAsc(todoList).stream()
                     .map(TodoItem::getOrderPosition)
                     .max(Integer::compareTo)
                     .orElse(0);
 
-            todoItemDto.setOrderPosition(maxPosition + 1);
+            createTodoItemDto.setOrderPosition(maxPosition + 1);
         }
 
-        TodoItem todoItem = todoItemMapper.fromDto(todoItemDto, todoList);
+        TodoItem todoItem = todoItemMapper.fromCreateDto(createTodoItemDto, todoList);
         todoItem = todoItemRepository.save(todoItem);
 
         return todoItemMapper.toDto(todoItem);
@@ -195,7 +197,7 @@ public class TodoListServiceImpl implements TodoListService {
 
     @Override
     @Transactional
-    public TodoItemDto updateTodoItem(Long userId, Long listId, Long itemId, TodoItemDto todoItemDto) {
+    public TodoItemDto updateTodoItem(Long userId, Long listId, Long itemId, UpdateTodoItemDto updateTodoItemDto) {
         User user = userService.getUserEntityById(userId);
 
         TodoList todoList = todoListRepository.findById(listId)
@@ -213,7 +215,7 @@ public class TodoListServiceImpl implements TodoListService {
         TodoItem todoItem = todoItemRepository.findByTodoListAndItemId(todoList, itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Задача", "id", itemId));
 
-        todoItemMapper.updateEntityFromDto(todoItemDto, todoItem);
+        todoItemMapper.updateEntityFromUpdate(updateTodoItemDto, todoItem);
         todoItem = todoItemRepository.save(todoItem);
 
         return todoItemMapper.toDto(todoItem);

@@ -3,6 +3,7 @@ package ru.putevod.app.planner.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,7 +31,7 @@ public class TripDayController {
     public ResponseEntity<TripDayDto> createTripDay(
             @CurrentUser Long userId,
             @PathVariable Long tripId,
-            @RequestBody TripDayDto tripDayDto) {
+            @Valid @RequestBody TripDayDto tripDayDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(tripDayService.createTripDay(userId, tripId, tripDayDto));
     }
@@ -97,7 +98,7 @@ public class TripDayController {
             @CurrentUser Long userId,
             @PathVariable Long tripId,
             @PathVariable Long dayId,
-            @RequestBody TripDayDto tripDayDto) {
+            @Valid @RequestBody TripDayDto tripDayDto) {
         return ResponseEntity.ok(tripDayService.updateTripDay(userId, tripId, dayId, tripDayDto));
     }
 
