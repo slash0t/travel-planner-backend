@@ -3,6 +3,7 @@ package ru.putevod.app.planner.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,8 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.planner.config.CurrentUser;
+import ru.putevod.app.planner.dto.CreateTodoItemDto;
+import ru.putevod.app.planner.dto.CreateTodoListDto;
 import ru.putevod.app.planner.dto.TodoItemDto;
 import ru.putevod.app.planner.dto.TodoListDto;
+import ru.putevod.app.planner.dto.UpdateTodoItemDto;
 import ru.putevod.app.planner.service.TodoListService;
 
 import java.util.List;
@@ -29,7 +33,7 @@ public class TodoListController {
     @Operation(summary = "Создать новый список задач")
     public ResponseEntity<TodoListDto> createTodoList(
             @CurrentUser Long userId,
-            @RequestBody TodoListDto todoListDto) {
+            @Valid @RequestBody TodoListDto todoListDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(todoListService.createTodoList(userId, todoListDto));
     }
@@ -39,7 +43,7 @@ public class TodoListController {
     public ResponseEntity<TodoListDto> createTripTodoList(
             @CurrentUser Long userId,
             @PathVariable Long tripId,
-            @RequestBody TodoListDto todoListDto) {
+            @Valid @RequestBody TodoListDto todoListDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(todoListService.createTripTodoList(userId, tripId, todoListDto));
     }
@@ -73,7 +77,7 @@ public class TodoListController {
     public ResponseEntity<TodoListDto> updateTodoList(
             @CurrentUser Long userId,
             @PathVariable Long listId,
-            @RequestBody TodoListDto todoListDto) {
+            @Valid @RequestBody TodoListDto todoListDto) {
         return ResponseEntity.ok(todoListService.updateTodoList(userId, listId, todoListDto));
     }
 
@@ -91,9 +95,9 @@ public class TodoListController {
     public ResponseEntity<TodoItemDto> addTodoItem(
             @CurrentUser Long userId,
             @PathVariable Long listId,
-            @RequestBody TodoItemDto todoItemDto) {
+            @Valid @RequestBody CreateTodoItemDto createTodoItemDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(todoListService.addTodoItem(userId, listId, todoItemDto));
+                .body(todoListService.addTodoItem(userId, listId, createTodoItemDto));
     }
 
     @PutMapping("/todo-lists/{listId}/items/{itemId}")
@@ -102,8 +106,8 @@ public class TodoListController {
             @CurrentUser Long userId,
             @PathVariable Long listId,
             @PathVariable Long itemId,
-            @RequestBody TodoItemDto todoItemDto) {
-        return ResponseEntity.ok(todoListService.updateTodoItem(userId, listId, itemId, todoItemDto));
+            @Valid @RequestBody UpdateTodoItemDto updateTodoItemDto) {
+        return ResponseEntity.ok(todoListService.updateTodoItem(userId, listId, itemId, updateTodoItemDto));
     }
 
     @PutMapping("/todo-lists/{listId}/items/{itemId}/toggle")
