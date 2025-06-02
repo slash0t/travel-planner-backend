@@ -39,40 +39,52 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public FileDto uploadFile(Long userId, MultipartFile multipartFile, String description) {
+        // Для Flutter приложения этот метод не используется
+        // Вместо него используется registerLocalFile
+        throw new BadRequestException("Для мобильного приложения используйте метод регистрации локального файла");
+    }
+
+    /**
+     * Регистрирует файл, который хранится локально на мобильном устройстве
+     * @param userId ID пользователя
+     * @param fileName оригинальное имя файла
+     * @param localPath путь к файлу на мобильном устройстве
+     * @param fileType MIME тип файла
+     * @param fileSize размер файла в байтах
+     * @param description описание файла
+     * @return DTO с информацией о зарегистрированном файле
+     */
+    @Transactional
+    public FileDto registerLocalFile(Long userId, String fileName, String localPath, 
+                                   String fileType, Integer fileSize, String description) {
         User user = userService.getUserEntityById(userId);
 
-        String originalFilename = StringUtils.cleanPath(multipartFile.getOriginalFilename());
-        if (originalFilename.contains("..")) {
-            throw new BadRequestException("Имя файла содержит некорректный путь: " + originalFilename);
+        // Очищаем имя файла от потенциально опасных символов
+        String cleanFileName = StringUtils.cleanPath(fileName);
+        if (cleanFileName.contains("..")) {
+            throw new BadRequestException("Имя файла содержит некорректный путь: " + fileName);
         }
 
-        try {
-            // Создаем уникальный идентификатор для файла
-            String uniqueFilename = UUID.randomUUID().toString();
+        String serverFileId = UUID.randomUUID().toString();
 
-            // Создаем запись в БД с метаданными файла
-            // Примечание: сам файл будет храниться на мобильном устройстве 
-            // в локальной SQLite базе данных
-            File file = File.builder()
-                    .user(user)
-                    .fileName(originalFilename)
-                    .filePath(uniqueFilename) // Используем как идентификатор для мобильного приложения
-                    .fileType(multipartFile.getContentType())
-                    .fileSize((int) multipartFile.getSize())
-                    .build();
+        File file = File.builder()
+                .user(user)
+                .fileName(cleanFileName)
+                .filePath(serverFileId) // Используем как уникальный идентификатор
+                .fileType(fileType)
+                .fileSize(fileSize)
+                .build();
 
-            file = fileRepository.save(file);
+        file = fileRepository.save(file);
 
-            FileDto fileDto = fileMapper.toDto(file);
-            fileDto.setDescription(description);
-            fileDto.setRequiresLocalStorage(true);
-            fileDto.setLocalStorageId(file.getFilePath());
-
-            return fileDto;
-        } catch (Exception ex) {
-            log.error("Не удалось обработать файл: {}", originalFilename, ex);
-            throw new BadRequestException("Не удалось обработать файл: " + originalFilename);
-        }
+        // Формируем DTO для Flutter приложения
+        FileDto fileDto = fileMapper.toDto(file);
+        fileDto.setDescription(description);
+        fileDto.setRequiresLocalStorage(true);
+        fileDto.setLocalStorageId(localPath); // Путь на устройстве
+        
+        log.info("Зарегистрирован локальный файл: {} для пользователя: {}", cleanFileName, userId);
+        return fileDto;
     }
 
     @Override
@@ -82,22 +94,22 @@ public class FileServiceImpl implements FileService {
         File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new ResourceNotFoundException("Файл", "id", fileId));
 
-        // Проверяем, имеет ли пользователь доступ к файлу
+        // Проверяем доступ к файлу
         checkFileAccess(user, file);
 
         FileDto fileDto = fileMapper.toDto(file);
         fileDto.setRequiresLocalStorage(true);
-        fileDto.setLocalStorageId(file.getFilePath());
-
+        // localStorageId будет установлен клиентом на основе локального пути
+        
         return fileDto;
     }
 
     @Override
     @Transactional(readOnly = true)
     public byte[] downloadFile(Long userId, Long fileId) {
-        // В мобильном приложении эта функция не используется,
-        // так как файлы хранятся локально на устройстве
-        throw new BadRequestException("Для мобильного приложения загрузка файлов с сервера не поддерживается");
+        // Для мобильного приложения файлы хранятся локально
+        // Этот метод не используется, клиент читает файлы из локального хранилища
+        throw new BadRequestException("Файлы хранятся локально на устройстве. Используйте локальный путь для доступа к файлу.");
     }
 
     @Override
@@ -107,14 +119,24 @@ public class FileServiceImpl implements FileService {
         File file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new ResourceNotFoundException("Файл", "id", fileId));
 
-        // Проверяем, что файл принадлежит этому пользователю
+        // Проверяем владельца файла
         if (!file.getUser().getUserId().equals(userId)) {
             throw new BadRequestException("У вас нет прав на удаление этого файла");
         }
 
+        // Удаляем все связи файла с поездками
+        List<TripFile> tripFiles = tripFileRepository.findByFile(file);
+        tripFileRepository.deleteAll(tripFiles);
+        
+        // Удаляем все связи файла с событиями
+        List<EventFile> eventFiles = eventFileRepository.findByFile(file);
+        eventFileRepository.deleteAll(eventFiles);
+        
         // Удаляем запись из БД
-        // Мобильное приложение должно самостоятельно удалить файл из локального хранилища
         fileRepository.delete(file);
+        
+        log.info("Удален файл: {} пользователя: {}", file.getFileName(), userId);
+        // ВАЖНО: Flutter приложение должно самостоятельно удалить файл из локального хранилища
     }
 
     @Override
@@ -124,17 +146,17 @@ public class FileServiceImpl implements FileService {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
         File file = getFileEntityById(fileId);
 
-        // Проверяем, что файл принадлежит пользователю
+        // Проверяем владельца файла
         if (!file.getUser().getUserId().equals(userId)) {
             throw new BadRequestException("У вас нет прав на использование этого файла");
         }
 
-        // Проверяем, не добавлен ли уже файл к поездке
+        // Проверяем дублирование
         if (tripFileRepository.existsByTripAndFile(trip, file)) {
             throw new BadRequestException("Файл уже добавлен к данной поездке");
         }
 
-        // Создаем связь файла с поездкой
+        // Создаем связь
         TripFile tripFile = TripFile.builder()
                 .trip(trip)
                 .file(file)
@@ -146,7 +168,6 @@ public class FileServiceImpl implements FileService {
         FileDto fileDto = fileMapper.toDto(file);
         fileDto.setDescription(description);
         fileDto.setRequiresLocalStorage(true);
-        fileDto.setLocalStorageId(file.getFilePath());
 
         return fileDto;
     }
@@ -157,23 +178,25 @@ public class FileServiceImpl implements FileService {
         User user = userService.getUserEntityById(userId);
         Event event = eventService.getEventEntityById(eventId);
 
-        // Проверяем, что у пользователя есть доступ к поездке, в которой находится событие
+        // Проверяем доступ к поездке
         Trip trip = event.getDay().getTrip();
-        tripService.hasAccessToTrip(user, trip, "admin", "write");
+        if (!tripService.hasAccessToTrip(user, trip, "admin", "write")) {
+            throw new BadRequestException("У вас нет прав на добавление файлов к этому событию");
+        }
 
         File file = getFileEntityById(fileId);
 
-        // Проверяем, что файл принадлежит пользователю
+        // Проверяем владельца файла
         if (!file.getUser().getUserId().equals(userId)) {
             throw new BadRequestException("У вас нет прав на использование этого файла");
         }
 
-        // Проверяем, не добавлен ли уже файл к событию
+        // Проверяем дублирование
         if (eventFileRepository.existsByEventAndFile(event, file)) {
             throw new BadRequestException("Файл уже добавлен к данному событию");
         }
 
-        // Создаем связь файла с событием
+        // Создаем связь
         EventFile eventFile = EventFile.builder()
                 .event(event)
                 .file(file)
@@ -185,7 +208,6 @@ public class FileServiceImpl implements FileService {
         FileDto fileDto = fileMapper.toDto(file);
         fileDto.setDescription(description);
         fileDto.setRequiresLocalStorage(true);
-        fileDto.setLocalStorageId(file.getFilePath());
 
         return fileDto;
     }
@@ -197,15 +219,12 @@ public class FileServiceImpl implements FileService {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
 
         List<File> files = fileRepository.findByTripId(tripId);
-
+        
         return files.stream()
                 .map(file -> {
-                    FileDto fileDto = fileMapper.toDto(file);
-                    tripFileRepository.findByTripAndFile(trip, file)
-                            .ifPresent(tripFile -> fileDto.setDescription(tripFile.getDescription()));
-                    fileDto.setRequiresLocalStorage(true);
-                    fileDto.setLocalStorageId(file.getFilePath());
-                    return fileDto;
+                    FileDto dto = fileMapper.toDto(file);
+                    dto.setRequiresLocalStorage(true);
+                    return dto;
                 })
                 .collect(Collectors.toList());
     }
@@ -216,20 +235,19 @@ public class FileServiceImpl implements FileService {
         User user = userService.getUserEntityById(userId);
         Event event = eventService.getEventEntityById(eventId);
 
-        // Проверяем, что у пользователя есть доступ к поездке, в которой находится событие
+        // Проверяем доступ к поездке
         Trip trip = event.getDay().getTrip();
-        tripService.hasAccessToTrip(user, trip, "admin", "read", "write");
+        if (!tripService.hasAccessToTrip(user, trip, "admin", "read", "write")) {
+            throw new BadRequestException("У вас нет доступа к файлам этого события");
+        }
 
         List<File> files = fileRepository.findByEventId(eventId);
-
+        
         return files.stream()
                 .map(file -> {
-                    FileDto fileDto = fileMapper.toDto(file);
-                    eventFileRepository.findByEventAndFile(event, file)
-                            .ifPresent(eventFile -> fileDto.setDescription(eventFile.getDescription()));
-                    fileDto.setRequiresLocalStorage(true);
-                    fileDto.setLocalStorageId(file.getFilePath());
-                    return fileDto;
+                    FileDto dto = fileMapper.toDto(file);
+                    dto.setRequiresLocalStorage(true);
+                    return dto;
                 })
                 .collect(Collectors.toList());
     }
@@ -241,9 +259,8 @@ public class FileServiceImpl implements FileService {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
         File file = getFileEntityById(fileId);
 
-        // Находим и удаляем связь файла с поездкой
         TripFile tripFile = tripFileRepository.findByTripAndFile(trip, file)
-                .orElseThrow(() -> new ResourceNotFoundException("Файл не связан с данной поездкой"));
+                .orElseThrow(() -> new ResourceNotFoundException("Связь файла с поездкой не найдена"));
 
         tripFileRepository.delete(tripFile);
     }
@@ -253,16 +270,17 @@ public class FileServiceImpl implements FileService {
     public void removeEventFile(Long userId, Long eventId, Long fileId) {
         User user = userService.getUserEntityById(userId);
         Event event = eventService.getEventEntityById(eventId);
-
-        // Проверяем, что у пользователя есть доступ к поездке, в которой находится событие
+        
+        // Проверяем доступ
         Trip trip = event.getDay().getTrip();
-        tripService.hasAccessToTrip(user, trip, "admin", "write");
+        if (!tripService.hasAccessToTrip(user, trip, "admin", "write")) {
+            throw new BadRequestException("У вас нет прав на удаление файлов из этого события");
+        }
 
         File file = getFileEntityById(fileId);
 
-        // Находим и удаляем связь файла с событием
         EventFile eventFile = eventFileRepository.findByEventAndFile(event, file)
-                .orElseThrow(() -> new ResourceNotFoundException("Файл не связан с данным событием"));
+                .orElseThrow(() -> new ResourceNotFoundException("Связь файла с событием не найдена"));
 
         eventFileRepository.delete(eventFile);
     }
@@ -275,42 +293,17 @@ public class FileServiceImpl implements FileService {
     }
 
     private String getFileExtension(String filename) {
-        if (filename.lastIndexOf(".") != -1 && filename.lastIndexOf(".") != 0) {
-            return filename.substring(filename.lastIndexOf("."));
-        } else {
-            return "";
+        int lastDotIndex = filename.lastIndexOf('.');
+        if (lastDotIndex != -1 && lastDotIndex < filename.length() - 1) {
+            return filename.substring(lastDotIndex + 1).toLowerCase();
         }
+        return "";
     }
 
     private void checkFileAccess(User user, File file) {
-        // Файл принадлежит пользователю
-        if (file.getUser().getUserId().equals(user.getUserId())) {
-            return;
-        }
-
-        // Проверяем, есть ли у пользователя доступ к поездкам, в которых есть этот файл
-        boolean hasAccess = false;
-
-        for (TripFile tripFile : file.getTripFiles()) {
-            if (tripService.hasAccessToTrip(user, tripFile.getTrip(), "admin", "read", "write")) {
-                hasAccess = true;
-                break;
-            }
-        }
-
-        if (!hasAccess) {
-            // Проверяем, есть ли у пользователя доступ к событиям, в которых есть этот файл
-            for (EventFile eventFile : file.getEventFiles()) {
-                Trip trip = eventFile.getEvent().getDay().getTrip();
-                if (tripService.hasAccessToTrip(user, trip, "admin", "read", "write")) {
-                    hasAccess = true;
-                    break;
-                }
-            }
-        }
-
-        if (!hasAccess) {
-            throw new BadRequestException("У вас нет прав на доступ к этому файлу");
+        // Файл доступен только его владельцу
+        if (!file.getUser().getUserId().equals(user.getUserId())) {
+            throw new BadRequestException("У вас нет доступа к этому файлу");
         }
     }
 } 

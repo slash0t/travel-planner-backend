@@ -10,6 +10,19 @@ public interface FileService {
 
     FileDto uploadFile(Long userId, MultipartFile file, String description);
 
+    /**
+     * Регистрирует файл, который хранится локально на мобильном устройстве
+     * @param userId ID пользователя
+     * @param fileName оригинальное имя файла
+     * @param localPath путь к файлу на мобильном устройстве
+     * @param fileType MIME тип файла
+     * @param fileSize размер файла в байтах
+     * @param description описание файла
+     * @return DTO с информацией о зарегистрированном файле
+     */
+    FileDto registerLocalFile(Long userId, String fileName, String localPath, 
+                             String fileType, Integer fileSize, String description);
+
     FileDto getFileInfo(Long userId, Long fileId);
 
     byte[] downloadFile(Long userId, Long fileId);
