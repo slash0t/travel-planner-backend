@@ -27,22 +27,37 @@ public class AuthServiceClient {
     }
 
     /**
-     * Получает информацию о пользователе из сервиса авторизации
+     * Получает актуальную информацию о пользователе из сервиса авторизации по ID
      *
      * @param userId ID пользователя
-     * @param token  JWT токен авторизации
      * @return данные пользователя
      */
-    public UserDto getUserInfo(Long userId, String token) {
+    public UserDto getUserById(Long userId) {
+        try {
         return webClient.get()
                 .uri("/users/{id}", userId)
-                .header("Authorization", "Bearer " + (token != null ? token : serviceToken))
+                    .header("X-Service-Token", serviceToken)
                 .retrieve()
                 .onStatus(status -> status.equals(HttpStatus.UNAUTHORIZED),
-                        response -> Mono.error(new AuthenticationException("Недействительный токен аутентификации")))
-                .bodyToMono(UserDto.class)
+                            response -> Mono.error(new AuthenticationException("Недействительный сервисный токен")))
+                    .onStatus(status -> status.equals(HttpStatus.NOT_FOUND),
+                            response -> Mono.error(new AuthenticationException("Пользователь не найден")))
+                    .bodyToMono(AuthUserInfoDto.class)
+                    .map(this::mapToUserDto)
                 .doOnError(e -> log.error("Ошибка получения информации о пользователе из сервиса авторизации: {}", e.getMessage()))
                 .block();
+        } catch (Exception e) {
+            log.error("Ошибка при получении пользователя по ID {}: {}", userId, e.getMessage());
+            throw new AuthenticationException("Не удалось получить информацию о пользователе");
+        }
+    }
+
+    /**
+     * @deprecated Используйте getUserById(Long userId) для получения актуальных данных пользователя
+     */
+    @Deprecated
+    public UserDto getUserInfo(Long userId, String token) {
+        return getUserById(userId);
     }
 
     /**
@@ -69,7 +84,7 @@ public class AuthServiceClient {
     }
 
     /**
-     * Получает информацию о пользователе из токена
+     * Получает информацию о пользователе из токена (только userId)
      *
      * @param token JWT токен для получения информации
      * @return данные пользователя из токена или null в случае ошибки
@@ -95,9 +110,38 @@ public class AuthServiceClient {
         }
     }
 
+    /**
+     * Преобразует AuthUserInfoDto в UserDto
+     */
+    private UserDto mapToUserDto(AuthUserInfoDto authUserInfo) {
+        return UserDto.builder()
+                .id(Long.valueOf(authUserInfo.id()))
+                .username(authUserInfo.username())
+                .email(authUserInfo.email())
+                .admin(authUserInfo.isAdmin())
+                .createdAt(authUserInfo.createdAt())
+                .profilePictureUrl(authUserInfo.avatarUrl())
+                .verified(authUserInfo.emailVerified())
+                .build();
+    }
+
     private record TokenValidationRequest(String token) {
     }
 
     private record TokenValidationResponse(boolean valid) {
+    }
+
+    /**
+     * DTO для ответа от auth сервиса
+     */
+    private record AuthUserInfoDto(
+            Integer id,
+            String email,
+            String username,
+            String avatarUrl,
+            boolean emailVerified,
+            boolean isAdmin,
+            java.time.LocalDateTime createdAt
+    ) {
     }
 } 
