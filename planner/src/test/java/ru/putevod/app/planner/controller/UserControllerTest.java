@@ -114,6 +114,10 @@ class UserControllerTest {
         verify(userService).findByEmail(email);
     }
 
+    // Тест для updateUserProfile удален, так как этот метод теперь должен выполняться через auth сервис
+    // Обновление профиля пользователя больше не доступно в planner сервисе
+    
+    /*
     @Test
     void updateUserProfile_ShouldReturnUpdatedUser() {
         UserDto updatedUserDto = UserDto.builder()
@@ -137,4 +141,5 @@ class UserControllerTest {
         assertEquals(updatedUserDto.getProfilePictureUrl(), response.getBody().getProfilePictureUrl());
         verify(userService).updateUserProfile(eq(userId), any(UserDto.class));
     }
+    */
 } 
