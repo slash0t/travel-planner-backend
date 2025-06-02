@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.putevod.app.planner.client.AuthServiceClient;
 import ru.putevod.app.planner.dto.CreateTripDto;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
@@ -48,7 +47,6 @@ public class TripServiceImpl implements TripService {
     private final TripMapper tripMapper;
     private final TripAccessMapper tripAccessMapper;
     private final CreateTripMapper createTripMapper;
-    private final AuthServiceClient authServiceClient;
     private final TripDayRepository tripDayRepository;
 
     @Override
