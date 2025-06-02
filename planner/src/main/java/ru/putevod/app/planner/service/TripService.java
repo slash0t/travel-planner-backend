@@ -5,6 +5,8 @@ import org.springframework.data.domain.Pageable;
 import ru.putevod.app.planner.dto.CreateTripDto;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
+import ru.putevod.app.planner.dto.CreateTripAccessDto;
+import ru.putevod.app.planner.dto.UpdateTripDto;
 import ru.putevod.app.planner.model.Trip;
 import ru.putevod.app.planner.model.User;
 
@@ -16,7 +18,7 @@ public interface TripService {
 
     TripDto createTrip(Long userId, CreateTripDto createTripDto);
 
-    TripDto updateTrip(Long userId, Long tripId, TripDto tripDto);
+    TripDto updateTrip(Long userId, Long tripId, UpdateTripDto updateTripDto);
 
     TripDto getTripById(Long userId, Long tripId);
 
@@ -28,7 +30,7 @@ public interface TripService {
 
     void deleteTrip(Long userId, Long tripId);
 
-    TripAccessDto shareTrip(Long userId, Long tripId, TripAccessDto accessDto);
+    TripAccessDto shareTrip(Long userId, Long tripId, CreateTripAccessDto accessDto);
 
     List<TripAccessDto> getTripShares(Long userId, Long tripId);
 
