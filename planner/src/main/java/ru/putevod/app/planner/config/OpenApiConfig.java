@@ -8,9 +8,12 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
-import org.springframework.beans.factory.annotation.Value;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,34 +21,71 @@ import java.util.List;
 @Configuration
 public class OpenApiConfig {
     
-    @Value("${server.servlet.context-path:/}")
-    private String contextPath;
-    
     @Bean
     public OpenAPI customOpenAPI() {
         List<Server> servers = new ArrayList<>();
-        Server server = new Server();
-        server.setUrl(contextPath);
-        server.setDescription("Сервер планирования маршрутов Putevod");
-        servers.add(server);
+        
+        Server prodServer = new Server();
+        prodServer.setUrl("https://www.putevod-app.ru/planner/api/v1");
+        prodServer.setDescription("Производственный сервер Planner Service");
+        servers.add(prodServer);
+        
+        Server localServer = new Server();
+        localServer.setUrl("http://localhost:8083/api/v1");
+        localServer.setDescription("Локальный сервер для разработки");
+        servers.add(localServer);
         
         return new OpenAPI()
                 .servers(servers)
                 .info(new Info()
-                        .title("Putevod API")
+                        .title("Putevod Planner Service API")
                         .version("1.0")
-                        .description("API сервиса Putevod для планировщика маршрутов и задач")
-                        .termsOfService("https://example.com/terms/")
+                        .description("API для сервиса планирования маршрутов Putevod. " +
+                                    "Обеспечивает создание, редактирование и управление " +
+                                    "персональными маршрутами пользователей.")
+                        .termsOfService("https://www.putevod-app.ru/terms/")
                         .license(new License().name("Apache 2.0").url("https://www.apache.org/licenses/LICENSE-2.0"))
                         .contact(new Contact()
-                                .name("Putevod Team")
-                                .email("info@putevod.ru")))
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                                .name("Putevod Support Team")
+                                .email("support@putevod-app.ru")
+                                .url("https://www.putevod-app.ru")))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
                                 .bearerFormat("JWT")
-                                .description("JWT токен авторизации. Формат: Bearer [token]")));
+                                .description("JWT токен авторизации. Формат: Bearer [token]")))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
     }
-} 
+    
+    @Bean
+    public OpenApiCustomizer openApiCustomizer() {
+        return openApi -> {
+            if (openApi.getPaths() != null) {
+                var newPaths = new io.swagger.v3.oas.models.Paths();
+                openApi.getPaths().forEach((path, pathItem) -> {
+                    String newPath = path.replaceFirst("^/api/v1", "");
+                    if (newPath.isEmpty()) {
+                        newPath = "/";
+                    }
+                    newPaths.addPathItem(newPath, pathItem);
+                });
+                openApi.setPaths(newPaths);
+            }
+        };
+    }
+    
+    @RestController
+    public static class SwaggerRedirectController {
+        
+        @GetMapping("/swagger-ui/")
+        public RedirectView redirectSwaggerUiSlash() {
+            return new RedirectView("/swagger-ui.html", true);
+        }
+        
+        @GetMapping("/swagger-ui")
+        public RedirectView redirectSwaggerUi() {
+            return new RedirectView("/swagger-ui.html", true);
+        }
+    }
+}
