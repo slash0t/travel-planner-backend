@@ -9,7 +9,7 @@ public interface UserService {
 
     /**
      * Находит пользователя по email
-     * 
+     *
      * @param email Email пользователя
      * @return Optional с найденным пользователем или пустой
      */
@@ -17,7 +17,7 @@ public interface UserService {
 
     /**
      * Находит пользователя по username
-     * 
+     *
      * @param username Username пользователя
      * @return Optional с найденным пользователем или пустой
      */
@@ -25,7 +25,7 @@ public interface UserService {
 
     /**
      * Преобразует сущность User в DTO для передачи клиенту
-     * 
+     *
      * @param user Сущность пользователя
      * @return DTO с информацией о пользователе
      */
@@ -33,7 +33,7 @@ public interface UserService {
 
     /**
      * Обновляет время последнего входа пользователя
-     * 
+     *
      * @param user Пользователь, для которого нужно обновить время
      * @return Обновленный пользователь
      */

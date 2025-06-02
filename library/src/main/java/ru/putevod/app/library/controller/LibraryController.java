@@ -43,8 +43,8 @@ public class LibraryController {
     @GetMapping
     @Operation(summary = "Получить список опубликованных маршрутов", description = "Возвращает пагинированный список опубликованных и одобренных маршрутов")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Список маршрутов успешно получен",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
+            @ApiResponse(responseCode = "200", description = "Список маршрутов успешно получен",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
     })
     public ResponseEntity<Page<RoutePreviewDto>> getRoutes(
             @PageableDefault(size = 20) Pageable pageable) {
@@ -52,14 +52,14 @@ public class LibraryController {
     }
 
     @GetMapping("/pending")
-    @Operation(summary = "Получить список неодобренных маршрутов (только для администраторов)", 
+    @Operation(summary = "Получить список неодобренных маршрутов (только для администраторов)",
             description = "Возвращает пагинированный список маршрутов, ожидающих одобрения (требует прав администратора)",
-            security = { @SecurityRequirement(name = "bearerAuth") })
+            security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Список неодобренных маршрутов успешно получен",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
-        @ApiResponse(responseCode = "403", description = "Нет прав администратора"),
-        @ApiResponse(responseCode = "401", description = "Не авторизован")
+            @ApiResponse(responseCode = "200", description = "Список неодобренных маршрутов успешно получен",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "403", description = "Нет прав администратора"),
+            @ApiResponse(responseCode = "401", description = "Не авторизован")
     })
     public ResponseEntity<Page<RoutePreviewDto>> getPendingRoutes(
             @PageableDefault(size = 20) Pageable pageable) {
@@ -69,15 +69,15 @@ public class LibraryController {
                 .noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        
+
         return ResponseEntity.ok(libraryService.getPendingRoutes(pageable));
     }
 
     @GetMapping("/search")
     @Operation(summary = "Поиск маршрутов по ключевому слову", description = "Выполняет поиск маршрутов по заданному ключевому слову")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Результаты поиска успешно получены",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
+            @ApiResponse(responseCode = "200", description = "Результаты поиска успешно получены",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
     })
     public ResponseEntity<Page<RoutePreviewDto>> searchRoutes(
             @RequestParam String query,
@@ -88,8 +88,8 @@ public class LibraryController {
     @GetMapping("/filter")
     @Operation(summary = "Фильтрация маршрутов по критериям", description = "Фильтрует маршруты по заданным критериям")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Отфильтрованные маршруты успешно получены",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
+            @ApiResponse(responseCode = "200", description = "Отфильтрованные маршруты успешно получены",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
     })
     public ResponseEntity<Page<RoutePreviewDto>> filterRoutes(
             @RequestParam(required = false) String country,
@@ -104,8 +104,8 @@ public class LibraryController {
     @GetMapping("/popular")
     @Operation(summary = "Получить популярные маршруты", description = "Возвращает список наиболее популярных маршрутов")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Популярные маршруты успешно получены",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
+            @ApiResponse(responseCode = "200", description = "Популярные маршруты успешно получены",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
     })
     public ResponseEntity<Page<RoutePreviewDto>> getPopularRoutes(
             @PageableDefault(size = 20) Pageable pageable) {
@@ -115,8 +115,8 @@ public class LibraryController {
     @GetMapping("/top-rated")
     @Operation(summary = "Получить маршруты с наивысшим рейтингом", description = "Возвращает список маршрутов с наивысшими оценками")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Маршруты с высоким рейтингом успешно получены",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
+            @ApiResponse(responseCode = "200", description = "Маршруты с высоким рейтингом успешно получены",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
     })
     public ResponseEntity<Page<RoutePreviewDto>> getTopRatedRoutes(
             @PageableDefault(size = 20) Pageable pageable) {
@@ -126,9 +126,9 @@ public class LibraryController {
     @GetMapping("/{id}")
     @Operation(summary = "Получить детальную информацию о маршруте", description = "Возвращает подробную информацию о маршруте по его ID")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Детали маршрута успешно получены",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = PublicRouteDetailDto.class))),
-        @ApiResponse(responseCode = "404", description = "Маршрут не найден")
+            @ApiResponse(responseCode = "200", description = "Детали маршрута успешно получены",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = PublicRouteDetailDto.class))),
+            @ApiResponse(responseCode = "404", description = "Маршрут не найден")
     })
     public ResponseEntity<PublicRouteDetailDto> getRouteDetails(
             @PathVariable @Parameter(description = "ID маршрута") Long id) {
@@ -138,9 +138,9 @@ public class LibraryController {
     @GetMapping("/user/{userId}")
     @Operation(summary = "Получить маршруты опубликованные пользователем", description = "Возвращает список маршрутов, опубликованных указанным пользователем")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Маршруты пользователя успешно получены",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = List.class))),
-        @ApiResponse(responseCode = "404", description = "Пользователь не найден")
+            @ApiResponse(responseCode = "200", description = "Маршруты пользователя успешно получены",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = List.class))),
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден")
     })
     public ResponseEntity<List<RoutePreviewDto>> getUserRoutes(
             @PathVariable @Parameter(description = "ID пользователя") Long userId) {
@@ -149,13 +149,13 @@ public class LibraryController {
 
     @PostMapping("/publish/{tripId}")
     @Operation(summary = "Опубликовать маршрут в библиотеке", description = "Публикует маршрут в библиотеке маршрутов",
-            security = { @SecurityRequirement(name = "bearerAuth") })
+            security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Маршрут успешно опубликован",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = PublicRouteDto.class))),
-        @ApiResponse(responseCode = "400", description = "Ошибка публикации маршрута"),
-        @ApiResponse(responseCode = "403", description = "Нет доступа к маршруту"),
-        @ApiResponse(responseCode = "401", description = "Не авторизован")
+            @ApiResponse(responseCode = "200", description = "Маршрут успешно опубликован",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = PublicRouteDto.class))),
+            @ApiResponse(responseCode = "400", description = "Ошибка публикации маршрута"),
+            @ApiResponse(responseCode = "403", description = "Нет доступа к маршруту"),
+            @ApiResponse(responseCode = "401", description = "Не авторизован")
     })
     public ResponseEntity<PublicRouteDto> publishRoute(
             @PathVariable @Parameter(description = "ID маршрута") Long tripId,
@@ -164,68 +164,68 @@ public class LibraryController {
         if (tripId <= 0) {
             return ResponseEntity.badRequest().build();
         }
-        
+
         String token = (String) authentication.getCredentials();
-        
+
         if (!plannerClient.canPublishRoute(tripId, userId, token)) {
             return ResponseEntity.badRequest().build();
         }
 
         Trip trip = plannerClient.getRouteDetails(tripId, token);
-        
+
         plannerClient.publishRoute(tripId, userId, token, true);
 
         PublicRouteDto publishedRoute = libraryService.publishRoute(trip, userId);
-        
+
         return ResponseEntity.ok(publishedRoute);
     }
 
     @PutMapping("/approve/{id}")
-    @Operation(summary = "Одобрить публикацию маршрута (только для администраторов)", 
+    @Operation(summary = "Одобрить публикацию маршрута (только для администраторов)",
             description = "Одобряет публикацию маршрута в библиотеке (требует прав администратора)",
-            security = { @SecurityRequirement(name = "bearerAuth") })
+            security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Маршрут успешно одобрен",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = PublicRouteDto.class))),
-        @ApiResponse(responseCode = "404", description = "Маршрут не найден"),
-        @ApiResponse(responseCode = "403", description = "Нет прав администратора"),
-        @ApiResponse(responseCode = "401", description = "Не авторизован")
+            @ApiResponse(responseCode = "200", description = "Маршрут успешно одобрен",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = PublicRouteDto.class))),
+            @ApiResponse(responseCode = "404", description = "Маршрут не найден"),
+            @ApiResponse(responseCode = "403", description = "Нет прав администратора"),
+            @ApiResponse(responseCode = "401", description = "Не авторизован")
     })
-public ResponseEntity<PublicRouteDto> approveRoute(
-        @PathVariable @Parameter(description = "ID опубликованного маршрута") Long id) {
-   Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ResponseEntity<PublicRouteDto> approveRoute(
+            @PathVariable @Parameter(description = "ID опубликованного маршрута") Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-   if (authentication == null || authentication.getAuthorities().stream()
-           .noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-   }
-   
-    return ResponseEntity.ok(libraryService.approvePublishedRoute(id));
-}
+        if (authentication == null || authentication.getAuthorities().stream()
+                .noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return ResponseEntity.ok(libraryService.approvePublishedRoute(id));
+    }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Удалить маршрут из библиотеки", 
+    @Operation(summary = "Удалить маршрут из библиотеки",
             description = "Удаляет маршрут из библиотеки (требуется авторизация)",
-            security = { @SecurityRequirement(name = "bearerAuth") })
+            security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Маршрут успешно удален"),
-        @ApiResponse(responseCode = "404", description = "Маршрут не найден"),
-        @ApiResponse(responseCode = "403", description = "Нет прав на удаление"),
-        @ApiResponse(responseCode = "401", description = "Не авторизован")
+            @ApiResponse(responseCode = "204", description = "Маршрут успешно удален"),
+            @ApiResponse(responseCode = "404", description = "Маршрут не найден"),
+            @ApiResponse(responseCode = "403", description = "Нет прав на удаление"),
+            @ApiResponse(responseCode = "401", description = "Не авторизован")
     })
     public ResponseEntity<Void> deleteRoute(
             @PathVariable @Parameter(description = "ID опубликованного маршрута") Long id,
             @CurrentUser Long userId,
             Authentication authentication) {
-        
+
         var publishedRoute = libraryService.getPublishedRouteById(id);
         Long originalRouteId = publishedRoute.getOriginalRouteId();
-        
+
         libraryService.deletePublishedRoute(id);
-        
+
         String token = (String) authentication.getCredentials();
         plannerClient.publishRoute(originalRouteId, userId, token, false);
-        
+
         return ResponseEntity.noContent().build();
     }
 } 

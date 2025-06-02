@@ -28,7 +28,7 @@ public class CreateEventDto {
     private Integer orderPosition;
 
     private PlaceInfo place;
-    
+
     @Data
     @Builder
     @NoArgsConstructor

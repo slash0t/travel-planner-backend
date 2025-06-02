@@ -50,10 +50,10 @@ public class EmailServiceImpl implements EmailService {
         message.setSubject("Подтверждение регистрации в Travel Planner");
         message.setText(String.format(
                 "Здравствуйте, %s!\n\n" +
-                "Для подтверждения регистрации в приложении Travel Planner перейдите по ссылке:\n" +
-                "%s/verify-email?token=%s\n\n" +
-                "Ссылка действительна в течение %d часов.\n\n" +
-                "Если вы не регистрировались в нашем приложении, просто проигнорируйте это письмо.",
+                        "Для подтверждения регистрации в приложении Travel Planner перейдите по ссылке:\n" +
+                        "%s/verify-email?token=%s\n\n" +
+                        "Ссылка действительна в течение %d часов.\n\n" +
+                        "Если вы не регистрировались в нашем приложении, просто проигнорируйте это письмо.",
                 username, appProperties.getFrontendUrl(), verificationToken, appProperties.getVerificationTokenExpirationHours()
         ));
 
@@ -91,10 +91,10 @@ public class EmailServiceImpl implements EmailService {
         message.setSubject("Сброс пароля в Travel Planner");
         message.setText(String.format(
                 "Здравствуйте, %s!\n\n" +
-                "Для сброса пароля в приложении Travel Planner используйте этот код:\n" +
-                "%s\n\n" +
-                "Код действителен в течение %d минут.\n\n" +
-                "Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.",
+                        "Для сброса пароля в приложении Travel Planner используйте этот код:\n" +
+                        "%s\n\n" +
+                        "Код действителен в течение %d минут.\n\n" +
+                        "Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.",
                 username, resetCode, appProperties.getResetTokenExpirationMinutes()
         ));
 
@@ -108,13 +108,13 @@ public class EmailServiceImpl implements EmailService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
 
         String token = java.util.UUID.randomUUID().toString();
-        
+
         List<PasswordResetToken> existingTokens = passwordResetTokenRepository.findByUserEmailAndIsUsed(email, false);
         for (PasswordResetToken existingToken : existingTokens) {
             existingToken.setIsUsed(true);
             passwordResetTokenRepository.save(existingToken);
         }
-        
+
         PasswordResetToken resetToken = PasswordResetToken.builder()
                 .user(user)
                 .token(token)
@@ -148,11 +148,11 @@ public class EmailServiceImpl implements EmailService {
 
         if (tokens.size() > 1) {
             tokens.stream()
-                .skip(1)
-                .forEach(oldToken -> {
-                    oldToken.setIsUsed(true);
-                    passwordResetTokenRepository.save(oldToken);
-                });
+                    .skip(1)
+                    .forEach(oldToken -> {
+                        oldToken.setIsUsed(true);
+                        passwordResetTokenRepository.save(oldToken);
+                    });
         }
 
         return true;
@@ -169,14 +169,14 @@ public class EmailServiceImpl implements EmailService {
             token.setToken(resetToken);
             token.setExpiresAt(LocalDateTime.now().plusMinutes(appProperties.getResetTokenExpirationMinutes()));
             passwordResetTokenRepository.save(token);
-            
+
             if (tokens.size() > 1) {
                 tokens.stream()
-                    .skip(1)
-                    .forEach(oldToken -> {
-                        oldToken.setIsUsed(true);
-                        passwordResetTokenRepository.save(oldToken);
-                    });
+                        .skip(1)
+                        .forEach(oldToken -> {
+                            oldToken.setIsUsed(true);
+                            passwordResetTokenRepository.save(oldToken);
+                        });
             }
         }
     }
@@ -208,10 +208,10 @@ public class EmailServiceImpl implements EmailService {
             PasswordResetToken token = tokenOptional.get();
             token.setIsUsed(true);
             passwordResetTokenRepository.save(token);
-            
+
             User user = token.getUser();
             List<PasswordResetToken> otherTokens = passwordResetTokenRepository.findByUserEmailAndIsUsed(user.getEmail(), false);
-            
+
             for (PasswordResetToken otherToken : otherTokens) {
                 if (!otherToken.getToken().equals(resetToken)) {
                     otherToken.setIsUsed(true);

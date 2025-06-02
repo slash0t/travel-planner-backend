@@ -11,14 +11,14 @@ import java.util.Optional;
 
 @Repository
 public interface TripFileRepository extends JpaRepository<TripFile, Long> {
-    
+
     List<TripFile> findByTrip(Trip trip);
-    
+
     List<TripFile> findByFile(File file);
-    
+
     Optional<TripFile> findByTripAndFile(Trip trip, File file);
-    
+
     void deleteByTripAndFile(Trip trip, File file);
-    
+
     boolean existsByTripAndFile(Trip trip, File file);
 } 

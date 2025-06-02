@@ -15,12 +15,13 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class AuthServiceClient {
     private final WebClient authServiceWebClient;
-    
+
     @Value("${auth.token}")
     private String serviceToken;
 
     /**
      * Проверяет валидность пользовательского токена через auth-сервис
+     *
      * @param token JWT токен пользователя для проверки
      * @return true если токен валидный, false в противном случае
      */
@@ -43,6 +44,7 @@ public class AuthServiceClient {
 
     /**
      * Получает информацию о пользователе из токена через auth-сервис
+     *
      * @param token JWT токен пользователя
      * @return объект с информацией о пользователе или null в случае ошибки
      */

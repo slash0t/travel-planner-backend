@@ -20,13 +20,14 @@ public class PlannerClient {
 
     /**
      * Получает детальную информацию о маршруте из сервиса планирования
+     *
      * @param tripId id маршрута
-     * @param token токен авторизации из сервиса auth
+     * @param token  токен авторизации из сервиса auth
      * @return данные о маршруте
      */
     public Trip getRouteDetails(Long tripId, String token) {
         WebClient webClient = buildWebClient(token);
-        
+
         return webClient.get()
                 .uri("/trips/{id}", tripId)
                 .retrieve()
@@ -37,14 +38,15 @@ public class PlannerClient {
 
     /**
      * Проверяет, имеет ли пользователь право на публикацию маршрута
+     *
      * @param tripId id маршрута
      * @param userId id пользователя
-     * @param token токен авторизации из сервиса auth
+     * @param token  токен авторизации из сервиса auth
      * @return true, если пользователь может публиковать маршрут
      */
     public boolean canPublishRoute(Long tripId, Long userId, String token) {
         WebClient webClient = buildWebClient(token);
-        
+
         return Boolean.TRUE.equals(webClient.get()
                 .uri("/trips/{id}/can-publish?userId={userId}", tripId, userId)
                 .retrieve()
@@ -55,15 +57,16 @@ public class PlannerClient {
 
     /**
      * Публикует маршрут
-     * @param tripId id маршрута
-     * @param userId id пользователя
-     * @param token токен авторизации из сервиса auth
+     *
+     * @param tripId  id маршрута
+     * @param userId  id пользователя
+     * @param token   токен авторизации из сервиса auth
      * @param publish true для публикации, false для снятия с публикации
      * @return данные обновленного маршрута
      */
     public Trip publishRoute(Long tripId, Long userId, String token, boolean publish) {
         WebClient webClient = buildWebClient(token);
-        
+
         return webClient.post()
                 .uri("/trips/{id}/publish?publish={publish}", tripId, publish)
                 .retrieve()
@@ -74,6 +77,7 @@ public class PlannerClient {
 
     /**
      * Создает WebClient с настройками для общения с сервисом планирования
+     *
      * @param token токен авторизации
      * @return настроенный WebClient
      */

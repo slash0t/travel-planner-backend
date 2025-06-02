@@ -15,15 +15,15 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class WebConfig implements WebMvcConfigurer {
-    
+
     private final CurrentUserArgumentResolver currentUserArgumentResolver;
-    
+
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         log.info("Добавление CurrentUserArgumentResolver в список резолверов");
         resolvers.add(currentUserArgumentResolver);
     }
-    
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         log.info("Настройка CORS для /api/**");
@@ -33,7 +33,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedHeaders("*")
                 .maxAge(3600);
     }
-    
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         log.info("Регистрация обработчиков ресурсов для Swagger UI");
@@ -42,7 +42,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/webjars/**")
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
-    
+
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         log.info("Регистрация контроллеров представлений для Swagger UI");

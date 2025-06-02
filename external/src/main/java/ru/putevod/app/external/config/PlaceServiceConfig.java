@@ -11,12 +11,12 @@ import ru.putevod.app.external.service.impl.YandexGeoSuggestService;
 
 @Configuration
 public class PlaceServiceConfig {
-    
+
     @Bean
     public OpenTripMapPlaceService openTripMapPlaceService(WebClient webClient, AppConfig appConfig) {
         return new OpenTripMapPlaceService(webClient, appConfig);
     }
-    
+
     @Bean
     @Primary
     public PlaceService placeService(RestTemplate restTemplate, AppConfig appConfig, OpenTripMapPlaceService fallbackService) {

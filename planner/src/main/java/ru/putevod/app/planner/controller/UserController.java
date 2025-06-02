@@ -19,35 +19,35 @@ import ru.putevod.app.planner.service.UserService;
 @SecurityRequirement(name = "bearerAuth")
 public class UserController {
     private final UserService userService;
-    
+
     @GetMapping("/me")
     @Operation(summary = "Получить информацию о текущем пользователе")
     public ResponseEntity<UserDto> getCurrentUser(
             @CurrentUser Long userId) {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
-    
+
     @GetMapping("/{userId}")
     @Operation(summary = "Получить пользователя по ID")
     public ResponseEntity<UserDto> getUserById(
             @PathVariable Long userId) {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
-    
+
     @GetMapping("/by-username/{username}")
     @Operation(summary = "Найти пользователя по логину")
     public ResponseEntity<UserDto> findByUsername(
             @PathVariable String username) {
         return ResponseEntity.ok(userService.findByUsername(username));
     }
-    
+
     @GetMapping("/by-email/{email}")
     @Operation(summary = "Найти пользователя по email")
     public ResponseEntity<UserDto> findByEmail(
             @PathVariable String email) {
         return ResponseEntity.ok(userService.findByEmail(email));
     }
-    
+
     @PutMapping("/me")
     @Operation(summary = "Обновить профиль текущего пользователя")
     public ResponseEntity<UserDto> updateUserProfile(

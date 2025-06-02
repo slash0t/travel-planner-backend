@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TemplateItemDto {
-    
+
     private Long itemId;
     private Long templateId;
     private String content;

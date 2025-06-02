@@ -31,42 +31,42 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class TripController {
     private final TripService tripService;
-    
+
     @PostMapping
     @Operation(
-        summary = "Создать новую поездку", 
-        description = "Создает новую поездку с указанными параметрами. Обязательные поля: title, startDate, endDate, country, city"
+            summary = "Создать новую поездку",
+            description = "Создает новую поездку с указанными параметрами. Обязательные поля: title, startDate, endDate, country, city"
     )
     @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "201", 
-            description = "Поездка успешно создана",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = TripDto.class))
-        ),
-        @ApiResponse(
-            responseCode = "400", 
-            description = "Некорректные данные поездки",
-            content = @Content
-        ),
-        @ApiResponse(
-            responseCode = "401", 
-            description = "Не авторизован",
-            content = @Content
-        )
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Поездка успешно создана",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = TripDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Некорректные данные поездки",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Не авторизован",
+                    content = @Content
+            )
     })
     public ResponseEntity<TripDto> createTrip(
             @Parameter(hidden = true) @CurrentUser Long userId,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                description = "Данные для создания поездки",
-                required = true,
-                content = @Content(schema = @Schema(implementation = CreateTripDto.class))
+                    description = "Данные для создания поездки",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = CreateTripDto.class))
             )
             @RequestBody CreateTripDto createTripDto) {
         log.info("Creating trip: {} for user: {}", createTripDto, userId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(tripService.createTrip(userId, createTripDto));
     }
-    
+
     @GetMapping
     @Operation(summary = "Получить список поездок пользователя")
     public ResponseEntity<Page<TripDto>> getUserTrips(
@@ -75,28 +75,28 @@ public class TripController {
             Pageable pageable) {
         return ResponseEntity.ok(tripService.getUserTrips(userId, filter, pageable));
     }
-    
+
     @GetMapping("/upcoming")
     @Operation(summary = "Получить предстоящие поездки")
     public ResponseEntity<List<TripDto>> getUpcomingTrips(
             @CurrentUser Long userId) {
         return ResponseEntity.ok(tripService.getUpcomingTrips(userId));
     }
-    
+
     @GetMapping("/ongoing")
     @Operation(summary = "Получить текущие поездки")
     public ResponseEntity<List<TripDto>> getOngoingTrips(
             @CurrentUser Long userId) {
         return ResponseEntity.ok(tripService.getOngoingTrips(userId));
     }
-    
+
     @GetMapping("/past")
     @Operation(summary = "Получить прошедшие поездки")
     public ResponseEntity<List<TripDto>> getPastTrips(
             @CurrentUser Long userId) {
         return ResponseEntity.ok(tripService.getPastTrips(userId));
     }
-    
+
     @GetMapping("/{tripId}")
     @Operation(summary = "Получить поездку по ID")
     public ResponseEntity<TripDto> getTripById(
@@ -104,7 +104,7 @@ public class TripController {
             @PathVariable Long tripId) {
         return ResponseEntity.ok(tripService.getTripById(userId, tripId));
     }
-    
+
     @PutMapping("/{tripId}")
     @Operation(summary = "Обновить поездку")
     public ResponseEntity<TripDto> updateTrip(
@@ -113,7 +113,7 @@ public class TripController {
             @RequestBody TripDto tripDto) {
         return ResponseEntity.ok(tripService.updateTrip(userId, tripId, tripDto));
     }
-    
+
     @DeleteMapping("/{tripId}")
     @Operation(summary = "Удалить поездку")
     public ResponseEntity<Void> deleteTrip(
@@ -122,7 +122,7 @@ public class TripController {
         tripService.deleteTrip(userId, tripId);
         return ResponseEntity.noContent().build();
     }
-    
+
     @PostMapping("/{tripId}/share")
     @Operation(summary = "Предоставить доступ к поездке")
     public ResponseEntity<TripAccessDto> shareTrip(
@@ -132,7 +132,7 @@ public class TripController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(tripService.shareTrip(userId, tripId, accessDto));
     }
-    
+
     @GetMapping("/{tripId}/shares")
     @Operation(summary = "Получить список пользователей с доступом к поездке")
     public ResponseEntity<List<TripAccessDto>> getTripShares(
@@ -140,7 +140,7 @@ public class TripController {
             @PathVariable Long tripId) {
         return ResponseEntity.ok(tripService.getTripShares(userId, tripId));
     }
-    
+
     @DeleteMapping("/{tripId}/shares/{shareUserId}")
     @Operation(summary = "Удалить доступ к поездке для пользователя")
     public ResponseEntity<Void> removeShare(
@@ -150,7 +150,7 @@ public class TripController {
         tripService.removeShare(userId, tripId, shareUserId);
         return ResponseEntity.noContent().build();
     }
-    
+
     @PutMapping("/{tripId}/invitation")
     @Operation(summary = "Ответить на приглашение в поездку")
     public ResponseEntity<TripAccessDto> respondToInvitation(
@@ -159,7 +159,7 @@ public class TripController {
             @RequestParam String status) {
         return ResponseEntity.ok(tripService.respondToInvitation(userId, tripId, status));
     }
-    
+
     @GetMapping("/{tripId}/can-publish")
     @Operation(summary = "Проверить, может ли пользователь публиковать маршрут")
     public ResponseEntity<Boolean> canPublishTrip(
@@ -168,7 +168,7 @@ public class TripController {
         log.info("Checking if user {} can publish trip {}", userId, tripId);
         return ResponseEntity.ok(tripService.canPublishTrip(userId, tripId));
     }
-    
+
     @PostMapping("/{tripId}/publish")
     @Operation(summary = "Публиковать или снять с публикации маршрут")
     public ResponseEntity<TripDto> publishTrip(

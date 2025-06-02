@@ -13,30 +13,30 @@ public interface PlaceService {
      * Поиск мест по названию и координатам
      */
     PlaceSearchResponse searchPlaces(String query, Double lat, Double lon, Integer radius, Integer limit, String category);
-    
+
     /**
      * Получение детальной информации о месте
      */
     PlaceResponseDto getPlaceDetails(String placeId);
-    
+
     /**
      * Автозаполнение для поиска мест
      */
     PlaceSuggestionResponse autocompletePlaces(String input, Double lat, Double lon, Integer limit);
-    
+
     /**
      * Поиск мест поблизости
      */
     PlaceSearchResponse getNearbyPlaces(Double lat, Double lon, Integer radius, Integer limit, String categories);
-    
+
     /**
      * ИИ рекомендации (заглушка)
      */
     List<PlaceResponseDto> getAiRecommendations(PlaceRequestDto request);
-    
+
     /**
      * Геокодирование адреса (получение координат по адресу)
-     * 
+     *
      * @param address Адрес или название места для геокодирования
      * @return Карта с координатами (ключи "lat" и "lon")
      */

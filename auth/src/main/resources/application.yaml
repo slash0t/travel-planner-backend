@@ -68,7 +68,7 @@ logging:
     org.springframework.web: INFO
     ru.putevod.app.auth: DEBUG
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE 
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.zaxxer.hikari: DEBUG
     org.springframework.jdbc: DEBUG
 

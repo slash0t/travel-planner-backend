@@ -38,15 +38,15 @@ public class ImageController {
     public ResponseEntity<PixabayResponse> getCityImages(
             @Parameter(description = "Название города для поиска изображений", required = true)
             @RequestParam String city) {
-        
+
         log.info("Получен запрос на поиск изображений для города: {}", city);
         PixabayResponse response = imageService.getCityImages(city);
-        
+
         if (response == null || response.getHits() == null || response.getHits().isEmpty()) {
             log.info("Для города {} не найдено изображений", city);
             return ResponseEntity.notFound().build();
         }
-        
+
         return ResponseEntity.ok(response);
     }
 } 

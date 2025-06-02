@@ -5,10 +5,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.putevod.app.external.config.AppConfig;
+import ru.putevod.app.external.dto.PhotoDto;
 import ru.putevod.app.external.dto.PlaceRequestDto;
 import ru.putevod.app.external.dto.PlaceResponseDto;
 import ru.putevod.app.external.dto.PlaceSuggestionDto;
-import ru.putevod.app.external.dto.PhotoDto;
 import ru.putevod.app.external.dto.response.PlaceSearchResponse;
 import ru.putevod.app.external.dto.response.PlaceSuggestionResponse;
 import ru.putevod.app.external.service.PlaceService;
@@ -25,7 +25,7 @@ public class OpenTripMapPlaceService implements PlaceService {
 
     private final WebClient webClient;
     private final AppConfig appConfig;
-    
+
     public OpenTripMapPlaceService(WebClient webClient, AppConfig appConfig) {
         this.webClient = webClient;
         this.appConfig = appConfig;
@@ -33,13 +33,13 @@ public class OpenTripMapPlaceService implements PlaceService {
 
     @Override
     public PlaceSearchResponse searchPlaces(String query, Double lat, Double lon, Integer radius, Integer limit, String category) {
-        log.info("Searching places with query={}, lat={}, lon={}, radius={}, limit={}, category={}", 
+        log.info("Searching places with query={}, lat={}, lon={}, radius={}, limit={}, category={}",
                 query, lat, lon, radius, limit, category);
-        
+
         if (lat == null || lon == null) {
             return searchPlacesByName(query, limit, category);
         }
-        
+
         String url = UriComponentsBuilder
                 .fromUriString(appConfig.getOpenTripMapBaseUrl())
                 .path("ru/places/radius")
@@ -82,12 +82,12 @@ public class OpenTripMapPlaceService implements PlaceService {
             List<PlaceResponseDto> places = response.stream()
                     .map(this::mapToPlaceResponse)
                     .collect(Collectors.toList());
-                    
+
             return PlaceSearchResponse.builder()
                     .places(places)
                     .total(places.size())
                     .build();
-                    
+
         } catch (Exception e) {
             log.error("Error searching places", e);
             return PlaceSearchResponse.builder()
@@ -96,10 +96,10 @@ public class OpenTripMapPlaceService implements PlaceService {
                     .build();
         }
     }
-    
+
     private PlaceSearchResponse searchPlacesByName(String query, Integer limit, String category) {
         log.info("Searching places by name with query={}, limit={}, category={}", query, limit, category);
-        
+
         String url = UriComponentsBuilder
                 .fromUriString(appConfig.getOpenTripMapBaseUrl())
                 .path("ru/places/geoname")
@@ -107,21 +107,21 @@ public class OpenTripMapPlaceService implements PlaceService {
                 .queryParam("name", query)
                 .build()
                 .toUriString();
-        
+
         try {
             Map<String, Object> response = webClient.get()
                     .uri(url)
                     .retrieve()
                     .bodyToMono(Map.class)
                     .block();
-                    
+
             if (response == null || !response.containsKey("name")) {
                 return PlaceSearchResponse.builder()
                         .places(new ArrayList<>())
                         .total(0)
                         .build();
             }
-            
+
             PlaceResponseDto place = PlaceResponseDto.builder()
                     .id(response.getOrDefault("xid", "").toString())
                     .name(response.getOrDefault("name", "").toString())
@@ -130,15 +130,15 @@ public class OpenTripMapPlaceService implements PlaceService {
                     .address(response.containsKey("country") ? response.get("country").toString() : "")
                     .sourceSystem("OpenTripMap")
                     .build();
-                    
+
             List<PlaceResponseDto> places = new ArrayList<>();
             places.add(place);
-            
+
             return PlaceSearchResponse.builder()
                     .places(places)
                     .total(places.size())
                     .build();
-                    
+
         } catch (Exception e) {
             log.error("Error searching places by name", e);
             return PlaceSearchResponse.builder()
@@ -151,7 +151,7 @@ public class OpenTripMapPlaceService implements PlaceService {
     @Override
     public PlaceResponseDto getPlaceDetails(String placeId) {
         log.info("Getting place details for id={}", placeId);
-        
+
         String url = UriComponentsBuilder
                 .fromUriString(appConfig.getOpenTripMapBaseUrl())
                 .path("ru/places/xid/" + placeId)
@@ -176,11 +176,11 @@ public class OpenTripMapPlaceService implements PlaceService {
             return null;
         }
     }
-    
+
     @Override
     public PlaceSuggestionResponse autocompletePlaces(String input, Double lat, Double lon, Integer limit) {
         log.info("Getting autocomplete suggestions for input={}, lat={}, lon={}, limit={}", input, lat, lon, limit);
-        
+
         // OpenTripMap не имеет прямого API для автозаполнения, поэтому используем поиск по имени
         // и ограничиваем результаты
         String url = UriComponentsBuilder
@@ -191,7 +191,7 @@ public class OpenTripMapPlaceService implements PlaceService {
                 .queryParam("limit", limit)
                 .build()
                 .toUriString();
-                
+
         // Добавляем координаты, если они указаны
         if (lat != null && lon != null) {
             url = UriComponentsBuilder.fromUriString(url)
@@ -200,28 +200,28 @@ public class OpenTripMapPlaceService implements PlaceService {
                     .build()
                     .toUriString();
         }
-        
+
         try {
             List<Map<String, Object>> response = webClient.get()
                     .uri(url)
                     .retrieve()
                     .bodyToMono(List.class)
                     .block();
-                    
+
             if (response == null || response.isEmpty()) {
                 return PlaceSuggestionResponse.builder()
                         .suggestions(new ArrayList<>())
                         .build();
             }
-            
+
             List<PlaceSuggestionDto> suggestions = response.stream()
                     .map(this::mapToPlaceSuggestion)
                     .collect(Collectors.toList());
-                    
+
             return PlaceSuggestionResponse.builder()
                     .suggestions(suggestions)
                     .build();
-                    
+
         } catch (Exception e) {
             log.error("Error getting autocomplete suggestions", e);
             return PlaceSuggestionResponse.builder()
@@ -229,12 +229,12 @@ public class OpenTripMapPlaceService implements PlaceService {
                     .build();
         }
     }
-    
+
     @Override
     public PlaceSearchResponse getNearbyPlaces(Double lat, Double lon, Integer radius, Integer limit, String categories) {
-        log.info("Getting nearby places for lat={}, lon={}, radius={}, limit={}, categories={}", 
+        log.info("Getting nearby places for lat={}, lon={}, radius={}, limit={}, categories={}",
                 lat, lon, radius, limit, categories);
-        
+
         String url = UriComponentsBuilder
                 .fromUriString(appConfig.getOpenTripMapBaseUrl())
                 .path("ru/places/radius")
@@ -245,7 +245,7 @@ public class OpenTripMapPlaceService implements PlaceService {
                 .queryParam("limit", limit)
                 .build()
                 .toUriString();
-                
+
         // Если указаны категории, добавляем их в запрос
         if (categories != null && !categories.isEmpty()) {
             url = UriComponentsBuilder.fromUriString(url)
@@ -253,30 +253,30 @@ public class OpenTripMapPlaceService implements PlaceService {
                     .build()
                     .toUriString();
         }
-        
+
         try {
             List<Map<String, Object>> response = webClient.get()
                     .uri(url)
                     .retrieve()
                     .bodyToMono(List.class)
                     .block();
-                    
+
             if (response == null || response.isEmpty()) {
                 return PlaceSearchResponse.builder()
                         .places(new ArrayList<>())
                         .total(0)
                         .build();
             }
-            
+
             List<PlaceResponseDto> places = response.stream()
                     .map(this::mapToPlaceResponseWithDistance)
                     .collect(Collectors.toList());
-                    
+
             return PlaceSearchResponse.builder()
                     .places(places)
                     .total(places.size())
                     .build();
-                    
+
         } catch (Exception e) {
             log.error("Error getting nearby places", e);
             return PlaceSearchResponse.builder()
@@ -310,7 +310,7 @@ public class OpenTripMapPlaceService implements PlaceService {
                 .sourceSystem("OpenTripMap")
                 .build();
     }
-    
+
     private PlaceResponseDto mapToPlaceResponseWithDistance(Map<String, Object> data) {
         PlaceResponseDto dto = mapToPlaceResponse(data);
 
@@ -318,7 +318,7 @@ public class OpenTripMapPlaceService implements PlaceService {
             Integer distanceMeters = parseInteger(data, "dist");
             dto.setDistanceMeters(distanceMeters);
         }
-        
+
         return dto;
     }
 
@@ -374,7 +374,7 @@ public class OpenTripMapPlaceService implements PlaceService {
                 .externalUrl(website)
                 .build();
     }
-    
+
     private PlaceSuggestionDto mapToPlaceSuggestion(Map<String, Object> data) {
         return PlaceSuggestionDto.builder()
                 .id(data.getOrDefault("xid", "").toString())
@@ -384,56 +384,56 @@ public class OpenTripMapPlaceService implements PlaceService {
                 .address(formatShortAddress(data))
                 .build();
     }
-    
+
     private String getPreviewUrl(Map<String, Object> data) {
         if (data.containsKey("preview") && data.get("preview") instanceof Map) {
             Map<String, Object> preview = (Map<String, Object>) data.get("preview");
             return preview.getOrDefault("source", "").toString();
         }
-        
+
         return null;
     }
-    
+
     private String formatAddress(Map<String, Object> addressData) {
         StringBuilder address = new StringBuilder();
 
         if (addressData.containsKey("house_number")) {
             address.append(addressData.get("house_number")).append(", ");
         }
-        
+
         if (addressData.containsKey("road")) {
             address.append(addressData.get("road")).append(", ");
         }
-        
+
         if (addressData.containsKey("suburb")) {
             address.append(addressData.get("suburb")).append(", ");
         }
-        
+
         if (addressData.containsKey("city")) {
             address.append(addressData.get("city")).append(", ");
         }
-        
+
         if (addressData.containsKey("state")) {
             address.append(addressData.get("state")).append(", ");
         }
-        
+
         if (addressData.containsKey("country")) {
             address.append(addressData.get("country"));
         }
-        
+
         String result = address.toString();
 
         if (result.endsWith(", ")) {
             result = result.substring(0, result.length() - 2);
         }
-        
+
         return result;
     }
-    
+
     private String formatShortAddress(Map<String, Object> data) {
         if (data.containsKey("address") && data.get("address") instanceof Map) {
             Map<String, Object> addressData = (Map<String, Object>) data.get("address");
-            
+
             if (addressData.containsKey("city")) {
                 return addressData.get("city").toString();
             }

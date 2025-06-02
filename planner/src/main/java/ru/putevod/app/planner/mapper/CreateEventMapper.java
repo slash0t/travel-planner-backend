@@ -4,16 +4,15 @@ import org.mapstruct.*;
 import ru.putevod.app.planner.dto.CreateEventDto;
 import ru.putevod.app.planner.dto.PlaceDto;
 import ru.putevod.app.planner.model.Event;
-import ru.putevod.app.planner.model.Place;
 import ru.putevod.app.planner.model.TripDay;
 
 @Mapper(
-    config = MapstructConfig.class,
-    uses = {PlaceMapper.class},
-    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+        config = MapstructConfig.class,
+        uses = {PlaceMapper.class},
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 public interface CreateEventMapper {
-    
+
     /**
      * Преобразует PlaceInfo (из CreateEventDto) в PlaceDto
      */
@@ -32,7 +31,7 @@ public interface CreateEventMapper {
     PlaceDto toPlaceDto(CreateEventDto.PlaceInfo placeInfo);
 
     /**
-     * Преобразует CreateEventDto в Event. 
+     * Преобразует CreateEventDto в Event.
      * Параметр day используется для связывания Event с TripDay.
      * Place создается только если в CreateEventDto есть информация о месте.
      */
@@ -51,7 +50,7 @@ public interface CreateEventMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Event toEventEntity(CreateEventDto createEventDto);
-    
+
     /**
      * Создает Event из CreateEventDto и связывает его с TripDay
      */
@@ -59,10 +58,10 @@ public interface CreateEventMapper {
         if (createEventDto == null) {
             return null;
         }
-        
+
         Event event = toEventEntity(createEventDto);
         event.setDay(day);
-        
+
         return event;
     }
 } 

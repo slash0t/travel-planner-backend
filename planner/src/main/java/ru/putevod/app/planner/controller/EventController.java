@@ -24,7 +24,7 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class EventController {
     private final EventService eventService;
-    
+
     @PostMapping
     @Operation(summary = "Создать событие")
     public ResponseEntity<EventDto> createEvent(
@@ -35,7 +35,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(eventService.createEvent(userId, tripId, dayId, createEventDto));
     }
-    
+
     @GetMapping
     @Operation(summary = "Получить все события дня")
     public ResponseEntity<List<EventDto>> getDayEvents(
@@ -44,7 +44,7 @@ public class EventController {
             @PathVariable Long dayId) {
         return ResponseEntity.ok(eventService.getDayEvents(userId, tripId, dayId));
     }
-    
+
     @GetMapping("/{eventId}")
     @Operation(summary = "Получить событие по ID")
     public ResponseEntity<EventDto> getEvent(
@@ -54,7 +54,7 @@ public class EventController {
             @PathVariable Long eventId) {
         return ResponseEntity.ok(eventService.getEvent(userId, tripId, dayId, eventId));
     }
-    
+
     @PutMapping("/{eventId}")
     @Operation(summary = "Обновить событие")
     public ResponseEntity<EventDto> updateEvent(
@@ -65,7 +65,7 @@ public class EventController {
             @RequestBody EventDto eventDto) {
         return ResponseEntity.ok(eventService.updateEvent(userId, tripId, dayId, eventId, eventDto));
     }
-    
+
     @DeleteMapping("/{eventId}")
     @Operation(summary = "Удалить событие")
     public ResponseEntity<Void> deleteEvent(
@@ -76,7 +76,7 @@ public class EventController {
         eventService.deleteEvent(userId, tripId, dayId, eventId);
         return ResponseEntity.noContent().build();
     }
-    
+
     @PostMapping("/{eventId}/reminders")
     @Operation(summary = "Добавить напоминание для события")
     public ResponseEntity<EventReminderDto> addEventReminder(
@@ -86,7 +86,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(eventService.addEventReminder(userId, eventId, reminderDto));
     }
-    
+
     @GetMapping("/{eventId}/reminders")
     @Operation(summary = "Получить список напоминаний для события")
     public ResponseEntity<List<EventReminderDto>> getEventReminders(
@@ -94,7 +94,7 @@ public class EventController {
             @PathVariable Long eventId) {
         return ResponseEntity.ok(eventService.getEventReminders(userId, eventId));
     }
-    
+
     @DeleteMapping("/{eventId}/reminders/{reminderId}")
     @Operation(summary = "Удалить напоминание для события")
     public ResponseEntity<Void> deleteEventReminder(

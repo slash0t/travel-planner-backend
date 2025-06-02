@@ -3,7 +3,6 @@ package ru.putevod.app.planner.client;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -14,19 +13,19 @@ import ru.putevod.app.planner.dto.external.PixabayResponseDto;
 @Service
 @Slf4j
 public class ExternalServiceClient {
-    
+
     private final WebClient webClient;
-    
+
     @Value("${external.service.token:service_token_for_development}")
     private String serviceToken;
-    
+
     public ExternalServiceClient(@Qualifier("externalServiceWebClient") WebClient webClient) {
         this.webClient = webClient;
     }
-    
+
     /**
      * Получает изображения для указанного города из внешнего сервиса
-     * 
+     *
      * @param city название города
      * @return DTO с информацией об изображениях
      */
@@ -35,7 +34,7 @@ public class ExternalServiceClient {
             log.warn("Город не указан для поиска изображений");
             return null;
         }
-        
+
         try {
             log.info("Запрос изображений для города: {}", city);
             return webClient.get()
@@ -51,7 +50,7 @@ public class ExternalServiceClient {
                     })
                     .onStatus(HttpStatusCode::is5xxServerError, response -> {
                         log.error("Сервис изображений вернул ошибку сервера: {}", response.statusCode());
-                        return Mono.error(new ResponseStatusException(response.statusCode(), 
+                        return Mono.error(new ResponseStatusException(response.statusCode(),
                                 "Ошибка сервиса изображений"));
                     })
                     .bodyToMono(PixabayResponseDto.class)

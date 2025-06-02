@@ -5,11 +5,10 @@ import ru.putevod.app.planner.dto.TripDayDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.model.Trip;
 
-import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 
-@Mapper(componentModel = "spring", 
+@Mapper(componentModel = "spring",
         uses = {UserMapper.class, TripDayMapper.class, TripAccessMapper.class, FileMapper.class, TodoListMapper.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface TripMapper {
@@ -18,16 +17,16 @@ public interface TripMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "totalDays", ignore = true)
     TripDto toDto(Trip trip);
-    
+
     @AfterMapping
     default void computeDerivedFields(@MappingTarget TripDto tripDto, Trip trip) {
         tripDto.setStatus(trip.getStatus());
-        
+
         if (tripDto.getStartDate() != null && tripDto.getEndDate() != null) {
             long daysBetween = ChronoUnit.DAYS.between(tripDto.getStartDate(), tripDto.getEndDate()) + 1;
             tripDto.setTotalDays((int) daysBetween);
         }
-        
+
         if (tripDto.getDays() != null && !tripDto.getDays().isEmpty()) {
             tripDto.getDays().sort(Comparator.comparing(TripDayDto::getDayNumber));
         }
@@ -50,7 +49,7 @@ public interface TripMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Trip toEntity(TripDto tripDto);
-    
+
     @Mapping(target = "tripId", ignore = true)
     @Mapping(source = "title", target = "title")
     @Mapping(source = "description", target = "description")

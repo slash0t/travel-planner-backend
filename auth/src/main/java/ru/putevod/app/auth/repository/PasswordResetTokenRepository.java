@@ -10,7 +10,10 @@ import java.util.Optional;
 @Repository
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Integer> {
     Optional<PasswordResetToken> findByToken(String token);
+
     List<PasswordResetToken> findByUserEmailAndResetCodeAndIsUsed(String email, String resetCode, Boolean isUsed);
+
     List<PasswordResetToken> findByUserEmailAndIsUsed(String email, Boolean isUsed);
+
     void deleteByToken(String token);
 } 

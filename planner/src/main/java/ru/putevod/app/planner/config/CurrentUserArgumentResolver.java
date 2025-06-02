@@ -12,16 +12,16 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 @Component
 @Slf4j
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
-    
+
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(CurrentUser.class) 
+        return parameter.hasParameterAnnotation(CurrentUser.class)
                 && parameter.getParameterType().equals(Long.class);
     }
-    
+
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-                                 NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         Object userId = webRequest.getAttribute("userId", RequestAttributes.SCOPE_REQUEST);
         log.info("Разрешение userId из атрибутов запроса: {}", userId);
         return userId;

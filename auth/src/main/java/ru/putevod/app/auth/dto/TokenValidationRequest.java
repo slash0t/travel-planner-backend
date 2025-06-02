@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Schema(description = "Запрос на валидацию токена")
 public class TokenValidationRequest {
-    
+
     @NotBlank(message = "Токен не может быть пустым")
     @Schema(description = "JWT токен для валидации", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String token;

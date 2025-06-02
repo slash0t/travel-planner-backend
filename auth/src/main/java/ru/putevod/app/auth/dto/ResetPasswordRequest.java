@@ -12,7 +12,7 @@ public class ResetPasswordRequest {
 
     @NotBlank(message = "Токен сброса пароля не может быть пустым")
     private String resetToken;
-    
+
     @NotBlank(message = "Новый пароль не может быть пустым")
     private String newPassword;
 } 

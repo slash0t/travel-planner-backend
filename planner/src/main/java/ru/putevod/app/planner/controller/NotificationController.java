@@ -20,9 +20,9 @@ import ru.putevod.app.planner.service.NotificationService;
 @Tag(name = "Notifications", description = "API для управления уведомлениями")
 @SecurityRequirement(name = "bearerAuth")
 public class NotificationController {
-    
+
     private final NotificationService notificationService;
-    
+
     @GetMapping
     @Operation(summary = "Получить уведомления пользователя")
     public ResponseEntity<Page<NotificationDto>> getUserNotifications(
@@ -30,14 +30,14 @@ public class NotificationController {
             Pageable pageable) {
         return ResponseEntity.ok(notificationService.getUserNotifications(userId, pageable));
     }
-    
+
     @GetMapping("/unread-count")
     @Operation(summary = "Получить количество непрочитанных уведомлений")
     public ResponseEntity<Integer> getUnreadCount(
             @CurrentUser Long userId) {
         return ResponseEntity.ok(notificationService.getUnreadCount(userId));
     }
-    
+
     @GetMapping("/{notificationId}")
     @Operation(summary = "Получить уведомление по ID")
     public ResponseEntity<NotificationDto> getNotification(
@@ -45,7 +45,7 @@ public class NotificationController {
             @PathVariable Long notificationId) {
         return ResponseEntity.ok(notificationService.getNotification(userId, notificationId));
     }
-    
+
     @PutMapping("/{notificationId}/read")
     @Operation(summary = "Отметить уведомление как прочитанное")
     public ResponseEntity<Void> markAsRead(
@@ -54,7 +54,7 @@ public class NotificationController {
         notificationService.markAsRead(userId, notificationId);
         return ResponseEntity.noContent().build();
     }
-    
+
     @PutMapping("/mark-all-read")
     @Operation(summary = "Отметить все уведомления как прочитанные")
     public ResponseEntity<Void> markAllAsRead(

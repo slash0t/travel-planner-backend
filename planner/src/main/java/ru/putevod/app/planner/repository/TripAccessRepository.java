@@ -14,19 +14,19 @@ import java.util.Optional;
 
 @Repository
 public interface TripAccessRepository extends JpaRepository<TripAccess, Long> {
-    
+
     List<TripAccess> findByTrip(Trip trip);
-    
+
     Optional<TripAccess> findByTripAndUser(Trip trip, User user);
-    
+
     @Query("SELECT a FROM TripAccess a WHERE a.user = :user AND a.invitationStatus = 'pending'")
     List<TripAccess> findPendingInvitationsForUser(@Param("user") User user);
-    
+
     @Modifying
     @Query("UPDATE TripAccess a SET a.invitationStatus = :status WHERE a.trip = :trip AND a.user = :user")
     int updateInvitationStatus(@Param("trip") Trip trip, @Param("user") User user, @Param("status") String status);
-    
+
     boolean existsByTripAndUser(Trip trip, User user);
-    
+
     void deleteByTripAndUser(Trip trip, User user);
 } 
