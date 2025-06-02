@@ -11,11 +11,5 @@ public interface UserService {
 
     UserDto findByEmail(String email);
 
-    UserDto updateUserProfile(Long userId, UserDto userDto);
-
-    boolean existsByUsername(String username);
-
-    boolean existsByEmail(String email);
-
     User getUserEntityById(Long userId);
 } 

@@ -47,4 +47,20 @@ public interface TripService {
     boolean canPublishTrip(Long userId, Long tripId);
 
     TripDto publishTrip(Long userId, Long tripId, boolean publish);
+
+    /**
+     * Получить общее количество путешествий пользователя
+     *
+     * @param userId ID пользователя
+     * @return общее количество путешествий
+     */
+    Long getTotalTripsCount(Long userId);
+
+    /**
+     * Получить общее количество мест во всех путешествиях пользователя
+     *
+     * @param userId ID пользователя
+     * @return общее количество добавленных мест
+     */
+    Long getTotalPlacesCount(Long userId);
 } 

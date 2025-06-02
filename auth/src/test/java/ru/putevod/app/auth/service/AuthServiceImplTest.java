@@ -92,8 +92,8 @@ class AuthServiceImplTest {
         when(tokenProvider.isAnonymousToken(TEST_TOKEN)).thenReturn(false);
         when(tokenProvider.getEmailFromToken(TEST_TOKEN)).thenReturn(TEST_EMAIL);
         when(tokenProvider.getUserIdFromToken(TEST_TOKEN)).thenReturn(TEST_USER_ID_LONG);
-        when(tokenProvider.getUsernameFromToken(TEST_TOKEN)).thenReturn(TEST_USERNAME);
-        when(tokenProvider.isAdminFromToken(TEST_TOKEN)).thenReturn(false);
+        // when(tokenProvider.getUsernameFromToken(TEST_TOKEN)).thenReturn(TEST_USERNAME);
+        // when(tokenProvider.isAdminFromToken(TEST_TOKEN)).thenReturn(false);
         when(userService.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
 
         TokenValidationResponse response = authService.validateToken(TEST_TOKEN, TEST_SERVICE_TOKEN);
@@ -153,8 +153,8 @@ class AuthServiceImplTest {
         when(tokenProvider.isAnonymousToken(TEST_TOKEN)).thenReturn(false);
         when(tokenProvider.getEmailFromToken(TEST_TOKEN)).thenReturn(TEST_EMAIL);
         when(tokenProvider.getUserIdFromToken(TEST_TOKEN)).thenReturn(TEST_USER_ID_LONG);
-        when(tokenProvider.getUsernameFromToken(TEST_TOKEN)).thenReturn(TEST_USERNAME);
-        when(tokenProvider.isAdminFromToken(TEST_TOKEN)).thenReturn(false);
+        // when(tokenProvider.getUsernameFromToken(TEST_TOKEN)).thenReturn(TEST_USERNAME);
+        // when(tokenProvider.isAdminFromToken(TEST_TOKEN)).thenReturn(false);
         when(userService.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
 
         Map<String, Object> info = authService.getUserInfoFromToken(TEST_TOKEN, TEST_SERVICE_TOKEN);
@@ -168,23 +168,17 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void getUserInfoFromToken_whenUserNotFound_shouldReturnBasicInfo() {
+    void getUserInfoFromToken_whenUserNotFound_shouldThrowException() {
         when(tokenProvider.validateServiceToken(TEST_SERVICE_TOKEN)).thenReturn(true);
         when(tokenProvider.validateToken(TEST_TOKEN)).thenReturn(true);
         when(tokenProvider.isAnonymousToken(TEST_TOKEN)).thenReturn(false);
         when(tokenProvider.getEmailFromToken(TEST_TOKEN)).thenReturn(TEST_EMAIL);
         when(tokenProvider.getUserIdFromToken(TEST_TOKEN)).thenReturn(TEST_USER_ID_LONG);
-        when(tokenProvider.getUsernameFromToken(TEST_TOKEN)).thenReturn(TEST_USERNAME);
-        when(tokenProvider.isAdminFromToken(TEST_TOKEN)).thenReturn(false);
         when(userService.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
 
-        Map<String, Object> info = authService.getUserInfoFromToken(TEST_TOKEN, TEST_SERVICE_TOKEN);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () ->
+                authService.getUserInfoFromToken(TEST_TOKEN, TEST_SERVICE_TOKEN));
 
-        assertEquals(TEST_USER_ID_LONG, info.get("userId"));
-        assertEquals(TEST_EMAIL, info.get("email"));
-        assertEquals(TEST_USERNAME, info.get("username"));
-        assertFalse((Boolean) info.get("isAdmin"));
-        assertFalse(info.containsKey("verified"));
-        assertFalse(info.containsKey("roles"));
+        assertEquals("Пользователь не найден", exception.getReason());
     }
 } 

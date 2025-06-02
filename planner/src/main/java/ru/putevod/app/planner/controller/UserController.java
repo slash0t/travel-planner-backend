@@ -48,11 +48,4 @@ public class UserController {
         return ResponseEntity.ok(userService.findByEmail(email));
     }
 
-    @PutMapping("/me")
-    @Operation(summary = "Обновить профиль текущего пользователя")
-    public ResponseEntity<UserDto> updateUserProfile(
-            @CurrentUser Long userId,
-            @RequestBody UserDto userDto) {
-        return ResponseEntity.ok(userService.updateUserProfile(userId, userDto));
-    }
 } 
