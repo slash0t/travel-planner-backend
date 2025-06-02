@@ -127,7 +127,7 @@ public class TodoTemplateController {
         return ResponseEntity.ok(result);
     }
     
-    private TodoTemplateDto convertToDto(TodoTemplate template) {
+    TodoTemplateDto convertToDto(TodoTemplate template) {
         TodoTemplateDto dto = new TodoTemplateDto();
         dto.setTemplateId(template.getTemplateId());
         dto.setTitle(template.getTitle());
