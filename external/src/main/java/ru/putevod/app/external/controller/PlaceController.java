@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/places")
 @RequiredArgsConstructor
 @Tag(name = "Places", description = "API для работы с информацией о местах")
+@SecurityRequirement(name = "bearerAuth")
 public class PlaceController {
 
     private final PlaceService placeService;
@@ -32,6 +34,8 @@ public class PlaceController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = PlaceSearchResponse.class))),
             @ApiResponse(responseCode = "400", description = "Некорректные параметры запроса"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен"),
             @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     public ResponseEntity<PlaceSearchResponse> searchPlaces(

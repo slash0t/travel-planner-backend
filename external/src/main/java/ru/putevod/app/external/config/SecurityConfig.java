@@ -35,9 +35,9 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui", "/swagger-ui/", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/webjars/**", "/swagger-resources/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
-                // Публичные эндпоинты, если нужны
-                // .requestMatchers("/api/v1/public/**").permitAll()
-                .anyRequest().permitAll()
+                // Все API эндпоинты требуют авторизации
+                .requestMatchers("/api/**").authenticated()
+                .anyRequest().authenticated()
             )
             .addFilterBefore(authServiceTokenFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "AI Trip Lists", description = "API для генерации списков для поездки с помощью искусственного интеллекта")
+@SecurityRequirement(name = "bearerAuth")
 public class AiTripListController {
     private final AiTripListService aiTripListService;
 
@@ -31,6 +33,8 @@ public class AiTripListController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Список успешно сгенерирован"),
             @ApiResponse(responseCode = "400", description = "Некорректный запрос или небезопасный запрос"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен"),
             @ApiResponse(responseCode = "404", description = "Поездка или шаблон не найдены"),
             @ApiResponse(responseCode = "500", description = "Ошибка сервера"),
             @ApiResponse(responseCode = "503", description = "Сервис временно недоступен")

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import ru.putevod.app.external.service.ImageService;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Изображения", description = "API для работы с изображениями")
+@SecurityRequirement(name = "bearerAuth")
 public class ImageController {
 
     private final ImageService imageService;
@@ -32,7 +34,10 @@ public class ImageController {
             @ApiResponse(responseCode = "200", description = "Изображения найдены",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = UnsplashResponse.class))}),
-            @ApiResponse(responseCode = "404", description = "Изображения не найдены")
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен"),
+            @ApiResponse(responseCode = "404", description = "Изображения не найдены"),
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     @GetMapping("/city")
     public ResponseEntity<UnsplashResponse> getCityImages(
