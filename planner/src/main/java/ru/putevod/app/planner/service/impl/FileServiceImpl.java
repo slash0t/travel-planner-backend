@@ -54,6 +54,7 @@ public class FileServiceImpl implements FileService {
      * @param description описание файла
      * @return DTO с информацией о зарегистрированном файле
      */
+    @Override
     @Transactional
     public FileDto registerLocalFile(Long userId, String fileName, String localPath, 
                                    String fileType, Integer fileSize, String description) {
