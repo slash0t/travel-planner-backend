@@ -32,4 +32,13 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
 
     @Query("SELECT t FROM Trip t WHERE (t.creator = :user OR EXISTS (SELECT a FROM TripAccess a WHERE a.trip = t AND a.user = :user)) AND t.isDeleted = false")
     Page<Trip> findAllAvailableToUser(@Param("user") User user, Pageable pageable);
+
+    /**
+     * Подсчитывает общее количество путешествий пользователя (включая созданные им и доступные через доступ)
+     *
+     * @param user пользователь
+     * @return количество путешествий
+     */
+    @Query("SELECT COUNT(DISTINCT t) FROM Trip t WHERE (t.creator = :user OR EXISTS (SELECT a FROM TripAccess a WHERE a.trip = t AND a.user = :user AND a.invitationStatus = 'accepted')) AND t.isDeleted = false")
+    Long countAllUserTrips(@Param("user") User user);
 } 

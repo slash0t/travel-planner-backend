@@ -178,4 +178,48 @@ public class TripController {
         log.info("Publishing trip {} for user {}, publish={}", tripId, userId, publish);
         return ResponseEntity.ok(tripService.publishTrip(userId, tripId, publish));
     }
+
+    @GetMapping("/stats/total-count")
+    @Operation(
+            summary = "Получить общее количество путешествий пользователя",
+            description = "Возвращает общее количество путешествий пользователя, включая созданные им и доступные через предоставленный доступ"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Количество путешествий успешно получено",
+                    content = @Content(mediaType = "application/json")
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Не авторизован",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<Long> getTotalTripsCount(@Parameter(hidden = true) @CurrentUser Long userId) {
+        log.info("Getting total trips count for user: {}", userId);
+        return ResponseEntity.ok(tripService.getTotalTripsCount(userId));
+    }
+
+    @GetMapping("/stats/total-places")
+    @Operation(
+            summary = "Получить общее количество мест во всех путешествиях пользователя",
+            description = "Возвращает общее количество уникальных мест, добавленных во все путешествия пользователя"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Количество мест успешно получено",
+                    content = @Content(mediaType = "application/json")
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Не авторизован",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<Long> getTotalPlacesCount(@Parameter(hidden = true) @CurrentUser Long userId) {
+        log.info("Getting total places count for user: {}", userId);
+        return ResponseEntity.ok(tripService.getTotalPlacesCount(userId));
+    }
 } 

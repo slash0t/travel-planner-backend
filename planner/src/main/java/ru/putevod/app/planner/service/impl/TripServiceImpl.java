@@ -20,6 +20,7 @@ import ru.putevod.app.planner.model.Trip;
 import ru.putevod.app.planner.model.TripAccess;
 import ru.putevod.app.planner.model.TripDay;
 import ru.putevod.app.planner.model.User;
+import ru.putevod.app.planner.repository.PlaceRepository;
 import ru.putevod.app.planner.repository.TripAccessRepository;
 import ru.putevod.app.planner.repository.TripDayRepository;
 import ru.putevod.app.planner.repository.TripRepository;
@@ -40,6 +41,7 @@ public class TripServiceImpl implements TripService {
 
     private final TripRepository tripRepository;
     private final TripAccessRepository tripAccessRepository;
+    private final PlaceRepository placeRepository;
     private final UserService userService;
     private final NotificationService notificationService;
     private final TripPreviewService tripPreviewService;
@@ -502,5 +504,19 @@ public class TripServiceImpl implements TripService {
                 tripId, publish ? "опубликован" : "снят с публикации", userId);
 
         return tripMapper.toDto(trip);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Long getTotalTripsCount(Long userId) {
+        User user = userService.getUserEntityById(userId);
+        return tripRepository.countAllUserTrips(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Long getTotalPlacesCount(Long userId) {
+        User user = userService.getUserEntityById(userId);
+        return placeRepository.countUserPlaces(user);
     }
 } 
