@@ -92,8 +92,8 @@ class AuthServiceImplTest {
         when(tokenProvider.isAnonymousToken(TEST_TOKEN)).thenReturn(false);
         when(tokenProvider.getEmailFromToken(TEST_TOKEN)).thenReturn(TEST_EMAIL);
         when(tokenProvider.getUserIdFromToken(TEST_TOKEN)).thenReturn(TEST_USER_ID_LONG);
-        when(tokenProvider.getUsernameFromToken(TEST_TOKEN)).thenReturn(TEST_USERNAME);
-        when(tokenProvider.isAdminFromToken(TEST_TOKEN)).thenReturn(false);
+        // when(tokenProvider.getUsernameFromToken(TEST_TOKEN)).thenReturn(TEST_USERNAME);
+        // when(tokenProvider.isAdminFromToken(TEST_TOKEN)).thenReturn(false);
         when(userService.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
 
         TokenValidationResponse response = authService.validateToken(TEST_TOKEN, TEST_SERVICE_TOKEN);
@@ -153,8 +153,8 @@ class AuthServiceImplTest {
         when(tokenProvider.isAnonymousToken(TEST_TOKEN)).thenReturn(false);
         when(tokenProvider.getEmailFromToken(TEST_TOKEN)).thenReturn(TEST_EMAIL);
         when(tokenProvider.getUserIdFromToken(TEST_TOKEN)).thenReturn(TEST_USER_ID_LONG);
-        when(tokenProvider.getUsernameFromToken(TEST_TOKEN)).thenReturn(TEST_USERNAME);
-        when(tokenProvider.isAdminFromToken(TEST_TOKEN)).thenReturn(false);
+        // when(tokenProvider.getUsernameFromToken(TEST_TOKEN)).thenReturn(TEST_USERNAME);
+        // when(tokenProvider.isAdminFromToken(TEST_TOKEN)).thenReturn(false);
         when(userService.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
 
         Map<String, Object> info = authService.getUserInfoFromToken(TEST_TOKEN, TEST_SERVICE_TOKEN);
@@ -174,8 +174,8 @@ class AuthServiceImplTest {
         when(tokenProvider.isAnonymousToken(TEST_TOKEN)).thenReturn(false);
         when(tokenProvider.getEmailFromToken(TEST_TOKEN)).thenReturn(TEST_EMAIL);
         when(tokenProvider.getUserIdFromToken(TEST_TOKEN)).thenReturn(TEST_USER_ID_LONG);
-        when(tokenProvider.getUsernameFromToken(TEST_TOKEN)).thenReturn(TEST_USERNAME);
-        when(tokenProvider.isAdminFromToken(TEST_TOKEN)).thenReturn(false);
+        // when(tokenProvider.getUsernameFromToken(TEST_TOKEN)).thenReturn(TEST_USERNAME);
+        // when(tokenProvider.isAdminFromToken(TEST_TOKEN)).thenReturn(false);
         when(userService.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
 
         Map<String, Object> info = authService.getUserInfoFromToken(TEST_TOKEN, TEST_SERVICE_TOKEN);
