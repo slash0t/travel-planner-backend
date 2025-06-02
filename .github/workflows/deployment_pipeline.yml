@@ -248,6 +248,7 @@ jobs:
           envkey_YANDEX_GEOCODER_API_KEY: ${{ secrets.YANDEX_GEOCODER_API_KEY }}
           envkey_YANDEX_GPT_API_KEY: ${{ secrets.YANDEX_GPT_API_KEY }}
           envkey_YANDEX_GPT_FOLDER_ID: ${{ secrets.YANDEX_GPT_FOLDER_ID }}
+          envkey_UNSPLASH_API_KEY: ${{ secrets.UNSPLASH_API_KEY }}
           file_name: ./envfile
 
       - name: Import variables into environment
