@@ -9,10 +9,10 @@ import ru.putevod.app.planner.model.User;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper {
-    
+
     @Mapping(source = "userId", target = "id")
     UserDto toDto(User user);
-    
+
     @Mapping(source = "id", target = "userId")
     @Mapping(source = "username", target = "username")
     @Mapping(source = "email", target = "email")
@@ -23,7 +23,7 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastLogin", ignore = true)
     User toEntity(UserDto userDto);
-    
+
     @Mapping(target = "userId", ignore = true)
     @Mapping(source = "username", target = "username")
     @Mapping(source = "email", target = "email")

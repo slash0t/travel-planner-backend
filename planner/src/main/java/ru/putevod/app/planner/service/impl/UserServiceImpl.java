@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final AuthServiceClient authServiceClient;
-    
+
     @Value("${auth.token}")
     private String serviceToken;
 
@@ -33,15 +33,15 @@ public class UserServiceImpl implements UserService {
             User user = getUserEntityById(userId);
             return userMapper.toDto(user);
         }
-        
+
         // Если пользователь не найден локально, запрашиваем из сервиса auth
         UserDto userDto = authServiceClient.getUserInfo(userId, serviceToken);
-        
+
         // Создаем локальную копию, если нужно
         if (userDto != null && !userRepository.existsById(userId)) {
             saveLocalUserCopy(userDto);
         }
-        
+
         return userDto;
     }
 
@@ -66,13 +66,13 @@ public class UserServiceImpl implements UserService {
     public UserDto updateUserProfile(Long userId, UserDto userDto) {
         // Проверяем существование пользователя в сервисе auth
         authServiceClient.getUserInfo(userId, serviceToken);
-        
+
         User user = getUserEntityById(userId);
-        
+
         // Обновляем локальные данные
         userMapper.updateEntityFromDto(userDto, user);
         user = userRepository.save(user);
-        
+
         return userMapper.toDto(user);
     }
 
@@ -94,9 +94,10 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь", "id", userId));
     }
-    
+
     /**
      * Создает локальную копию пользователя из сервиса auth
+     *
      * @param userDto данные пользователя
      * @return сохраненная сущность
      */

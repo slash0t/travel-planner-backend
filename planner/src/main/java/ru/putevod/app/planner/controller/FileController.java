@@ -26,9 +26,9 @@ import java.util.List;
 @Tag(name = "Files", description = "API для работы с файлами")
 @SecurityRequirement(name = "bearerAuth")
 public class FileController {
-    
+
     private final FileService fileService;
-    
+
     @PostMapping("/upload")
     @Operation(summary = "Загрузить файл")
     public ResponseEntity<FileDto> uploadFile(
@@ -38,7 +38,7 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(fileService.uploadFile(userId, file, description));
     }
-    
+
     @GetMapping("/{fileId}")
     @Operation(summary = "Получить информацию о файле")
     public ResponseEntity<FileDto> getFileInfo(
@@ -46,7 +46,7 @@ public class FileController {
             @PathVariable Long fileId) {
         return ResponseEntity.ok(fileService.getFileInfo(userId, fileId));
     }
-    
+
     @GetMapping("/{fileId}/download")
     @Operation(summary = "Скачать файл")
     public ResponseEntity<Resource> downloadFile(
@@ -54,16 +54,16 @@ public class FileController {
             @PathVariable Long fileId) {
         FileDto fileDto = fileService.getFileInfo(userId, fileId);
         byte[] fileContent = fileService.downloadFile(userId, fileId);
-        
+
         ByteArrayResource resource = new ByteArrayResource(fileContent);
-        
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileDto.getFileName() + "\"")
                 .contentType(MediaType.parseMediaType(fileDto.getFileType()))
                 .contentLength(fileDto.getFileSize())
                 .body(resource);
     }
-    
+
     @DeleteMapping("/{fileId}")
     @Operation(summary = "Удалить файл")
     public ResponseEntity<Void> deleteFile(
@@ -72,7 +72,7 @@ public class FileController {
         fileService.deleteFile(userId, fileId);
         return ResponseEntity.noContent().build();
     }
-    
+
     @PostMapping("/trips/{tripId}/files")
     @Operation(summary = "Добавить файл к поездке")
     public ResponseEntity<FileDto> addFileToTrip(
@@ -83,7 +83,7 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(fileService.addFileToTrip(userId, tripId, fileId, description));
     }
-    
+
     @GetMapping("/trips/{tripId}/files")
     @Operation(summary = "Получить все файлы поездки")
     public ResponseEntity<List<FileDto>> getTripFiles(
@@ -91,7 +91,7 @@ public class FileController {
             @PathVariable Long tripId) {
         return ResponseEntity.ok(fileService.getTripFiles(userId, tripId));
     }
-    
+
     @DeleteMapping("/trips/{tripId}/files/{fileId}")
     @Operation(summary = "Удалить файл из поездки")
     public ResponseEntity<Void> removeTripFile(
@@ -101,7 +101,7 @@ public class FileController {
         fileService.removeTripFile(userId, tripId, fileId);
         return ResponseEntity.noContent().build();
     }
-    
+
     @PostMapping("/trips/{tripId}/days/{dayId}/places/{placeId}/files")
     @Operation(summary = "Добавить файл к месту")
     public ResponseEntity<FileDto> addFileToPlace(
@@ -114,7 +114,7 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(fileService.addFileToEvent(userId, placeId, fileId, description));
     }
-    
+
     @GetMapping("/trips/{tripId}/days/{dayId}/places/{placeId}/files")
     @Operation(summary = "Получить все файлы места")
     public ResponseEntity<List<FileDto>> getPlaceFiles(
@@ -124,7 +124,7 @@ public class FileController {
             @PathVariable Long placeId) {
         return ResponseEntity.ok(fileService.getEventFiles(userId, placeId));
     }
-    
+
     @DeleteMapping("/trips/{tripId}/days/{dayId}/places/{placeId}/files/{fileId}")
     @Operation(summary = "Удалить файл из места")
     public ResponseEntity<Void> removePlaceFile(

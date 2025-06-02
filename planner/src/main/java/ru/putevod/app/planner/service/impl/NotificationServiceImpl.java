@@ -29,10 +29,10 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public NotificationDto createNotification(Long userId, String type, String content, Integer relatedId) {
         User user = userService.getUserEntityById(userId);
-        
+
         Notification notification = notificationMapper.createNotification(type, content, relatedId, user);
         notification = notificationRepository.save(notification);
-        
+
         return notificationMapper.toDto(notification);
     }
 
@@ -40,14 +40,14 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public NotificationDto getNotification(Long userId, Long notificationId) {
         User user = userService.getUserEntityById(userId);
-        
+
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Уведомление", "id", notificationId));
 
         if (!notification.getUser().getUserId().equals(userId)) {
             throw new BadRequestException("У вас нет доступа к этому уведомлению");
         }
-        
+
         return notificationMapper.toDto(notification);
     }
 
@@ -55,9 +55,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public Page<NotificationDto> getUserNotifications(Long userId, Pageable pageable) {
         User user = userService.getUserEntityById(userId);
-        
+
         Page<Notification> notifications = notificationRepository.findByUserOrderByCreatedAtDesc(user, pageable);
-        
+
         return notifications.map(notificationMapper::toDto);
     }
 
@@ -65,7 +65,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public int getUnreadCount(Long userId) {
         User user = userService.getUserEntityById(userId);
-        
+
         return notificationRepository.countUnreadByUser(user);
     }
 
@@ -76,11 +76,11 @@ public class NotificationServiceImpl implements NotificationService {
 
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Уведомление", "id", notificationId));
-        
+
         if (!notification.getUser().getUserId().equals(userId)) {
             throw new BadRequestException("У вас нет доступа к этому уведомлению");
         }
-        
+
         notificationRepository.markAsRead(user, notificationId);
     }
 
@@ -88,7 +88,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void markAllAsRead(Long userId) {
         User user = userService.getUserEntityById(userId);
-        
+
         notificationRepository.markAllAsRead(user);
     }
 

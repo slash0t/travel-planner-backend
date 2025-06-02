@@ -17,9 +17,10 @@ import org.springframework.web.servlet.view.RedirectView;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Configuration
 public class OpenApiConfig {
-    
+
     @Bean
     public OpenAPI customOpenAPI() {
         List<Server> servers = new ArrayList<>();
@@ -56,7 +57,7 @@ public class OpenApiConfig {
                                         .bearerFormat("JWT")
                                         .description("JWT токен авторизации. Формат: Bearer [token]")));
     }
-    
+
     @Bean
     public OpenApiCustomizer openApiCustomizer() {
         return openApi -> {

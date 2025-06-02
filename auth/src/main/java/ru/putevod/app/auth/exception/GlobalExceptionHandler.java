@@ -33,34 +33,34 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiError> handleResponseStatusException(
-            ResponseStatusException ex, 
+            ResponseStatusException ex,
             HttpServletRequest request) {
-        
+
         ApiError apiError = createApiError(
                 ex.getStatusCode().value(),
                 ex.getReason(),
                 request.getRequestURI(),
                 "ResponseStatusException"
         );
-        
+
         return new ResponseEntity<>(apiError, ex.getStatusCode());
     }
-    
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationException(
             MethodArgumentNotValidException ex,
             HttpServletRequest request) {
-        
+
         BindingResult result = ex.getBindingResult();
         List<Map<String, String>> errors = new ArrayList<>();
-        
+
         for (FieldError error : result.getFieldErrors()) {
             Map<String, String> fieldError = new HashMap<>();
             fieldError.put("field", error.getField());
             fieldError.put("message", error.getDefaultMessage());
             errors.add(fieldError);
         }
-        
+
         ApiError apiError = createApiError(
                 HttpStatus.BAD_REQUEST.value(),
                 "Ошибка валидации данных",
@@ -68,121 +68,121 @@ public class GlobalExceptionHandler {
                 "ValidationException"
         );
         apiError.setErrors(errors);
-        
+
         log.warn("Validation error: {}", errors);
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
-    
+
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiError> handleMissingParameter(
             MissingServletRequestParameterException ex,
             HttpServletRequest request) {
-        
+
         ApiError apiError = createApiError(
                 HttpStatus.BAD_REQUEST.value(),
                 "Отсутствует обязательный параметр: " + ex.getParameterName(),
                 request.getRequestURI(),
                 "MissingParameterException"
         );
-        
+
         log.warn("Missing parameter: {}", ex.getParameterName());
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
-    
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleMessageNotReadable(
             HttpMessageNotReadableException ex,
             HttpServletRequest request) {
-        
+
         ApiError apiError = createApiError(
                 HttpStatus.BAD_REQUEST.value(),
                 "Некорректный формат запроса",
                 request.getRequestURI(),
                 "MessageNotReadableException"
         );
-        
+
         log.warn("Message not readable: {}", ex.getMessage());
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
-    
+
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiError> handleTypeMismatch(
             MethodArgumentTypeMismatchException ex,
             HttpServletRequest request) {
-        
+
         ApiError apiError = createApiError(
                 HttpStatus.BAD_REQUEST.value(),
                 "Параметр '" + ex.getName() + "' имеет неверный тип",
                 request.getRequestURI(),
                 "TypeMismatchException"
         );
-        
+
         log.warn("Type mismatch: {} - Expected: {}", ex.getName(), ex.getRequiredType().getSimpleName());
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
-    
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> handleBadCredentials(
             BadCredentialsException ex,
             HttpServletRequest request) {
-        
+
         ApiError apiError = createApiError(
                 HttpStatus.UNAUTHORIZED.value(),
                 "Неверные учетные данные",
                 request.getRequestURI(),
                 "BadCredentialsException"
         );
-        
+
         log.warn("Bad credentials: {}", ex.getMessage());
         return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
     }
-    
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiError> handleAuthentication(
             AuthenticationException ex,
             HttpServletRequest request) {
-        
+
         ApiError apiError = createApiError(
                 HttpStatus.UNAUTHORIZED.value(),
                 "Ошибка аутентификации: " + ex.getMessage(),
                 request.getRequestURI(),
                 "AuthenticationException"
         );
-        
+
         log.warn("Authentication error: {}", ex.getMessage());
         return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
     }
-    
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDenied(
             AccessDeniedException ex,
             HttpServletRequest request) {
-        
+
         ApiError apiError = createApiError(
                 HttpStatus.FORBIDDEN.value(),
                 "Доступ запрещен",
                 request.getRequestURI(),
                 "AccessDeniedException"
         );
-        
+
         log.warn("Access denied: {}", ex.getMessage());
         return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
     }
-    
+
     @ExceptionHandler({
-        ExpiredJwtException.class,
-        MalformedJwtException.class,
-        SignatureException.class,
-        UnsupportedJwtException.class,
-        IllegalArgumentException.class
+            ExpiredJwtException.class,
+            MalformedJwtException.class,
+            SignatureException.class,
+            UnsupportedJwtException.class,
+            IllegalArgumentException.class
     })
     public ResponseEntity<ApiError> handleJwtExceptions(
             Exception ex,
             HttpServletRequest request) {
-        
+
         String message = "Ошибка JWT токена";
         String errorType = "JwtException";
-        
+
         if (ex instanceof ExpiredJwtException) {
             message = "Срок действия токена истек";
             errorType = "ExpiredJwtException";
@@ -199,7 +199,7 @@ public class GlobalExceptionHandler {
             message = "Недопустимые аргументы JWT";
             errorType = "IllegalArgumentException";
         }
-        
+
         ApiError apiError = createApiError(
                 HttpStatus.UNAUTHORIZED.value(),
                 message,
@@ -210,27 +210,27 @@ public class GlobalExceptionHandler {
         Map<String, Object> details = new HashMap<>();
         details.put("errorMessage", ex.getMessage());
         apiError.setDetails(details);
-        
+
         log.warn("JWT token error: {}", ex.getMessage());
         return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
     }
-    
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneralException(
             Exception ex,
             HttpServletRequest request) {
-        
+
         ApiError apiError = createApiError(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Произошла внутренняя ошибка сервера",
                 request.getRequestURI(),
                 ex.getClass().getSimpleName()
         );
-        
+
         log.error("Unexpected error: ", ex);
         return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    
+
     private ApiError createApiError(int status, String message, String path, String errorType) {
         return ApiError.builder()
                 .status(status)

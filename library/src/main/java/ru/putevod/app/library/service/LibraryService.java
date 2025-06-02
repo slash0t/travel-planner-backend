@@ -6,13 +6,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.putevod.app.library.exception.ResourceNotFoundException;
 import ru.putevod.app.library.dto.PublicRouteDetailDto;
 import ru.putevod.app.library.dto.PublicRouteDto;
 import ru.putevod.app.library.dto.RoutePreviewDto;
 import ru.putevod.app.library.entity.PublishedRoute;
 import ru.putevod.app.library.entity.Trip;
 import ru.putevod.app.library.entity.User;
+import ru.putevod.app.library.exception.ResourceNotFoundException;
 import ru.putevod.app.library.repository.PublishedRouteRepository;
 import ru.putevod.app.library.repository.UserRepository;
 
@@ -47,8 +47,8 @@ public class LibraryService {
     }
 
     @Transactional(readOnly = true)
-    public Page<RoutePreviewDto> getFilteredRoutes(String country, String city, Integer durationMin, 
-                                                Integer durationMax, String tag, Pageable pageable) {
+    public Page<RoutePreviewDto> getFilteredRoutes(String country, String city, Integer durationMin,
+                                                   Integer durationMax, String tag, Pageable pageable) {
         return publishedRouteRepository.findWithFilters(country, city, durationMin, durationMax, tag, pageable)
                 .map(mapperService::toRoutePreviewDto);
     }
@@ -71,7 +71,7 @@ public class LibraryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Route not found with id " + routeId));
 
         incrementViewCount(publishedRoute);
-        
+
         return mapperService.toPublicRouteDetailDto(publishedRoute);
     }
 
@@ -85,7 +85,7 @@ public class LibraryService {
     public List<RoutePreviewDto> getUserPublishedRoutes(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
-                
+
         return publishedRouteRepository.findByUserIdAndIsApprovedTrue(userId).stream()
                 .map(mapperService::toRoutePreviewDto)
                 .collect(Collectors.toList());
@@ -96,10 +96,10 @@ public class LibraryService {
         if (publishedRouteRepository.existsByOriginalRouteId(trip.getId())) {
             throw new IllegalStateException("Route is already published");
         }
-        
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
-        
+
         PublishedRoute publishedRoute = PublishedRoute.builder()
                 .originalRouteId(trip.getId())
                 .userId(userId)
@@ -111,7 +111,7 @@ public class LibraryService {
                 .isApproved(false)
                 .viewCount(0)
                 .build();
-        
+
         PublishedRoute saved = publishedRouteRepository.save(publishedRoute);
         return mapperService.toPublicRouteDto(saved);
     }
@@ -120,10 +120,10 @@ public class LibraryService {
     public PublicRouteDto approvePublishedRoute(Long routeId) {
         PublishedRoute publishedRoute = publishedRouteRepository.findById(routeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Published route not found with id " + routeId));
-        
+
         publishedRoute.setIsApproved(true);
         PublishedRoute saved = publishedRouteRepository.save(publishedRoute);
-        
+
         return mapperService.toPublicRouteDto(saved);
     }
 
@@ -131,7 +131,7 @@ public class LibraryService {
     public void deletePublishedRoute(Long routeId) {
         PublishedRoute publishedRoute = publishedRouteRepository.findById(routeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Published route not found with id " + routeId));
-        
+
         publishedRouteRepository.delete(publishedRoute);
     }
 

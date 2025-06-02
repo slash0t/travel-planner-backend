@@ -22,23 +22,23 @@ public class TripDay {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "day_id")
     private Long dayId;
-    
+
     @ManyToOne
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
-    
+
     @Column(name = "day_number", nullable = false)
     private Integer dayNumber;
-    
+
     @Column
     private LocalDate date;
-    
+
     @Column
     private String note;
-    
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
@@ -51,7 +51,7 @@ public class TripDay {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
-    
+
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();

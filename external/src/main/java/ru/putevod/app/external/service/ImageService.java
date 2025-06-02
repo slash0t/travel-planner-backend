@@ -9,7 +9,7 @@ public interface ImageService {
 
     /**
      * Получает изображения для указанного города
-     * 
+     *
      * @param city название города
      * @return ответ от API с изображениями
      */

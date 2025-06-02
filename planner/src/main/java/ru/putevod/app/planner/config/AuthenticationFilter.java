@@ -38,7 +38,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-        
+
         try {
             String path = request.getRequestURI();
             log.info("Обработка запроса: {} {}", request.getMethod(), path);
@@ -50,30 +50,30 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             }
 
             String token = getTokenFromRequest(request);
-            
+
             if (token == null) {
                 throw new AuthenticationException("Токен авторизации отсутствует");
             }
 
             boolean isValid = authServiceClient.validateToken(token);
-            
+
             if (!isValid) {
                 throw new AuthenticationException("Недействительный токен авторизации");
             }
-            
+
             Map<String, Object> userInfo = authServiceClient.getUserInfoFromToken(token);
             if (userInfo == null || !userInfo.containsKey("userId")) {
                 log.error("Получены данные из токена: {}", userInfo);
                 throw new AuthenticationException("Невозможно получить информацию о пользователе из токена");
             }
-            
+
             Long userId = Long.valueOf(userInfo.get("userId").toString());
             request.setAttribute("userId", userId);
 
             log.info("Установлен userId = {} в атрибуты запроса, передаем запрос дальше", userId);
             filterChain.doFilter(request, response);
             log.info("Запрос обработан filterChain");
-            
+
         } catch (AuthenticationException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
@@ -87,9 +87,10 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             response.getWriter().write("{\"error\":\"Внутренняя ошибка сервера\"}");
         }
     }
-    
+
     /**
      * Извлекает JWT токен из заголовка Authorization
+     *
      * @param request HTTP запрос
      * @return токен или null, если токен не найден
      */
@@ -100,9 +101,10 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
-    
+
     /**
      * Проверяет, находится ли путь в белом списке (не требует аутентификации)
+     *
      * @param path путь запроса
      * @return true, если путь не требует аутентификации
      */

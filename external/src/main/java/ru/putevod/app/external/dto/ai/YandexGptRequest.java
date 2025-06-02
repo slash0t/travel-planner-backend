@@ -13,15 +13,15 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class YandexGptRequest {
-    
+
     @JsonProperty("modelUri")
     private String modelUri;
-    
+
     @JsonProperty("completionOptions")
     private CompletionOptions completionOptions;
-    
+
     private List<Message> messages;
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -29,11 +29,11 @@ public class YandexGptRequest {
     public static class CompletionOptions {
         private boolean stream;
         private Double temperature;
-        
+
         @JsonProperty("maxTokens")
         private String maxTokens;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor

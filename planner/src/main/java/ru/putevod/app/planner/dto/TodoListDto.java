@@ -24,10 +24,10 @@ public class TodoListDto {
     private String listType;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
+
     @Builder.Default
     private List<TodoItemDto> items = new ArrayList<>();
-    
+
     private int itemCount;
     private int completedCount;
 } 

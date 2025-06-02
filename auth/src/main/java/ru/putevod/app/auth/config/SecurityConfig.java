@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -40,7 +39,7 @@ public class SecurityConfig {
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
     }
-    
+
     @Bean
     public JwtExceptionHandler jwtExceptionHandler() {
         return new JwtExceptionHandler(objectMapper);
@@ -91,19 +90,19 @@ public class SecurityConfig {
         } else {
             configuration.setAllowedOriginPatterns(List.of("*"));
         }
-        
+
         if (appProperties.getSecurity().getAllowedMethods() != null) {
             configuration.setAllowedMethods(Arrays.asList(appProperties.getSecurity().getAllowedMethods().split(",")));
         } else {
             configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         }
-        
+
         if (appProperties.getSecurity().getAllowedHeaders() != null) {
             configuration.setAllowedHeaders(Arrays.asList(appProperties.getSecurity().getAllowedHeaders().split(",")));
         } else {
             configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token", "X-Service-Token"));
         }
-        
+
         configuration.setExposedHeaders(List.of("X-Auth-Token"));
         configuration.setAllowCredentials(true);
 

@@ -22,9 +22,9 @@ import java.util.List;
 @Tag(name = "Todo Lists", description = "API для управления списками задач")
 @SecurityRequirement(name = "bearerAuth")
 public class TodoListController {
-    
+
     private final TodoListService todoListService;
-    
+
     @PostMapping("/todo-lists")
     @Operation(summary = "Создать новый список задач")
     public ResponseEntity<TodoListDto> createTodoList(
@@ -33,7 +33,7 @@ public class TodoListController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(todoListService.createTodoList(userId, todoListDto));
     }
-    
+
     @PostMapping("/trips/{tripId}/todo-lists")
     @Operation(summary = "Создать новый список задач для поездки")
     public ResponseEntity<TodoListDto> createTripTodoList(
@@ -43,7 +43,7 @@ public class TodoListController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(todoListService.createTripTodoList(userId, tripId, todoListDto));
     }
-    
+
     @GetMapping("/todo-lists")
     @Operation(summary = "Получить все списки задач пользователя")
     public ResponseEntity<Page<TodoListDto>> getUserTodoLists(
@@ -51,7 +51,7 @@ public class TodoListController {
             Pageable pageable) {
         return ResponseEntity.ok(todoListService.getUserTodoLists(userId, pageable));
     }
-    
+
     @GetMapping("/trips/{tripId}/todo-lists")
     @Operation(summary = "Получить все списки задач для поездки")
     public ResponseEntity<List<TodoListDto>> getTripTodoLists(
@@ -59,7 +59,7 @@ public class TodoListController {
             @PathVariable Long tripId) {
         return ResponseEntity.ok(todoListService.getTripTodoLists(userId, tripId));
     }
-    
+
     @GetMapping("/todo-lists/{listId}")
     @Operation(summary = "Получить список задач по ID")
     public ResponseEntity<TodoListDto> getTodoListById(
@@ -67,7 +67,7 @@ public class TodoListController {
             @PathVariable Long listId) {
         return ResponseEntity.ok(todoListService.getTodoListById(userId, listId));
     }
-    
+
     @PutMapping("/todo-lists/{listId}")
     @Operation(summary = "Обновить список задач")
     public ResponseEntity<TodoListDto> updateTodoList(
@@ -76,7 +76,7 @@ public class TodoListController {
             @RequestBody TodoListDto todoListDto) {
         return ResponseEntity.ok(todoListService.updateTodoList(userId, listId, todoListDto));
     }
-    
+
     @DeleteMapping("/todo-lists/{listId}")
     @Operation(summary = "Удалить список задач")
     public ResponseEntity<Void> deleteTodoList(
@@ -85,7 +85,7 @@ public class TodoListController {
         todoListService.deleteTodoList(userId, listId);
         return ResponseEntity.noContent().build();
     }
-    
+
     @PostMapping("/todo-lists/{listId}/items")
     @Operation(summary = "Добавить элемент в список задач")
     public ResponseEntity<TodoItemDto> addTodoItem(
@@ -95,7 +95,7 @@ public class TodoListController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(todoListService.addTodoItem(userId, listId, todoItemDto));
     }
-    
+
     @PutMapping("/todo-lists/{listId}/items/{itemId}")
     @Operation(summary = "Обновить элемент списка задач")
     public ResponseEntity<TodoItemDto> updateTodoItem(
@@ -105,7 +105,7 @@ public class TodoListController {
             @RequestBody TodoItemDto todoItemDto) {
         return ResponseEntity.ok(todoListService.updateTodoItem(userId, listId, itemId, todoItemDto));
     }
-    
+
     @PutMapping("/todo-lists/{listId}/items/{itemId}/toggle")
     @Operation(summary = "Переключить статус выполнения задачи")
     public ResponseEntity<TodoItemDto> toggleTodoItemComplete(
@@ -114,7 +114,7 @@ public class TodoListController {
             @PathVariable Long itemId) {
         return ResponseEntity.ok(todoListService.toggleTodoItemComplete(userId, listId, itemId));
     }
-    
+
     @PutMapping("/todo-lists/{listId}/items/toggle-all")
     @Operation(summary = "Переключить статус всех задач в списке")
     public ResponseEntity<Void> toggleAllTodoItemsComplete(
@@ -124,7 +124,7 @@ public class TodoListController {
         todoListService.toggleAllTodoItemsComplete(userId, listId, completed);
         return ResponseEntity.noContent().build();
     }
-    
+
     @DeleteMapping("/todo-lists/{listId}/items/{itemId}")
     @Operation(summary = "Удалить элемент списка задач")
     public ResponseEntity<Void> deleteTodoItem(

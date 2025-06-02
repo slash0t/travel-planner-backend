@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 
 @Slf4j
 @RequiredArgsConstructor
-@Order(1) 
+@Order(1)
 public class JwtExceptionHandler extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper;
@@ -63,7 +63,7 @@ public class JwtExceptionHandler extends OncePerRequestFilter {
     ) throws IOException {
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        
+
         ApiError apiError = ApiError.builder()
                 .status(status.value())
                 .message(message)
@@ -71,7 +71,7 @@ public class JwtExceptionHandler extends OncePerRequestFilter {
                 .path(request.getRequestURI())
                 .timestamp(LocalDateTime.now())
                 .build();
-        
+
         response.getWriter().write(objectMapper.writeValueAsString(apiError));
     }
 } 

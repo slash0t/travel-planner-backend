@@ -7,10 +7,10 @@ import ru.putevod.app.planner.dto.CreateTripDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.model.Trip;
 
-@Mapper(componentModel = "spring", 
+@Mapper(componentModel = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface CreateTripMapper {
-    
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "creator", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -22,7 +22,7 @@ public interface CreateTripMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "totalDays", ignore = true)
     TripDto toTripDto(CreateTripDto createTripDto);
-    
+
     @Mapping(target = "tripId", ignore = true)
     @Mapping(target = "creator", ignore = true)
     @Mapping(target = "days", ignore = true)

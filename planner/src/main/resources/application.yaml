@@ -11,7 +11,7 @@ spring:
       password: ${SPRING_SECURITY_PASSWORD}
 
   autoconfigure:
-    exclude: 
+    exclude:
       - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
       - org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration
       - org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration

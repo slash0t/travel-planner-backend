@@ -15,15 +15,15 @@ import java.util.Optional;
 
 @Repository
 public interface TodoListRepository extends JpaRepository<TodoList, Long> {
-    
+
     Page<TodoList> findByUser(User user, Pageable pageable);
-    
+
     List<TodoList> findByTrip(Trip trip);
-    
+
     @Query("SELECT t FROM TodoList t WHERE t.user = :user AND (t.trip IS NULL OR t.trip.isDeleted = false)")
     Page<TodoList> findAllActiveByUser(@Param("user") User user, Pageable pageable);
-    
+
     Optional<TodoList> findByUserAndListId(User user, Long listId);
-    
+
     Optional<TodoList> findByTripAndListId(Trip trip, Long listId);
 } 

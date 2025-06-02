@@ -16,38 +16,38 @@ import ru.putevod.app.external.service.ImageService;
 public class PixabayImageService implements ImageService {
 
     private final RestTemplate restTemplate;
-    
+
     @Value("${pixabay.api.key:50443727-7b799271d0c5339458ce8b20d}")
     private String apiKey;
-    
+
     @Value("${pixabay.api.url:https://pixabay.com/api/}")
     private String apiUrl;
-    
+
     @Override
     public PixabayResponse getCityImages(String city) {
         if (city == null || city.trim().isEmpty()) {
             log.warn("Город не указан для поиска изображений");
             return null;
         }
-        
+
         try {
             String searchTerm = city.trim() + " достопримечательность";
-            String url = apiUrl + 
-                    "?key=" + apiKey + 
-                    "&q=" + searchTerm + 
-                    "&image_type=photo" + 
-                    "&orientation=horizontal" + 
-                    "&order=popular" + 
+            String url = apiUrl +
+                    "?key=" + apiKey +
+                    "&q=" + searchTerm +
+                    "&image_type=photo" +
+                    "&orientation=horizontal" +
+                    "&order=popular" +
                     "&per_page=3" +
-                    "&safesearch=true" + 
+                    "&safesearch=true" +
                     "&lang=ru";
-            
+
             log.debug("Запрос к Pixabay API: {}", url);
-            
+
             ResponseEntity<PixabayResponse> response = restTemplate.getForEntity(url, PixabayResponse.class);
-            
+
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                log.info("Получены изображения для города {}: {} результатов", city, 
+                log.info("Получены изображения для города {}: {} результатов", city,
                         response.getBody().getHits() != null ? response.getBody().getHits().size() : 0);
                 return response.getBody();
             } else {

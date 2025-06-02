@@ -4,27 +4,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.putevod.app.external.client.AuthServiceClient;
 import ru.putevod.app.external.dto.ai.*;
 import ru.putevod.app.external.service.AiService;
-import ru.putevod.app.external.client.AuthServiceClient;
 
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// Import SecurityAutoConfiguration
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-
-@WebMvcTest(value = AiController.class, 
-            excludeAutoConfiguration = SecurityAutoConfiguration.class) // Disable security for this test
+@WebMvcTest(value = AiController.class,
+        excludeAutoConfiguration = SecurityAutoConfiguration.class) // Disable security for this test
 class AiControllerTest {
 
     @Autowired
@@ -83,7 +82,7 @@ class AiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.totalItems").value(0));
-                // Add more assertions based on PackingListResponse structure
+        // Add more assertions based on PackingListResponse structure
     }
 
     @Test
@@ -106,12 +105,12 @@ class AiControllerTest {
         invalidRequest.setParticipants(Collections.singletonList(new ParticipantDto("adult", 1)));
 
         mockMvc.perform(post("/api/v1/ai/packing-list")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest))
-                        .accept(MediaType.APPLICATION_JSON));
-                // .andExpect(status().isBadRequest()); 
-                // TODO: Enable this assertion once @Valid / validation annotations are added to PackingListRequest
-                // Currently, the controller accepts invalid data and returns 200 OK.
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest))
+                .accept(MediaType.APPLICATION_JSON));
+        // .andExpect(status().isBadRequest());
+        // TODO: Enable this assertion once @Valid / validation annotations are added to PackingListRequest
+        // Currently, the controller accepts invalid data and returns 200 OK.
     }
 
     // --- Test for GET /api/v1/ai/packing-list/templates ---
@@ -124,7 +123,7 @@ class AiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.templates").isArray());
-                // Add more assertions based on PackingListTemplatesResponse structure
+        // Add more assertions based on PackingListTemplatesResponse structure
     }
 
     // --- Test for GET /api/v1/ai/packing-list/template/{templateId} ---
@@ -140,6 +139,6 @@ class AiControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(templateId))
                 .andExpect(jsonPath("$.name").value("Summer City Trip"));
-                // Add more assertions based on PackingListTemplateContent structure
+        // Add more assertions based on PackingListTemplateContent structure
     }
 } 

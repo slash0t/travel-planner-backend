@@ -16,20 +16,21 @@ import java.util.Map;
 @Service
 @Slf4j
 public class AuthServiceClient {
-    
+
     private final WebClient webClient;
-    
+
     @Value("${auth.token}")
     private String serviceToken;
-    
+
     public AuthServiceClient(@Qualifier("authServiceWebClient") WebClient webClient) {
         this.webClient = webClient;
     }
-    
+
     /**
      * Получает информацию о пользователе из сервиса авторизации
+     *
      * @param userId ID пользователя
-     * @param token JWT токен авторизации
+     * @param token  JWT токен авторизации
      * @return данные пользователя
      */
     public UserDto getUserInfo(Long userId, String token) {
@@ -43,9 +44,10 @@ public class AuthServiceClient {
                 .doOnError(e -> log.error("Ошибка получения информации о пользователе из сервиса авторизации: {}", e.getMessage()))
                 .block();
     }
-    
+
     /**
      * Проверяет валидность токена аутентификации
+     *
      * @param token JWT токен для проверки
      * @return true, если токен действителен
      */
@@ -65,9 +67,10 @@ public class AuthServiceClient {
             return false;
         }
     }
-    
+
     /**
      * Получает информацию о пользователе из токена
+     *
      * @param token JWT токен для получения информации
      * @return данные пользователя из токена или null в случае ошибки
      */
@@ -92,7 +95,9 @@ public class AuthServiceClient {
         }
     }
 
-    private record TokenValidationRequest(String token) {}
-    
-    private record TokenValidationResponse(boolean valid) {}
+    private record TokenValidationRequest(String token) {
+    }
+
+    private record TokenValidationResponse(boolean valid) {
+    }
 } 

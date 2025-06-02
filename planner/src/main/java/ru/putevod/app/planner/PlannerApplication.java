@@ -23,7 +23,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         bearerFormat = "JWT",
         in = SecuritySchemeIn.HEADER
 )
-public class    PlannerApplication {
+public class PlannerApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(PlannerApplication.class, args);
