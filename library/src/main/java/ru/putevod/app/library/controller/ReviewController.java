@@ -50,9 +50,10 @@ public class ReviewController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Отзыв успешно добавлен",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReviewDto.class))),
-            @ApiResponse(responseCode = "400", description = "Неверные данные"),
+            @ApiResponse(responseCode = "400", description = "Неверные данные отзыва"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
             @ApiResponse(responseCode = "404", description = "Маршрут не найден"),
-            @ApiResponse(responseCode = "401", description = "Не авторизован")
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     public ResponseEntity<ReviewDto> addReview(
             @PathVariable @Parameter(description = "ID маршрута") Long routeId,
@@ -70,10 +71,11 @@ public class ReviewController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Отзыв успешно обновлен",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReviewDto.class))),
-            @ApiResponse(responseCode = "400", description = "Неверные данные"),
+            @ApiResponse(responseCode = "400", description = "Неверные данные отзыва"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
+            @ApiResponse(responseCode = "403", description = "Нет прав на обновление отзыва"),
             @ApiResponse(responseCode = "404", description = "Отзыв не найден"),
-            @ApiResponse(responseCode = "403", description = "Нет прав на обновление"),
-            @ApiResponse(responseCode = "401", description = "Не авторизован")
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     public ResponseEntity<ReviewDto> updateReview(
             @PathVariable @Parameter(description = "ID маршрута") Long routeId,
@@ -90,9 +92,10 @@ public class ReviewController {
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Отзыв успешно удален"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
+            @ApiResponse(responseCode = "403", description = "Нет прав на удаление отзыва"),
             @ApiResponse(responseCode = "404", description = "Отзыв не найден"),
-            @ApiResponse(responseCode = "403", description = "Нет прав на удаление"),
-            @ApiResponse(responseCode = "401", description = "Не авторизован")
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     public ResponseEntity<Void> deleteReview(
             @PathVariable @Parameter(description = "ID маршрута") Long routeId,
@@ -108,8 +111,9 @@ public class ReviewController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Отзыв успешно получен",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReviewDto.class))),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
             @ApiResponse(responseCode = "404", description = "Отзыв не найден"),
-            @ApiResponse(responseCode = "401", description = "Не авторизован")
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     public ResponseEntity<ReviewDto> getMyReview(
             @PathVariable @Parameter(description = "ID маршрута") Long routeId,

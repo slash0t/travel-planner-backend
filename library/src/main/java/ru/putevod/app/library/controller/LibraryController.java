@@ -89,7 +89,8 @@ public class LibraryController {
     @Operation(summary = "Фильтрация маршрутов по критериям", description = "Фильтрует маршруты по заданным критериям")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Отфильтрованные маршруты успешно получены",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "400", description = "Некорректные параметры фильтрации")
     })
     public ResponseEntity<Page<RoutePreviewDto>> filterRoutes(
             @RequestParam(required = false) String country,
@@ -153,9 +154,11 @@ public class LibraryController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Маршрут успешно опубликован",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = PublicRouteDto.class))),
-            @ApiResponse(responseCode = "400", description = "Ошибка публикации маршрута"),
+            @ApiResponse(responseCode = "400", description = "Ошибка публикации маршрута или некорректный ID"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
             @ApiResponse(responseCode = "403", description = "Нет доступа к маршруту"),
-            @ApiResponse(responseCode = "401", description = "Не авторизован")
+            @ApiResponse(responseCode = "404", description = "Маршрут не найден"),
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     public ResponseEntity<PublicRouteDto> publishRoute(
             @PathVariable @Parameter(description = "ID маршрута") Long tripId,
@@ -187,9 +190,10 @@ public class LibraryController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Маршрут успешно одобрен",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = PublicRouteDto.class))),
-            @ApiResponse(responseCode = "404", description = "Маршрут не найден"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
             @ApiResponse(responseCode = "403", description = "Нет прав администратора"),
-            @ApiResponse(responseCode = "401", description = "Не авторизован")
+            @ApiResponse(responseCode = "404", description = "Маршрут не найден"),
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     public ResponseEntity<PublicRouteDto> approveRoute(
             @PathVariable @Parameter(description = "ID опубликованного маршрута") Long id) {

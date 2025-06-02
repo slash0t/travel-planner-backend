@@ -212,7 +212,7 @@ public class AuthServiceImpl implements AuthService {
 
         Map<String, Object> response = new HashMap<>();
         response.put("anonymousToken", anonymousToken);
-        response.put("expiresIn", (int) (appProperties.getJwt().getAnonymousTokenExpirationMs() / 1000));
+        response.put("expiresIn", (int) (appProperties.getJwt().getAnonymousTokenExpirationMs() / 1000)); 
 
         return response;
     }

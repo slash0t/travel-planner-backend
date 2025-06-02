@@ -33,8 +33,9 @@ public class AdminController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Список всех отзывов успешно получен",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
             @ApiResponse(responseCode = "403", description = "Нет прав администратора"),
-            @ApiResponse(responseCode = "401", description = "Не авторизован")
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<ReviewDto>> getAllReviews(
@@ -48,9 +49,10 @@ public class AdminController {
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Отзыв успешно удален"),
-            @ApiResponse(responseCode = "404", description = "Отзыв не найден"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
             @ApiResponse(responseCode = "403", description = "Нет прав администратора"),
-            @ApiResponse(responseCode = "401", description = "Не авторизован")
+            @ApiResponse(responseCode = "404", description = "Отзыв не найден"),
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteReviewById(
