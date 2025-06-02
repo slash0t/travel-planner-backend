@@ -1,5 +1,10 @@
 package ru.putevod.app.planner.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +23,21 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/templates")
 @RequiredArgsConstructor
+@Tag(name = "Todo Templates", description = "API для управления шаблонами задач. Позволяет получать готовые шаблоны задач для различных категорий поездок.")
 public class TodoTemplateController {
 
     private final TodoTemplateRepository todoTemplateRepository;
     private final TemplateItemRepository templateItemRepository;
     
+    @Operation(
+        summary = "Получить все шаблоны задач",
+        description = "Возвращает список всех доступных шаблонов задач. Шаблоны содержат готовые наборы задач для различных типов поездок."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Список шаблонов успешно получен"),
+        @ApiResponse(responseCode = "204", description = "Шаблоны не найдены"),
+        @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
     @GetMapping
     public ResponseEntity<List<TodoTemplateDto>> getAllTemplates() {
         List<TodoTemplate> templates = todoTemplateRepository.findAll();
@@ -37,8 +52,19 @@ public class TodoTemplateController {
         return ResponseEntity.ok(result);
     }
     
+    @Operation(
+        summary = "Получить детали шаблона",
+        description = "Возвращает подробную информацию о конкретном шаблоне задач включая его метаданные."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Детали шаблона успешно получены"),
+        @ApiResponse(responseCode = "404", description = "Шаблон не найден"),
+        @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
     @GetMapping("/{templateId}")
-    public ResponseEntity<Map<String, Object>> getTemplateDetails(@PathVariable Long templateId) {
+    public ResponseEntity<Map<String, Object>> getTemplateDetails(
+            @Parameter(description = "Уникальный идентификатор шаблона", required = true, example = "1")
+            @PathVariable Long templateId) {
         return todoTemplateRepository.findById(templateId)
                 .map(template -> {
                     Map<String, Object> result = new HashMap<>();
@@ -52,8 +78,19 @@ public class TodoTemplateController {
                 .orElse(ResponseEntity.notFound().build());
     }
     
+    @Operation(
+        summary = "Получить элементы шаблона",
+        description = "Возвращает список всех задач (элементов) конкретного шаблона в правильном порядке."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Элементы шаблона успешно получены"),
+        @ApiResponse(responseCode = "404", description = "Шаблон не найден"),
+        @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
     @GetMapping("/{templateId}/items")
-    public ResponseEntity<List<String>> getTemplateItems(@PathVariable Long templateId) {
+    public ResponseEntity<List<String>> getTemplateItems(
+            @Parameter(description = "Уникальный идентификатор шаблона", required = true, example = "1")
+            @PathVariable Long templateId) {
         return todoTemplateRepository.findById(templateId)
                 .map(template -> {
                     List<TemplateItem> items = templateItemRepository.findByTemplateOrderByOrderPosition(template);
@@ -65,8 +102,19 @@ public class TodoTemplateController {
                 .orElse(ResponseEntity.notFound().build());
     }
     
+    @Operation(
+        summary = "Получить шаблоны по категории",
+        description = "Возвращает список шаблонов задач для конкретной категории поездки (например, 'business', 'vacation', 'adventure')."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Шаблоны категории успешно получены"),
+        @ApiResponse(responseCode = "204", description = "Шаблоны для данной категории не найдены"),
+        @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
     @GetMapping("/category/{category}")
-    public ResponseEntity<List<TodoTemplateDto>> getTemplatesByCategory(@PathVariable String category) {
+    public ResponseEntity<List<TodoTemplateDto>> getTemplatesByCategory(
+            @Parameter(description = "Категория шаблонов", required = true, example = "business")
+            @PathVariable String category) {
         List<TodoTemplate> templates = todoTemplateRepository.findByCategory(category);
         if (templates.isEmpty()) {
             return ResponseEntity.noContent().build();
