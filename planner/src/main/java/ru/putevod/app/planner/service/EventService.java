@@ -1,8 +1,10 @@
 package ru.putevod.app.planner.service;
 
 import ru.putevod.app.planner.dto.CreateEventDto;
+import ru.putevod.app.planner.dto.CreateEventReminderDto;
 import ru.putevod.app.planner.dto.EventDto;
 import ru.putevod.app.planner.dto.EventReminderDto;
+import ru.putevod.app.planner.dto.UpdateEventDto;
 import ru.putevod.app.planner.model.Event;
 
 import java.util.List;
@@ -11,7 +13,7 @@ public interface EventService {
 
     EventDto createEvent(Long userId, Long tripId, Long dayId, CreateEventDto createEventDto);
 
-    EventDto updateEvent(Long userId, Long tripId, Long dayId, Long eventId, EventDto eventDto);
+    EventDto updateEvent(Long userId, Long tripId, Long dayId, Long eventId, UpdateEventDto updateEventDto);
 
     EventDto getEvent(Long userId, Long tripId, Long dayId, Long eventId);
 
@@ -23,7 +25,7 @@ public interface EventService {
 
     List<EventDto> getUpcomingEvents(Long userId, int days);
 
-    EventReminderDto addEventReminder(Long userId, Long eventId, EventReminderDto reminderDto);
+    EventReminderDto addEventReminder(Long userId, Long eventId, CreateEventReminderDto reminderDto);
 
     List<EventReminderDto> getEventReminders(Long userId, Long eventId);
 

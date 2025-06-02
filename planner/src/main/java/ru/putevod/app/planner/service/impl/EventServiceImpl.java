@@ -5,15 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.putevod.app.planner.dto.CreateEventDto;
+import ru.putevod.app.planner.dto.UpdateEventDto;
+import ru.putevod.app.planner.dto.CreateEventReminderDto;
 import ru.putevod.app.planner.dto.EventDto;
 import ru.putevod.app.planner.dto.EventReminderDto;
-import ru.putevod.app.planner.dto.PlaceDto;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
-import ru.putevod.app.planner.mapper.CreateEventMapper;
 import ru.putevod.app.planner.mapper.EventMapper;
-import ru.putevod.app.planner.mapper.EventReminderMapper;
 import ru.putevod.app.planner.mapper.PlaceMapper;
+import ru.putevod.app.planner.mapper.EventReminderMapper;
 import ru.putevod.app.planner.model.*;
 import ru.putevod.app.planner.repository.EventReminderRepository;
 import ru.putevod.app.planner.repository.EventRepository;
@@ -42,7 +42,6 @@ public class EventServiceImpl implements EventService {
     private final UserService userService;
     private final NotificationService notificationService;
     private final EventMapper eventMapper;
-    private final CreateEventMapper createEventMapper;
     private final PlaceMapper placeMapper;
     private final EventReminderMapper eventReminderMapper;
 
@@ -75,14 +74,19 @@ public class EventServiceImpl implements EventService {
                 .filter(e -> e.getOrderPosition() >= createEventDto.getOrderPosition())
                 .forEach(e -> e.setOrderPosition(e.getOrderPosition() + 1));
 
-        Event event = createEventMapper.fromDto(createEventDto, day);
+        Event event = eventMapper.toEntityFromCreate(createEventDto, day);
 
         if (createEventDto.getPlace() != null) {
-            PlaceDto placeDto = createEventMapper.toPlaceDto(createEventDto.getPlace());
+            Place place = new Place();
+            place.setName(createEventDto.getPlace().getName());
+            place.setLatitude(createEventDto.getPlace().getLatitude());
+            place.setLongitude(createEventDto.getPlace().getLongitude());
+            place.setAddress(createEventDto.getPlace().getAddress());
+            place.setPlaceType(createEventDto.getPlace().getPlaceType());
+            place.setExternalId(createEventDto.getPlace().getExternalId());
+            place.setPreviewUrl(createEventDto.getPlace().getPreviewUrl());
 
-            Place place = placeMapper.toEntity(placeDto);
             place = placeRepository.save(place);
-
             event.setPlace(place);
         }
 
@@ -93,7 +97,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventDto updateEvent(Long userId, Long tripId, Long dayId, Long eventId, EventDto eventDto) {
+    public EventDto updateEvent(Long userId, Long tripId, Long dayId, Long eventId, UpdateEventDto updateEventDto) {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
 
         // Проверяем доступ на запись
@@ -112,7 +116,7 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Событие не принадлежит указанному дню");
         }
 
-        eventMapper.updateEntityFromDto(eventDto, event);
+        eventMapper.updateEntityFromUpdate(updateEventDto, event);
         event = eventRepository.save(event);
 
         return eventMapper.toDto(event);
@@ -216,14 +220,14 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventReminderDto addEventReminder(Long userId, Long eventId, EventReminderDto reminderDto) {
+    public EventReminderDto addEventReminder(Long userId, Long eventId, CreateEventReminderDto reminderDto) {
         User user = userService.getUserEntityById(userId);
         Event event = getEventEntityById(eventId);
 
         Trip trip = event.getDay().getTrip();
         tripService.hasAccessToTrip(user, trip, "admin", "read", "write");
 
-        EventReminder reminder = eventReminderMapper.fromDto(reminderDto, event, user);
+        EventReminder reminder = eventReminderMapper.toEntityFromCreate(reminderDto, event, user);
 
         if (reminderDto.getRemindAt() == null && reminderDto.getMinutesBefore() != null) {
             if (event.isHasSpecificTime() && event.getStartTime() != null) {
