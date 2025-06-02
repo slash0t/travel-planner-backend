@@ -10,8 +10,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import ru.putevod.app.planner.dto.CreateTodoItemDto;
 import ru.putevod.app.planner.dto.TodoItemDto;
 import ru.putevod.app.planner.dto.TodoListDto;
+import ru.putevod.app.planner.dto.UpdateTodoItemDto;
 import ru.putevod.app.planner.service.TodoListService;
 
 import java.time.LocalDateTime;
@@ -38,6 +40,8 @@ class TodoListControllerTest {
     private Long itemId;
     private TodoListDto mockTodoListDto;
     private TodoItemDto mockTodoItemDto;
+    private CreateTodoItemDto mockCreateTodoItemDto;
+    private UpdateTodoItemDto mockUpdateTodoItemDto;
 
     @BeforeEach
     void setUp() {
@@ -67,6 +71,18 @@ class TodoListControllerTest {
                 .orderPosition(1)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .build();
+
+        mockCreateTodoItemDto = CreateTodoItemDto.builder()
+                .content("Test Item")
+                .completed(false)
+                .orderPosition(1)
+                .build();
+
+        mockUpdateTodoItemDto = UpdateTodoItemDto.builder()
+                .content("Updated Item")
+                .completed(true)
+                .orderPosition(2)
                 .build();
     }
 
@@ -173,31 +189,31 @@ class TodoListControllerTest {
 
     @Test
     void addTodoItem_ShouldReturnCreatedItem() {
-        when(todoListService.addTodoItem(eq(userId), eq(listId), any(TodoItemDto.class)))
+        when(todoListService.addTodoItem(eq(userId), eq(listId), any(CreateTodoItemDto.class)))
                 .thenReturn(mockTodoItemDto);
 
-        ResponseEntity<TodoItemDto> response = todoListController.addTodoItem(userId, listId, mockTodoItemDto);
+        ResponseEntity<TodoItemDto> response = todoListController.addTodoItem(userId, listId, mockCreateTodoItemDto);
 
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(mockTodoItemDto.getId(), response.getBody().getId());
         assertEquals(mockTodoItemDto.getContent(), response.getBody().getContent());
-        verify(todoListService).addTodoItem(eq(userId), eq(listId), any(TodoItemDto.class));
+        verify(todoListService).addTodoItem(eq(userId), eq(listId), any(CreateTodoItemDto.class));
     }
 
     @Test
     void updateTodoItem_ShouldReturnUpdatedItem() {
-        when(todoListService.updateTodoItem(eq(userId), eq(listId), eq(itemId), any(TodoItemDto.class)))
+        when(todoListService.updateTodoItem(eq(userId), eq(listId), eq(itemId), any(UpdateTodoItemDto.class)))
                 .thenReturn(mockTodoItemDto);
 
-        ResponseEntity<TodoItemDto> response = todoListController.updateTodoItem(userId, listId, itemId, mockTodoItemDto);
+        ResponseEntity<TodoItemDto> response = todoListController.updateTodoItem(userId, listId, itemId, mockUpdateTodoItemDto);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(mockTodoItemDto.getId(), response.getBody().getId());
-        verify(todoListService).updateTodoItem(eq(userId), eq(listId), eq(itemId), any(TodoItemDto.class));
+        verify(todoListService).updateTodoItem(eq(userId), eq(listId), eq(itemId), any(UpdateTodoItemDto.class));
     }
 
     @Test

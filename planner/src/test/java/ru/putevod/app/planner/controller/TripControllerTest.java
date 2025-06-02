@@ -12,12 +12,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import ru.putevod.app.planner.dto.CreateTripDto;
-import ru.putevod.app.planner.dto.TripAccessDto;
+import ru.putevod.app.planner.dto.UpdateTripDto;
+import ru.putevod.app.planner.dto.CreateTripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
+import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.UserDto;
 import ru.putevod.app.planner.service.TripService;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,7 +38,9 @@ class TripControllerTest {
 
     private TripDto mockTripDto;
     private CreateTripDto mockCreateTripDto;
+    private UpdateTripDto mockUpdateTripDto;
     private TripAccessDto mockTripAccessDto;
+    private CreateTripAccessDto mockCreateTripAccessDto;
     private Long userId;
     private Long tripId;
 
@@ -46,32 +51,53 @@ class TripControllerTest {
         userId = 1L;
         tripId = 1L;
 
+        UserDto userDto = UserDto.builder()
+                .id(userId)
+                .username("testUser")
+                .email("test@example.com")
+                .build();
+
         mockTripDto = TripDto.builder()
                 .id(tripId)
                 .title("Test Trip")
                 .description("Test Description")
-                .startDate(LocalDate.now().plusDays(1))
-                .endDate(LocalDate.now().plusDays(5))
-                .country("Test Country")
-                .city("Test City")
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(7))
+                .country("Russia")
+                .city("Moscow")
+                .published(false)
+                .creator(userDto)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
 
         mockCreateTripDto = CreateTripDto.builder()
                 .title("Test Trip")
                 .description("Test Description")
-                .startDate(LocalDate.now().plusDays(1))
-                .endDate(LocalDate.now().plusDays(5))
-                .country("Test Country")
-                .city("Test City")
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(7))
+                .country("Russia")
+                .city("Moscow")
+                .published(false)
                 .build();
 
-        UserDto userDto = UserDto.builder()
-                .id(2L)
-                .username("testuser")
+        mockUpdateTripDto = UpdateTripDto.builder()
+                .title("Updated Trip")
+                .description("Updated Description")
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(7))
+                .country("Russia")
+                .city("Moscow")
+                .published(true)
                 .build();
 
         mockTripAccessDto = TripAccessDto.builder()
                 .user(userDto)
+                .accessLevel("read")
+                .build();
+
+        mockCreateTripAccessDto = CreateTripAccessDto.builder()
+                .userId(2L)
                 .accessLevel("read")
                 .build();
     }
@@ -165,16 +191,16 @@ class TripControllerTest {
 
     @Test
     void updateTrip_ShouldReturnUpdatedTrip() {
-        when(tripService.updateTrip(eq(userId), eq(tripId), any(TripDto.class)))
+        when(tripService.updateTrip(eq(userId), eq(tripId), any(UpdateTripDto.class)))
                 .thenReturn(mockTripDto);
 
-        ResponseEntity<TripDto> response = tripController.updateTrip(userId, tripId, mockTripDto);
+        ResponseEntity<TripDto> response = tripController.updateTrip(userId, tripId, mockUpdateTripDto);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(mockTripDto.getId(), response.getBody().getId());
-        verify(tripService).updateTrip(eq(userId), eq(tripId), any(TripDto.class));
+        verify(tripService).updateTrip(eq(userId), eq(tripId), any(UpdateTripDto.class));
     }
 
     @Test
@@ -190,16 +216,16 @@ class TripControllerTest {
 
     @Test
     void shareTrip_ShouldReturnCreatedAccess() {
-        when(tripService.shareTrip(eq(userId), eq(tripId), any(TripAccessDto.class)))
+        when(tripService.shareTrip(eq(userId), eq(tripId), any(CreateTripAccessDto.class)))
                 .thenReturn(mockTripAccessDto);
 
-        ResponseEntity<TripAccessDto> response = tripController.shareTrip(userId, tripId, mockTripAccessDto);
+        ResponseEntity<TripAccessDto> response = tripController.shareTrip(userId, tripId, mockCreateTripAccessDto);
 
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(mockTripAccessDto.getUser().getId(), response.getBody().getUser().getId());
-        verify(tripService).shareTrip(eq(userId), eq(tripId), any(TripAccessDto.class));
+        verify(tripService).shareTrip(eq(userId), eq(tripId), any(CreateTripAccessDto.class));
     }
 
     @Test
