@@ -9,10 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.putevod.app.planner.dto.CreateTripDto;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
+import ru.putevod.app.planner.dto.UpdateTripDto;
+import ru.putevod.app.planner.dto.CreateTripAccessDto;
 import ru.putevod.app.planner.exception.AccessDeniedException;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
-import ru.putevod.app.planner.mapper.CreateTripMapper;
 import ru.putevod.app.planner.mapper.TripAccessMapper;
 import ru.putevod.app.planner.mapper.TripMapper;
 import ru.putevod.app.planner.model.Trip;
@@ -46,7 +47,6 @@ public class TripServiceImpl implements TripService {
     private final TripPreviewService tripPreviewService;
     private final TripMapper tripMapper;
     private final TripAccessMapper tripAccessMapper;
-    private final CreateTripMapper createTripMapper;
     private final TripDayRepository tripDayRepository;
 
     @Override
@@ -94,8 +94,7 @@ public class TripServiceImpl implements TripService {
 
         User user = userService.getUserEntityById(userId);
 
-        Trip trip = createTripMapper.toEntity(createTripDto);
-        trip.setCreator(user);
+        Trip trip = tripMapper.toEntityFromCreate(createTripDto, user);
 
         if (createTripDto.getCity() != null && !createTripDto.getCity().isEmpty()) {
             String previewUrl = tripPreviewService.generatePreviewForCity(createTripDto.getCity());
@@ -216,18 +215,18 @@ public class TripServiceImpl implements TripService {
 
     @Override
     @Transactional
-    public TripDto updateTrip(Long userId, Long tripId, TripDto tripDto) {
+    public TripDto updateTrip(Long userId, Long tripId, UpdateTripDto updateTripDto) {
         Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin", "write");
 
         String oldCity = trip.getCity();
 
-        tripMapper.updateEntityFromDto(tripDto, trip);
+        tripMapper.updateEntityFromUpdate(updateTripDto, trip);
 
-        if (tripDto.getCity() != null && !tripDto.getCity().equals(oldCity)) {
-            String previewUrl = tripPreviewService.generatePreviewForCity(tripDto.getCity());
+        if (updateTripDto.getCity() != null && !updateTripDto.getCity().equals(oldCity)) {
+            String previewUrl = tripPreviewService.generatePreviewForCity(updateTripDto.getCity());
             trip.setPreviewUrl(previewUrl);
             log.info("Обновлено превью для поездки {} с изменением города на {}: {}",
-                    tripDto.getTitle(), tripDto.getCity(), previewUrl);
+                    updateTripDto.getTitle(), updateTripDto.getCity(), previewUrl);
         }
 
         trip = tripRepository.save(trip);
@@ -305,27 +304,21 @@ public class TripServiceImpl implements TripService {
 
     @Override
     @Transactional
-    public TripAccessDto shareTrip(Long userId, Long tripId, TripAccessDto accessDto) {
+    public TripAccessDto shareTrip(Long userId, Long tripId, CreateTripAccessDto accessDto) {
         User owner = userService.getUserEntityById(userId);
         Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin");
 
-        User sharedUser = userService.getUserEntityById(accessDto.getUser().getId());
+        User userToShare = userService.getUserEntityById(accessDto.getUserId());
 
-        if (userId.equals(sharedUser.getUserId())) {
-            throw new BadRequestException("Вы не можете предоставить доступ самому себе");
+        if (tripAccessRepository.existsByTripAndUser(trip, userToShare)) {
+            throw new BadRequestException("Пользователь уже имеет доступ к этой поездке");
         }
 
-        if (tripAccessRepository.existsByTripAndUser(trip, sharedUser)) {
-            throw new BadRequestException("Доступ для данного пользователя уже существует");
-        }
-
-        TripAccess tripAccess = tripAccessMapper.fromDto(accessDto, trip, sharedUser);
-        tripAccess.setInvitationStatus("pending");
-
+        TripAccess tripAccess = tripAccessMapper.toEntityFromCreate(accessDto, userToShare, trip);
         tripAccess = tripAccessRepository.save(tripAccess);
 
         notificationService.createTripInviteNotification(
-                sharedUser.getUserId(),
+                userToShare.getUserId(),
                 tripId,
                 owner.getUsername());
 
