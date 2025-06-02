@@ -34,6 +34,11 @@ spring:
       name: ${SPRING_SECURITY_USER}
       password: ${SPRING_SECURITY_PASSWORD}
 
+unsplash:
+  api:
+    key: ${UNSPLASH_API_KEY}
+    url: https://api.unsplash.com
+
 services:
   auth:
     url: ${AUTH_SERVICE_URL}
