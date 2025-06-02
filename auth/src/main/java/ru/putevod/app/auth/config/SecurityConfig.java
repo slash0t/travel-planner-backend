@@ -57,9 +57,11 @@ public class SecurityConfig {
                                 "/api/v1/verify-reset-code", "/api/v1/reset-password",
                                 "/api/v1/anonymous-token", "/api/v1/refresh",
                                 "/api/v1/auth/validate", "/api/v1/auth/userinfo",
-                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
+                                "/api/v1/users/**",
+                                "/swagger-ui.html", "/swagger-ui/**", "/api-docs-auth/**",
                                 "/swagger-resources/**", "/webjars/**"
                         ).permitAll()
+                        .requestMatchers("/api/v1/profile/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .sessionManagement(session ->

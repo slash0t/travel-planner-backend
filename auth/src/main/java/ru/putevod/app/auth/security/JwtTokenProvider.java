@@ -33,8 +33,6 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(user.getEmail())
                 .claim("userId", user.getUserId())
-                .claim("username", user.getUsername())
-                .claim("isAdmin", user.getIsAdmin())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + appProperties.getJwt().getAccessTokenExpirationMs()))
                 .signWith(Keys.hmacShaKeyFor(appProperties.getJwt().getSecret().getBytes()))
@@ -81,14 +79,6 @@ public class JwtTokenProvider {
 
     public Long getUserIdFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get("userId", Long.class));
-    }
-
-    public String getUsernameFromToken(String token) {
-        return getClaimFromToken(token, claims -> claims.get("username", String.class));
-    }
-
-    public Boolean isAdminFromToken(String token) {
-        return getClaimFromToken(token, claims -> claims.get("isAdmin", Boolean.class));
     }
 
     public Boolean isAnonymousToken(String token) {

@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.auth.dto.*;
 import ru.putevod.app.auth.service.AuthService;
+import ru.putevod.app.auth.config.CurrentUser;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -299,5 +300,55 @@ public class AuthController {
 
         Map<String, Object> userInfo = authService.getUserInfoFromToken(tokenRequest.getToken(), serviceToken);
         return ResponseEntity.ok(userInfo);
+    }
+
+    @Operation(
+            summary = "Получить пользователя по ID",
+            description = "Получает полную информацию о пользователе по его ID для межсервисного взаимодействия"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Информация о пользователе",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserInfoDto.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден"),
+            @ApiResponse(responseCode = "401", description = "Неверный сервисный токен")
+    })
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<UserInfoDto> getUserById(
+            @PathVariable Integer userId,
+            @RequestHeader(value = "X-Service-Token", required = false) String serviceToken) {
+        
+        UserInfoDto userInfo = authService.getUserById(userId, serviceToken);
+        return ResponseEntity.ok(userInfo);
+    }
+
+    @Operation(
+            summary = "Обновить профиль текущего пользователя",
+            description = "Обновляет профиль текущего авторизованного пользователя",
+            security = {@SecurityRequirement(name = "bearerAuth")}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Профиль успешно обновлен",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserInfoDto.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Неверные данные профиля"),
+            @ApiResponse(responseCode = "401", description = "Пользователь не авторизован"),
+            @ApiResponse(responseCode = "409", description = "Email или username уже используются")
+    })
+    @PutMapping("/profile")
+    public ResponseEntity<UserInfoDto> updateProfile(
+            @CurrentUser Integer userId,
+            @Valid @RequestBody UpdateProfileRequest updateProfileRequest) {
+        
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        UserInfoDto updatedUser = authService.updateUserProfile(userId, updateProfileRequest);
+        return ResponseEntity.ok(updatedUser);
     }
 } 

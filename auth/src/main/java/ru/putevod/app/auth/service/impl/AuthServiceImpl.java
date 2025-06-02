@@ -15,6 +15,8 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.putevod.app.auth.dto.AuthResponse;
 import ru.putevod.app.auth.dto.RegisterRequest;
 import ru.putevod.app.auth.dto.TokenValidationResponse;
+import ru.putevod.app.auth.dto.UpdateProfileRequest;
+import ru.putevod.app.auth.dto.UserInfoDto;
 import ru.putevod.app.auth.model.User;
 import ru.putevod.app.auth.model.UserSession;
 import ru.putevod.app.auth.repository.UserRepository;
@@ -239,8 +241,6 @@ public class AuthServiceImpl implements AuthService {
 
             String email = tokenProvider.getEmailFromToken(token);
             Long userId = tokenProvider.getUserIdFromToken(token);
-            String username = tokenProvider.getUsernameFromToken(token);
-            Boolean isAdmin = tokenProvider.isAdminFromToken(token);
 
             Optional<User> userOpt = userService.findByEmail(email);
             if (userOpt.isEmpty()) {
@@ -248,12 +248,13 @@ public class AuthServiceImpl implements AuthService {
                 return TokenValidationResponse.builder().valid(false).build();
             }
 
+            User user = userOpt.get();
             return TokenValidationResponse.builder()
                     .valid(true)
                     .userId(userId)
                     .email(email)
-                    .username(username)
-                    .admin(isAdmin != null ? isAdmin : false)
+                    .username(user.getUsername())
+                    .admin(user.getIsAdmin() != null ? user.getIsAdmin() : false)
                     .build();
 
         } catch (io.jsonwebtoken.ExpiredJwtException e) {
@@ -321,21 +322,20 @@ public class AuthServiceImpl implements AuthService {
 
             String email = tokenProvider.getEmailFromToken(token);
             Long userId = tokenProvider.getUserIdFromToken(token);
-            String username = tokenProvider.getUsernameFromToken(token);
-            Boolean isAdmin = tokenProvider.isAdminFromToken(token);
 
+            Optional<User> userOpt = userService.findByEmail(email);
+            if (userOpt.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Пользователь не найден");
+            }
+
+            User user = userOpt.get();
             Map<String, Object> userInfo = new HashMap<>();
             userInfo.put("userId", userId);
             userInfo.put("email", email);
-            userInfo.put("username", username);
-            userInfo.put("isAdmin", isAdmin != null ? isAdmin : false);
-
-            Optional<User> userOpt = userService.findByEmail(email);
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
+            userInfo.put("username", user.getUsername());
+            userInfo.put("isAdmin", user.getIsAdmin() != null ? user.getIsAdmin() : false);
                 userInfo.put("verified", user.getIsVerified());
                 userInfo.put("roles", user.getIsAdmin() ? new String[]{"ROLE_USER", "ROLE_ADMIN"} : new String[]{"ROLE_USER"});
-            }
 
             return userInfo;
 
@@ -360,5 +360,72 @@ public class AuthServiceImpl implements AuthService {
             log.error("Ошибка при получении информации из токена: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Ошибка обработки токена");
         }
+    }
+
+    @Override
+    public UserInfoDto getUserById(Integer userId, String serviceToken) {
+        if (!tokenProvider.validateServiceToken(serviceToken)) {
+            log.warn("Попытка получения пользователя с неверным сервисным токеном");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Неверный сервисный токен");
+        }
+
+        User user = userRepository.findById(Long.valueOf(userId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+
+        return UserInfoDto.builder()
+                .id(user.getUserId())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .avatarUrl(user.getProfilePictureUrl())
+                .emailVerified(user.getIsVerified() != null ? user.getIsVerified() : false)
+                .isAdmin(user.getIsAdmin() != null ? user.getIsAdmin() : false)
+                .createdAt(user.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public UserInfoDto updateUserProfile(Integer userId, UpdateProfileRequest updateProfileRequest) {
+        User user = userRepository.findById(Long.valueOf(userId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+
+        if (updateProfileRequest.getEmail() != null &&
+            !updateProfileRequest.getEmail().equals(user.getEmail())) {
+            
+            if (userRepository.existsByEmail(updateProfileRequest.getEmail())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, 
+                    "Пользователь с таким email уже существует");
+            }
+            user.setEmail(updateProfileRequest.getEmail());
+        }
+
+        if (updateProfileRequest.getUsername() != null &&
+            !updateProfileRequest.getUsername().equals(user.getUsername())) {
+            
+            if (userRepository.existsByUsername(updateProfileRequest.getUsername())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, 
+                    "Пользователь с таким именем уже существует");
+            }
+            user.setUsername(updateProfileRequest.getUsername());
+        }
+
+        if (updateProfileRequest.getAvatarUrl() != null) {
+            user.setProfilePictureUrl(updateProfileRequest.getAvatarUrl());
+        }
+
+        user.setUpdatedAt(LocalDateTime.now());
+        User updatedUser = userRepository.save(user);
+
+        log.info("Профиль пользователя {} успешно обновлен", userId);
+
+        return UserInfoDto.builder()
+                .id(updatedUser.getUserId())
+                .email(updatedUser.getEmail())
+                .username(updatedUser.getUsername())
+                .avatarUrl(updatedUser.getProfilePictureUrl())
+                .emailVerified(updatedUser.getIsVerified() != null ? updatedUser.getIsVerified() : false)
+                .isAdmin(updatedUser.getIsAdmin() != null ? updatedUser.getIsAdmin() : false)
+                .createdAt(updatedUser.getCreatedAt())
+                .build();
     }
 } 
