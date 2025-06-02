@@ -9,10 +9,10 @@ import java.util.List;
 
 @Repository
 public interface TemplateItemRepository extends JpaRepository<TemplateItem, Long> {
-    
+
     List<TemplateItem> findByTemplateOrderByOrderPosition(TodoTemplate template);
-    
+
     List<TemplateItem> findByTemplateTemplateIdOrderByOrderPosition(Long templateId);
-    
+
     void deleteByTemplate(TodoTemplate template);
 } 

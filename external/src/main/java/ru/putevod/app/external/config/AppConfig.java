@@ -17,7 +17,7 @@ public class AppConfig {
 
     @Value("${yandex.geocoder.api-key:${YANDEX_API_GEOCODER_KEY:}}")
     private String yandexGeocoderApiKey;
-    
+
     private String yandexGeoSuggestBaseUrl = "https://suggest-maps.yandex.ru/v1/suggest";
 
     private String yandexGeocoderBaseUrl = "https://geocode-maps.yandex.ru/v1/";

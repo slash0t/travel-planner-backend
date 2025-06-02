@@ -11,12 +11,12 @@ import ru.putevod.app.planner.service.EventService;
 @RequiredArgsConstructor
 @Slf4j
 public class ReminderScheduler {
-    
+
     private final EventService eventService;
-    
+
     @Value("${app.notifications.reminder-check-interval:60000}")
     private long reminderCheckInterval;
-    
+
     @Scheduled(fixedDelayString = "${app.notifications.reminder-check-interval:60000}")
     public void processReminders() {
         log.debug("Starting scheduled reminder processing");

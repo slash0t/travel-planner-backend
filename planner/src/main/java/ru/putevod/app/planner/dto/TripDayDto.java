@@ -24,7 +24,7 @@ public class TripDayDto {
     private String note;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
+
     @Builder.Default
     private List<EventDto> events = new ArrayList<>();
 } 

@@ -5,16 +5,16 @@ import ru.putevod.app.planner.dto.PlaceDto;
 import ru.putevod.app.planner.model.Place;
 
 @Mapper(
-    config = MapstructConfig.class,
-    uses = {PhotoMapper.class},
-    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+        config = MapstructConfig.class,
+        uses = {PhotoMapper.class},
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 public interface PlaceMapper {
-    
+
     @BeanMapping(unmappedTargetPolicy = ReportingPolicy.IGNORE)
     @Mapping(source = "placeId", target = "id")
     PlaceDto toDto(Place place);
-    
+
     @BeanMapping(unmappedTargetPolicy = ReportingPolicy.IGNORE)
     @Mapping(source = "id", target = "placeId")
     @Mapping(source = "name", target = "name")
@@ -29,7 +29,7 @@ public interface PlaceMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Place toEntity(PlaceDto placeDto);
-    
+
     @BeanMapping(unmappedTargetPolicy = ReportingPolicy.IGNORE)
     @Mapping(target = "placeId", ignore = true)
     @Mapping(source = "name", target = "name")

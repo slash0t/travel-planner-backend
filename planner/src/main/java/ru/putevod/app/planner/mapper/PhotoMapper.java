@@ -1,10 +1,12 @@
 package ru.putevod.app.planner.mapper;
 
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import ru.putevod.app.planner.dto.PhotoDto;
 import ru.putevod.app.planner.model.Photo;
 
-@Mapper(componentModel = "spring", 
+@Mapper(componentModel = "spring",
         uses = {FileMapper.class, UserMapper.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface PhotoMapper {
@@ -15,7 +17,7 @@ public interface PhotoMapper {
     @Mapping(source = "trip.tripId", target = "tripId")
     @Mapping(target = "url", ignore = true)
     PhotoDto toDto(Photo photo);
-    
+
     @Mapping(source = "id", target = "photoId")
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "place", ignore = true)

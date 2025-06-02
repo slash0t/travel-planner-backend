@@ -6,10 +6,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.putevod.app.library.exception.ResourceNotFoundException;
 import ru.putevod.app.library.dto.ReviewDto;
 import ru.putevod.app.library.entity.PublishedRoute;
 import ru.putevod.app.library.entity.RouteRating;
+import ru.putevod.app.library.exception.ResourceNotFoundException;
 import ru.putevod.app.library.repository.PublishedRouteRepository;
 import ru.putevod.app.library.repository.RouteRatingRepository;
 import ru.putevod.app.library.repository.UserRepository;
@@ -32,7 +32,7 @@ public class ReviewService {
         if (!publishedRouteRepository.existsById(routeId)) {
             throw new ResourceNotFoundException("Route not found with id " + routeId);
         }
-        
+
         return ratingRepository.findByPublishedRouteIdAndIsDeletedFalse(routeId, pageable)
                 .map(mapperService::toReviewDto);
     }
@@ -47,7 +47,7 @@ public class ReviewService {
         }
 
         Optional<RouteRating> existingRating = ratingRepository.findByPublishedRouteIdAndUserId(routeId, userId);
-        
+
         RouteRating ratingEntity;
         if (existingRating.isPresent()) {
             ratingEntity = existingRating.get();
@@ -62,11 +62,11 @@ public class ReviewService {
                     .isDeleted(false)
                     .build();
         }
-        
+
         RouteRating savedRating = ratingRepository.save(ratingEntity);
         return mapperService.toReviewDto(savedRating);
     }
-    
+
     @Transactional
     public void deleteReview(Long routeId, Long userId) {
         if (!publishedRouteRepository.existsById(routeId)) {
@@ -75,7 +75,7 @@ public class ReviewService {
 
         RouteRating rating = ratingRepository.findByPublishedRouteIdAndUserId(routeId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found for route " + routeId + " and user " + userId));
-        
+
         rating.setIsDeleted(true);
         ratingRepository.save(rating);
     }
@@ -84,21 +84,21 @@ public class ReviewService {
     public ReviewDto getUserReview(Long routeId, Long userId) {
         RouteRating rating = ratingRepository.findByPublishedRouteIdAndUserIdAndIsDeletedFalse(routeId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found for route " + routeId + " and user " + userId));
-        
+
         return mapperService.toReviewDto(rating);
     }
-    
+
     @Transactional(readOnly = true)
     public Page<ReviewDto> getAllReviews(Pageable pageable) {
         return ratingRepository.findByIsDeletedFalse(pageable)
                 .map(mapperService::toReviewDto);
     }
-    
+
     @Transactional
     public void deleteReviewById(Long reviewId) {
         RouteRating rating = ratingRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found with id " + reviewId));
-        
+
         rating.setIsDeleted(true);
         ratingRepository.save(rating);
         log.info("Review with id {} marked as deleted by admin", reviewId);

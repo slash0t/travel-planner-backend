@@ -123,10 +123,10 @@ public class JwtTokenProvider {
      *
      * @param token JWT токен для проверки
      * @return true если токен валидный, false в противном случае
-     * @throws SignatureException если подпись токена неверна
-     * @throws MalformedJwtException если формат токена неверен
-     * @throws ExpiredJwtException если срок действия токена истек
-     * @throws UnsupportedJwtException если токен не поддерживается
+     * @throws SignatureException       если подпись токена неверна
+     * @throws MalformedJwtException    если формат токена неверен
+     * @throws ExpiredJwtException      если срок действия токена истек
+     * @throws UnsupportedJwtException  если токен не поддерживается
      * @throws IllegalArgumentException если токен не содержит claims
      */
     public boolean validateToken(String token) throws SignatureException, MalformedJwtException,

@@ -7,19 +7,17 @@ import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
 public class OpenApiConfig {
-    
+
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
@@ -42,7 +40,7 @@ public class OpenApiConfig {
                                         .scheme("bearer")
                                         .bearerFormat("JWT")));
     }
-    
+
     @Bean
     public GroupedOpenApi authApi() {
         return GroupedOpenApi.builder()
@@ -51,12 +49,12 @@ public class OpenApiConfig {
                 .packagesToScan("ru.putevod.app.auth.controller")
                 .addOpenApiCustomizer(openApi -> {
                     Paths newPaths = new Paths();
-                    
+
                     if (openApi.getPaths() != null) {
                         for (Map.Entry<String, PathItem> entry : openApi.getPaths().entrySet()) {
                             String path = entry.getKey();
                             PathItem pathItem = entry.getValue();
-                            
+
                             if (path.startsWith("/api/v1")) {
                                 String newPath = path.replaceFirst("^/api/v1", "");
                                 if (newPath.isEmpty()) {

@@ -11,14 +11,14 @@ import java.util.Optional;
 
 @Repository
 public interface EventFileRepository extends JpaRepository<EventFile, Long> {
-    
+
     List<EventFile> findByEvent(Event event);
-    
+
     List<EventFile> findByFile(File file);
-    
+
     Optional<EventFile> findByEventAndFile(Event event, File file);
-    
+
     void deleteByEventAndFile(Event event, File file);
-    
+
     boolean existsByEventAndFile(Event event, File file);
 } 

@@ -29,23 +29,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api-docs-library/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/routes").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/routes/search").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/routes/popular").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/routes/top-rated").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/routes/{id}").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/routes/{id}/reviews").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/routes/{id}/comments").permitAll()
-                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(authServiceTokenFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api-docs-library/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/routes").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/routes/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/routes/popular").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/routes/top-rated").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/routes/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/routes/{id}/reviews").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/routes/{id}/comments").permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(authServiceTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -57,7 +57,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token"));
         configuration.setExposedHeaders(List.of("X-Auth-Token"));
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

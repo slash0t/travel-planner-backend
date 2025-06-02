@@ -2,7 +2,10 @@ package ru.putevod.app.planner.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.putevod.app.planner.dto.TemplateItemDto;
 import ru.putevod.app.planner.dto.TodoTemplateDto;
 import ru.putevod.app.planner.model.TemplateItem;
@@ -22,21 +25,21 @@ public class TodoTemplateController {
 
     private final TodoTemplateRepository todoTemplateRepository;
     private final TemplateItemRepository templateItemRepository;
-    
+
     @GetMapping
     public ResponseEntity<List<TodoTemplateDto>> getAllTemplates() {
         List<TodoTemplate> templates = todoTemplateRepository.findAll();
         if (templates.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        
+
         List<TodoTemplateDto> result = templates.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-        
+
         return ResponseEntity.ok(result);
     }
-    
+
     @GetMapping("/{templateId}")
     public ResponseEntity<Map<String, Object>> getTemplateDetails(@PathVariable Long templateId) {
         return todoTemplateRepository.findById(templateId)
@@ -51,7 +54,7 @@ public class TodoTemplateController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     @GetMapping("/{templateId}/items")
     public ResponseEntity<List<String>> getTemplateItems(@PathVariable Long templateId) {
         return todoTemplateRepository.findById(templateId)
@@ -64,33 +67,33 @@ public class TodoTemplateController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     @GetMapping("/category/{category}")
     public ResponseEntity<List<TodoTemplateDto>> getTemplatesByCategory(@PathVariable String category) {
         List<TodoTemplate> templates = todoTemplateRepository.findByCategory(category);
         if (templates.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        
+
         List<TodoTemplateDto> result = templates.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-        
+
         return ResponseEntity.ok(result);
     }
-    
-    private TodoTemplateDto convertToDto(TodoTemplate template) {
+
+    TodoTemplateDto convertToDto(TodoTemplate template) {
         TodoTemplateDto dto = new TodoTemplateDto();
         dto.setTemplateId(template.getTemplateId());
         dto.setTitle(template.getTitle());
         dto.setDescription(template.getDescription());
         dto.setCategory(template.getCategory());
         dto.setIsSystem(template.getIsSystem());
-        
+
         if (template.getCreatedBy() != null) {
             dto.setCreatedBy(template.getCreatedBy().getUserId());
         }
-        
+
         dto.setCreatedAt(template.getCreatedAt());
         dto.setUpdatedAt(template.getUpdatedAt());
 
@@ -105,7 +108,7 @@ public class TodoTemplateController {
                     return itemDto;
                 })
                 .collect(Collectors.toList());
-        
+
         dto.setItems(itemDtos);
         return dto;
     }

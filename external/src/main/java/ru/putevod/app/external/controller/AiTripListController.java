@@ -2,8 +2,6 @@ package ru.putevod.app.external.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,19 +39,19 @@ public class AiTripListController {
             @Parameter(description = "Длительность поездки в днях") @RequestParam(required = false) Integer duration,
             @Parameter(description = "Место назначения") @RequestParam(required = false) String destination,
             @Parameter(description = "Сезон (зима, весна, лето, осень)") @RequestParam(required = false) String season) {
-        
+
         log.info("Запрос на генерацию списка для поездки: prompt={}, duration={}, destination={}, season={}",
                 prompt, duration, destination, season);
-        
+
         if (prompt == null || prompt.trim().isEmpty()) {
             return createErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка", "Запрос не может быть пустым");
         }
-        
+
         if (!aiTripListService.isSafePrompt(prompt)) {
             log.warn("Обнаружен небезопасный запрос: {}", prompt);
             return createErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка безопасности", "Запрос содержит запрещенную тематику");
         }
-        
+
         Map<String, Object> context = new HashMap<>();
         if (duration != null) {
             context.put("duration", duration);
@@ -64,14 +62,14 @@ public class AiTripListController {
         if (season != null && !season.isEmpty()) {
             context.put("season", season);
         }
-        
+
         try {
             List<String> items = aiTripListService.generateTripListFromPrompt(prompt, context);
-            
+
             if (items.size() == 1 && items.get(0).startsWith("Ошибка:")) {
                 return createErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка генерации", items.get(0));
             }
-            
+
             return ResponseEntity.ok(items);
         } catch (ServiceUnavailableException e) {
             log.error("Сервис недоступен: {}", e.getMessage());
@@ -81,7 +79,7 @@ public class AiTripListController {
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Внутренняя ошибка сервера", "Произошла ошибка при обработке запроса");
         }
     }
-    
+
     @PostMapping("/generate/from-trip/{tripId}")
     @Operation(summary = "Генерация списка на основе существующей поездки",
             description = "Генерирует список элементов на основе информации о существующей поездке")
@@ -95,31 +93,31 @@ public class AiTripListController {
     public ResponseEntity<Object> generateTripListFromTrip(
             @Parameter(description = "ID поездки") @PathVariable Long tripId,
             @Parameter(description = "Дополнительный запрос") @RequestParam(required = false) String additionalPrompt) {
-        
+
         log.info("Запрос на генерацию списка для поездки по ID: tripId={}, additionalPrompt={}",
                 tripId, additionalPrompt);
-        
+
         if (tripId == null || tripId <= 0) {
             return createErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка", "ID поездки должен быть положительным числом");
         }
-        
+
         Map<String, Object> context = new HashMap<>();
         if (additionalPrompt != null && !additionalPrompt.isEmpty()) {
             context.put("additionalInfo", additionalPrompt);
-            
+
             if (!aiTripListService.isSafePrompt(additionalPrompt)) {
                 log.warn("Обнаружен небезопасный дополнительный запрос: {}", additionalPrompt);
                 return createErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка безопасности", "Дополнительный запрос содержит запрещенную тематику");
             }
         }
-        
+
         try {
             List<String> items = aiTripListService.generateTripListFromTrip(tripId, context);
-            
+
             if (items.size() == 1 && (items.get(0).startsWith("Ошибка:") || items.get(0).startsWith("Не удалось получить информацию о поездке"))) {
                 return createErrorResponse(HttpStatus.NOT_FOUND, "Поездка не найдена", items.get(0));
             }
-            
+
             return ResponseEntity.ok(items);
         } catch (ServiceUnavailableException e) {
             log.error("Сервис недоступен: {}", e.getMessage());
@@ -129,7 +127,7 @@ public class AiTripListController {
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Внутренняя ошибка сервера", "Произошла ошибка при обработке запроса");
         }
     }
-    
+
     @PostMapping("/generate/from-template/{templateId}")
     @Operation(summary = "Генерация списка на основе шаблона",
             description = "Генерирует список элементов на основе существующего шаблона и дополнительного контекста")
@@ -146,14 +144,14 @@ public class AiTripListController {
             @Parameter(description = "Место назначения") @RequestParam(required = false) String destination,
             @Parameter(description = "Сезон (зима, весна, лето, осень)") @RequestParam(required = false) String season,
             @Parameter(description = "Дополнительный запрос") @RequestParam(required = false) String additionalPrompt) {
-        
+
         log.info("Запрос на генерацию списка для поездки по шаблону: templateId={}, duration={}, destination={}, season={}, additionalPrompt={}",
                 templateId, duration, destination, season, additionalPrompt);
-        
+
         if (templateId == null || templateId <= 0) {
             return createErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка", "ID шаблона должен быть положительным числом");
         }
-        
+
         Map<String, Object> context = new HashMap<>();
         if (duration != null) {
             context.put("duration", duration);
@@ -164,23 +162,23 @@ public class AiTripListController {
         if (season != null && !season.isEmpty()) {
             context.put("season", season);
         }
-        
+
         if (additionalPrompt != null && !additionalPrompt.isEmpty()) {
             context.put("additionalInfo", additionalPrompt);
-            
+
             if (!aiTripListService.isSafePrompt(additionalPrompt)) {
                 log.warn("Обнаружен небезопасный дополнительный запрос: {}", additionalPrompt);
                 return createErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка безопасности", "Дополнительный запрос содержит запрещенную тематику");
             }
         }
-        
+
         try {
             List<String> items = aiTripListService.generateTripListFromTemplate(templateId, context);
-            
+
             if (items.size() == 1 && (items.get(0).startsWith("Ошибка:") || items.get(0).startsWith("Не удалось получить информацию о шаблоне"))) {
                 return createErrorResponse(HttpStatus.NOT_FOUND, "Шаблон не найден", items.get(0));
             }
-            
+
             return ResponseEntity.ok(items);
         } catch (ServiceUnavailableException e) {
             log.error("Сервис недоступен: {}", e.getMessage());
@@ -190,7 +188,7 @@ public class AiTripListController {
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Внутренняя ошибка сервера", "Произошла ошибка при обработке запроса");
         }
     }
-    
+
     private ResponseEntity<Object> createErrorResponse(HttpStatus status, String error, String message) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", status.value());

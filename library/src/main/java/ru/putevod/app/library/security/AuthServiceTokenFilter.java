@@ -65,10 +65,10 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
         }
 
         User user = new User(userInfo.getEmail(), "", authorities);
-        
-        UsernamePasswordAuthenticationToken authentication = 
+
+        UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(user, token, authorities);
-        
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 } 

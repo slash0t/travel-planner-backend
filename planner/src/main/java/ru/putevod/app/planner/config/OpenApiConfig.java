@@ -17,10 +17,10 @@ import java.util.List;
 
 @Configuration
 public class OpenApiConfig {
-    
+
     @Value("${server.servlet.context-path:/}")
     private String contextPath;
-    
+
     @Bean
     public OpenAPI customOpenAPI() {
         List<Server> servers = new ArrayList<>();
@@ -28,7 +28,7 @@ public class OpenApiConfig {
         server.setUrl(contextPath);
         server.setDescription("Сервер планирования маршрутов Putevod");
         servers.add(server);
-        
+
         return new OpenAPI()
                 .servers(servers)
                 .info(new Info()

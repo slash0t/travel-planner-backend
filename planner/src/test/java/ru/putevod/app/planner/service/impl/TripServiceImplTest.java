@@ -4,11 +4,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.dto.UserDto;
+import ru.putevod.app.planner.exception.AccessDeniedException;
+import ru.putevod.app.planner.exception.ResourceNotFoundException;
+import ru.putevod.app.planner.mapper.TripAccessMapper;
 import ru.putevod.app.planner.mapper.TripMapper;
 import ru.putevod.app.planner.model.Trip;
 import ru.putevod.app.planner.model.TripAccess;
@@ -18,23 +27,14 @@ import ru.putevod.app.planner.repository.TripDayRepository;
 import ru.putevod.app.planner.repository.TripRepository;
 import ru.putevod.app.planner.service.TripPreviewService;
 import ru.putevod.app.planner.service.UserService;
-import ru.putevod.app.planner.exception.ResourceNotFoundException;
-import ru.putevod.app.planner.exception.AccessDeniedException;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class TripServiceImplTest {
@@ -53,6 +53,9 @@ class TripServiceImplTest {
 
     @Mock
     private TripMapper tripMapper;
+
+    @Mock
+    private TripAccessMapper tripAccessMapper;
 
     @Mock
     private TripPreviewService tripPreviewService;
@@ -518,5 +521,145 @@ class TripServiceImplTest {
         verify(tripRepository, never()).findAllSharedWithUser(any(), any());
         verify(tripRepository, never()).findAllAvailableToUser(any(), any());
         verify(tripMapper, never()).toDto(any());
+    }
+
+    @Test
+    @DisplayName("Should get upcoming trips successfully")
+    void getUpcomingTrips_Success() {
+        Long userId = currentUser.getUserId();
+        List<Trip> upcomingTrips = List.of(savedTripEntity);
+        LocalDate today = LocalDate.now();
+
+        when(userService.getUserEntityById(userId)).thenReturn(currentUser);
+        when(tripRepository.findUpcomingTrips(currentUser, today)).thenReturn(upcomingTrips);
+        when(tripMapper.toDto(savedTripEntity)).thenReturn(createdTripDto);
+
+        List<TripDto> result = tripService.getUpcomingTrips(userId);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(createdTripDto.getId(), result.get(0).getId());
+        verify(tripRepository).findUpcomingTrips(currentUser, today);
+    }
+
+    @Test
+    @DisplayName("Should get ongoing trips successfully")
+    void getOngoingTrips_Success() {
+        Long userId = currentUser.getUserId();
+        List<Trip> ongoingTrips = List.of(savedTripEntity);
+        LocalDate today = LocalDate.now();
+
+        when(userService.getUserEntityById(userId)).thenReturn(currentUser);
+        when(tripRepository.findOngoingTrips(currentUser, today)).thenReturn(ongoingTrips);
+        when(tripMapper.toDto(savedTripEntity)).thenReturn(createdTripDto);
+
+        List<TripDto> result = tripService.getOngoingTrips(userId);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(createdTripDto.getId(), result.get(0).getId());
+        verify(tripRepository).findOngoingTrips(currentUser, today);
+    }
+
+    @Test
+    @DisplayName("Should get past trips successfully")
+    void getPastTrips_Success() {
+        Long userId = currentUser.getUserId();
+        List<Trip> pastTrips = List.of(savedTripEntity);
+        LocalDate today = LocalDate.now();
+
+        when(userService.getUserEntityById(userId)).thenReturn(currentUser);
+        when(tripRepository.findPastTrips(currentUser, today)).thenReturn(pastTrips);
+        when(tripMapper.toDto(savedTripEntity)).thenReturn(createdTripDto);
+
+        List<TripDto> result = tripService.getPastTrips(userId);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(createdTripDto.getId(), result.get(0).getId());
+        verify(tripRepository).findPastTrips(currentUser, today);
+    }
+
+    @Test
+    @DisplayName("Should get trip shares successfully")
+    void getTripShares_Success() {
+        Long userId = currentUser.getUserId();
+        Long tripId = savedTripEntity.getTripId();
+        List<TripAccess> shares = List.of(createTripAccess("admin"), createTripAccess("read"));
+        List<TripAccessDto> shareDtos = List.of(
+                createTripAccessDto("admin"),
+                createTripAccessDto("read")
+        );
+
+        when(userService.getUserEntityById(userId)).thenReturn(currentUser);
+        when(tripRepository.findById(tripId)).thenReturn(Optional.of(savedTripEntity));
+        when(tripAccessRepository.findByTrip(savedTripEntity)).thenReturn(shares);
+        when(tripAccessMapper.toDto(any(TripAccess.class))).thenReturn(shareDtos.get(0), shareDtos.get(1));
+
+        List<TripAccessDto> result = tripService.getTripShares(userId, tripId);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(tripAccessRepository).findByTrip(savedTripEntity);
+        verify(tripAccessMapper, times(2)).toDto(any(TripAccess.class));
+    }
+
+    @Test
+    @DisplayName("Should remove share successfully")
+    void removeShare_Success() {
+        Long userId = currentUser.getUserId();
+        Long tripId = savedTripEntity.getTripId();
+        Long shareUserId = 2L;
+
+        User sharedUser = new User();
+        sharedUser.setUserId(shareUserId);
+        sharedUser.setUsername("shareduser");
+
+        TripAccess share = createTripAccess("admin");
+        share.setUser(sharedUser);
+
+        when(userService.getUserEntityById(userId)).thenReturn(currentUser);
+        when(tripRepository.findById(tripId)).thenReturn(Optional.of(savedTripEntity));
+        when(userService.getUserEntityById(shareUserId)).thenReturn(sharedUser);
+        when(tripAccessRepository.existsByTripAndUser(savedTripEntity, sharedUser)).thenReturn(true);
+
+        tripService.removeShare(userId, tripId, shareUserId);
+
+        verify(tripAccessRepository).deleteByTripAndUser(savedTripEntity, sharedUser);
+    }
+
+    @Test
+    @DisplayName("Should publish trip successfully")
+    void publishTrip_Success() {
+        Long userId = currentUser.getUserId();
+        Long tripId = savedTripEntity.getTripId();
+        TripAccess adminAccess = createTripAccess("admin");
+
+        when(userService.getUserEntityById(userId)).thenReturn(currentUser);
+        when(tripRepository.findById(tripId)).thenReturn(Optional.of(savedTripEntity));
+        when(tripAccessRepository.findByTripAndUser(savedTripEntity, currentUser)).thenReturn(Optional.of(adminAccess));
+
+        tripService.publishTrip(userId, tripId, true);
+
+        assertTrue(savedTripEntity.isPublished());
+        verify(tripRepository).save(savedTripEntity);
+    }
+
+    private TripAccess createTripAccess(String accessLevel) {
+        TripAccess access = new TripAccess();
+        access.setTrip(savedTripEntity);
+        access.setUser(currentUser);
+        access.setAccessLevel(accessLevel);
+        access.setInvitationStatus("accepted");
+        return access;
+    }
+
+    private TripAccessDto createTripAccessDto(String accessLevel) {
+        TripAccessDto dto = new TripAccessDto();
+        dto.setId(1L);
+        dto.setTripId(savedTripEntity.getTripId());
+        dto.setAccessLevel(accessLevel);
+        dto.setInvitationStatus("accepted");
+        return dto;
     }
 } 
