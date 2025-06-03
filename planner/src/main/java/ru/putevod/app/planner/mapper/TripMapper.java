@@ -22,7 +22,6 @@ public interface TripMapper {
     @Mapping(source = "tripId", target = "id")
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "totalDays", ignore = true)
-    @Mapping(source = "todoLists", target = "todoLists", qualifiedByName = "toDtoWithTripCheck")
     TripDto toDto(Trip trip);
 
     @AfterMapping

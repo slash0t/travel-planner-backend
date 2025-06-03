@@ -33,6 +33,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class TodoListServiceImplTest {
@@ -94,11 +95,9 @@ class TodoListServiceImplTest {
         updateTodoItemDto.setCompleted(true);
         updateTodoItemDto.setOrderPosition(2);
 
-        // Common stubs
-        when(userService.getUserEntityById(anyLong())).thenReturn(user);
-        
-        // Мок для нового метода маппера
-        when(todoListMapper.toDtoWithTripCheck(any(TodoList.class))).thenReturn(todoListDto);
+        // Используем lenient моки для избежания ошибок UnnecessaryStubbing
+        lenient().when(userService.getUserEntityById(anyLong())).thenReturn(user);
+        lenient().when(todoListMapper.toDtoSafe(any(TodoList.class))).thenReturn(todoListDto);
     }
 
     @Test
@@ -106,7 +105,7 @@ class TodoListServiceImplTest {
     void createTodoList_Success() {
         when(todoListMapper.toEntity(any())).thenReturn(todoList);
         when(todoListRepository.save(any())).thenReturn(todoList);
-        when(todoListMapper.toDtoWithTripCheck(any())).thenReturn(todoListDto);
+        when(todoListMapper.toDtoSafe(any())).thenReturn(todoListDto);
 
         TodoListDto result = todoListService.createTodoList(1L, todoListDto);
 
@@ -121,7 +120,7 @@ class TodoListServiceImplTest {
         when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("write"))).thenReturn(true);
         when(todoListMapper.toEntity(any())).thenReturn(todoList);
         when(todoListRepository.save(any())).thenReturn(todoList);
-        when(todoListMapper.toDtoWithTripCheck(any())).thenReturn(todoListDto);
+        when(todoListMapper.toDtoSafe(any())).thenReturn(todoListDto);
 
         TodoListDto result = todoListService.createTripTodoList(1L, 1L, todoListDto);
 
@@ -146,7 +145,7 @@ class TodoListServiceImplTest {
     void updateTodoList_Success() {
         when(todoListRepository.findByUserAndListId(any(), anyLong())).thenReturn(Optional.of(todoList));
         when(todoListRepository.save(any())).thenReturn(todoList);
-        when(todoListMapper.toDtoWithTripCheck(any())).thenReturn(todoListDto);
+        when(todoListMapper.toDtoSafe(any())).thenReturn(todoListDto);
 
         TodoListDto result = todoListService.updateTodoList(1L, 1L, todoListDto);
 
@@ -182,7 +181,7 @@ class TodoListServiceImplTest {
     @DisplayName("Should get todo list by id successfully")
     void getTodoListById_Success() {
         when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
-        when(todoListMapper.toDtoWithTripCheck(any())).thenReturn(todoListDto);
+        when(todoListMapper.toDtoSafe(any())).thenReturn(todoListDto);
 
         TodoListDto result = todoListService.getTodoListById(1L, 1L);
 

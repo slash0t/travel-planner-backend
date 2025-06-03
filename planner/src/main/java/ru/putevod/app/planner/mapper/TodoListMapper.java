@@ -20,7 +20,6 @@ public interface TodoListMapper {
     @Mapping(source = "trip.tripId", target = "tripId")
     @Mapping(target = "itemCount", ignore = true)
     @Mapping(target = "completedCount", ignore = true)
-    @Named("toDto")
     TodoListDto toDto(TodoList todoList);
 
     @AfterMapping
@@ -89,8 +88,7 @@ public interface TodoListMapper {
     }
 
     // Специальный метод для обработки TodoList с проверкой удаленных поездок
-    @Named("toDtoWithTripCheck")
-    default TodoListDto toDtoWithTripCheck(TodoList todoList) {
+    default TodoListDto toDtoSafe(TodoList todoList) {
         if (todoList == null) {
             return null;
         }
