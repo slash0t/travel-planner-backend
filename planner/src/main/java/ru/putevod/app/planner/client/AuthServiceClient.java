@@ -93,7 +93,7 @@ public class AuthServiceClient {
         try {
             log.info("Запрос информации из токена: {}", token.substring(0, Math.min(10, token.length())) + "...");
             return webClient.post()
-                    .uri("/auth/userinfo")
+                    .uri("/auth/user-info")
                     .bodyValue(new TokenValidationRequest(token))
                     .header("X-Service-Token", serviceToken)
                     .retrieve()
