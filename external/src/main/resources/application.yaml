@@ -16,11 +16,12 @@ app:
       api-url: https://llm.api.cloud.yandex.net/foundationModels/v1/completion
       max-tokens: "1000"
       temperature: 0.7
-
 logging:
   level:
     ru.putevod.app: DEBUG
     org.springdoc: DEBUG
+    ru.putevod.app.library.service.MetricsService: DEBUG
+    ru.putevod.app.library.aspect.MetricsAspect: DEBUG
 
 spring:
   application:
@@ -63,3 +64,25 @@ springdoc:
 
 auth:
   token: ${AUTH_SERVICE_TOKEN:service_token_for_development}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        operation.duration.seconds: true
+      percentiles:
+        http.server.requests: 0.5,0.95,0.99
+        operation.duration.seconds: 0.5,0.95,0.99

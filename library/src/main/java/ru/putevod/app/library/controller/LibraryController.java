@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import ru.putevod.app.library.annotation.TrackMetrics;
 import ru.putevod.app.library.client.AuthServiceClient;
 import ru.putevod.app.library.client.PlannerClient;
 import ru.putevod.app.library.dto.PublicRouteDetailDto;
@@ -41,6 +42,7 @@ public class LibraryController {
     private final AuthServiceClient authServiceClient;
 
     @GetMapping
+    @TrackMetrics(value = "get_published_routes", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Получить список опубликованных маршрутов", description = "Возвращает пагинированный список опубликованных и одобренных маршрутов")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Список маршрутов успешно получен",
@@ -52,6 +54,7 @@ public class LibraryController {
     }
 
     @GetMapping("/pending")
+    @TrackMetrics(value = "get_pending_routes", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Получить список неодобренных маршрутов (только для администраторов)",
             description = "Возвращает пагинированный список маршрутов, ожидающих одобрения (требует прав администратора)",
             security = {@SecurityRequirement(name = "bearerAuth")})
@@ -74,6 +77,7 @@ public class LibraryController {
     }
 
     @GetMapping("/search")
+    @TrackMetrics(value = "search_routes", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Поиск маршрутов по ключевому слову", description = "Выполняет поиск маршрутов по заданному ключевому слову")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Результаты поиска успешно получены",
@@ -86,6 +90,7 @@ public class LibraryController {
     }
 
     @GetMapping("/filter")
+    @TrackMetrics(value = "filter_routes", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Фильтрация маршрутов по критериям", description = "Фильтрует маршруты по заданным критериям")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Отфильтрованные маршруты успешно получены",
@@ -103,6 +108,7 @@ public class LibraryController {
     }
 
     @GetMapping("/popular")
+    @TrackMetrics(value = "get_popular_routes", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Получить популярные маршруты", description = "Возвращает список наиболее популярных маршрутов")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Популярные маршруты успешно получены",
@@ -114,6 +120,7 @@ public class LibraryController {
     }
 
     @GetMapping("/top-rated")
+    @TrackMetrics(value = "get_top_rated_routes", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Получить маршруты с наивысшим рейтингом", description = "Возвращает список маршрутов с наивысшими оценками")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Маршруты с высоким рейтингом успешно получены",
@@ -125,6 +132,7 @@ public class LibraryController {
     }
 
     @GetMapping("/{id}")
+    @TrackMetrics(value = "get_route_details", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Получить детальную информацию о маршруте", description = "Возвращает подробную информацию о маршруте по его ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Детали маршрута успешно получены",
@@ -137,6 +145,7 @@ public class LibraryController {
     }
 
     @GetMapping("/user/{userId}")
+    @TrackMetrics(value = "get_user_routes", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Получить маршруты опубликованные пользователем", description = "Возвращает список маршрутов, опубликованных указанным пользователем")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Маршруты пользователя успешно получены",
@@ -149,6 +158,7 @@ public class LibraryController {
     }
 
     @PostMapping("/publish/{tripId}")
+    @TrackMetrics(value = "publish_route_to_library", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Опубликовать маршрут в библиотеке", description = "Публикует маршрут в библиотеке маршрутов",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses(value = {
@@ -184,6 +194,7 @@ public class LibraryController {
     }
 
     @PutMapping("/approve/{id}")
+    @TrackMetrics(value = "approve_route", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Одобрить публикацию маршрута (только для администраторов)",
             description = "Одобряет публикацию маршрута в библиотеке (требует прав администратора)",
             security = {@SecurityRequirement(name = "bearerAuth")})
@@ -208,6 +219,7 @@ public class LibraryController {
     }
 
     @DeleteMapping("/{id}")
+    @TrackMetrics(value = "delete_route_from_library", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Удалить маршрут из библиотеки",
             description = "Удаляет маршрут из библиотеки (требуется авторизация)",
             security = {@SecurityRequirement(name = "bearerAuth")})

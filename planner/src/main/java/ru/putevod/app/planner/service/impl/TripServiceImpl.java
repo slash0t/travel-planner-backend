@@ -24,6 +24,7 @@ import ru.putevod.app.planner.repository.PlaceRepository;
 import ru.putevod.app.planner.repository.TripAccessRepository;
 import ru.putevod.app.planner.repository.TripDayRepository;
 import ru.putevod.app.planner.repository.TripRepository;
+import ru.putevod.app.planner.repository.EventRepository;
 import ru.putevod.app.planner.service.NotificationService;
 import ru.putevod.app.planner.service.TripPreviewService;
 import ru.putevod.app.planner.service.TripService;
@@ -32,6 +33,7 @@ import ru.putevod.app.planner.service.UserService;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,6 +50,7 @@ public class TripServiceImpl implements TripService {
     private final TripMapper tripMapper;
     private final TripAccessMapper tripAccessMapper;
     private final TripDayRepository tripDayRepository;
+    private final EventRepository eventRepository;
 
     @Override
     @Transactional
@@ -216,9 +219,15 @@ public class TripServiceImpl implements TripService {
     @Override
     @Transactional
     public TripDto updateTrip(Long userId, Long tripId, UpdateTripDto updateTripDto) {
+        if (updateTripDto.getEndDate().isBefore(updateTripDto.getStartDate())) {
+            throw new BadRequestException("Дата окончания поездки не может быть раньше даты начала");
+        }
+
         Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin", "write");
 
         String oldCity = trip.getCity();
+        LocalDate oldStartDate = trip.getStartDate();
+        LocalDate oldEndDate = trip.getEndDate();
 
         tripMapper.updateEntityFromUpdate(updateTripDto, trip);
 
@@ -227,6 +236,17 @@ public class TripServiceImpl implements TripService {
             trip.setPreviewUrl(previewUrl);
             log.info("Обновлено превью для поездки {} с изменением города на {}: {}",
                     updateTripDto.getTitle(), updateTripDto.getCity(), previewUrl);
+        }
+
+        boolean datesChanged = !updateTripDto.getStartDate().equals(oldStartDate) || 
+                              !updateTripDto.getEndDate().equals(oldEndDate);
+
+        if (datesChanged) {
+            log.info("Даты поездки {} изменились с [{} - {}] на [{} - {}], обновляем дни поездки", 
+                    tripId, oldStartDate, oldEndDate, updateTripDto.getStartDate(), updateTripDto.getEndDate());
+            
+            // Умно обновляем дни поездки, сохраняя существующие данные
+            updateTripDaysIntelligently(trip, updateTripDto.getStartDate(), updateTripDto.getEndDate());
         }
 
         trip = tripRepository.save(trip);
@@ -508,6 +528,64 @@ public class TripServiceImpl implements TripService {
     @Transactional(readOnly = true)
     public Long getTotalPlacesCount(Long userId) {
         User user = userService.getUserEntityById(userId);
-        return placeRepository.countUserPlaces(user);
+        return eventRepository.countUserEvents(user);
+    }
+
+    /**
+     * Обновляет дни поездки, сохраняя существующие данные
+     *
+     * @param trip поездка
+     * @param newStartDate новая дата начала поездки
+     * @param newEndDate новая дата окончания поездки
+     */
+    private void updateTripDaysIntelligently(Trip trip, LocalDate newStartDate, LocalDate newEndDate) {
+        // Получаем все существующие дни поездки
+        List<TripDay> existingDays = tripDayRepository.findByTripOrderByDayNumberAsc(trip);
+        
+        // Удаляем дни, которые выходят за пределы новых дат
+        List<TripDay> daysToDelete = existingDays.stream()
+                .filter(day -> day.getDate().isBefore(newStartDate) || day.getDate().isAfter(newEndDate))
+                .collect(Collectors.toList());
+        
+        if (!daysToDelete.isEmpty()) {
+            tripDayRepository.deleteAll(daysToDelete);
+            log.info("Удалено {} дней поездки {}, которые выходят за пределы новых дат", 
+                    daysToDelete.size(), trip.getTripId());
+        }
+        
+        // Создаем недостающие дни и обновляем номера дней
+        LocalDate currentDate = newStartDate;
+        int dayNumber = 1;
+        
+        while (!currentDate.isAfter(newEndDate)) {
+            Optional<TripDay> existingDay = tripDayRepository.findByTripAndDate(trip, currentDate);
+            
+            if (existingDay.isPresent()) {
+                // День существует - обновляем только номер дня если он изменился
+                TripDay day = existingDay.get();
+                if (day.getDayNumber() != dayNumber) {
+                    day.setDayNumber(dayNumber);
+                    tripDayRepository.save(day);
+                    log.info("Обновлен номер дня поездки {} с {} на {} для даты {}", 
+                            trip.getTripId(), day.getDayNumber(), dayNumber, currentDate);
+                }
+            } else {
+                // День не существует - создаем новый
+                TripDay tripDay = TripDay.builder()
+                        .trip(trip)
+                        .dayNumber(dayNumber)
+                        .date(currentDate)
+                        .build();
+                
+                tripDayRepository.save(tripDay);
+                log.info("Создан новый день {} для поездки {}: {}", dayNumber, trip.getTripId(), currentDate);
+            }
+            
+            currentDate = currentDate.plusDays(1);
+            dayNumber++;
+        }
+        
+        log.info("Обновление дней поездки {} завершено: диапазон дат [{} - {}]", 
+                trip.getTripId(), newStartDate, newEndDate);
     }
 } 

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.planner.config.CurrentUser;
 import ru.putevod.app.planner.dto.CreateEventDto;
 import ru.putevod.app.planner.dto.UpdateEventDto;
+import ru.putevod.app.planner.dto.ReorderEventDto;
 import ru.putevod.app.planner.dto.EventDto;
 import ru.putevod.app.planner.dto.EventReminderDto;
 import ru.putevod.app.planner.dto.CreateEventReminderDto;
@@ -67,6 +68,18 @@ public class EventController {
             @PathVariable Long eventId,
             @Valid @RequestBody UpdateEventDto updateEventDto) {
         return ResponseEntity.ok(eventService.updateEvent(userId, tripId, dayId, eventId, updateEventDto));
+    }
+
+    @PatchMapping("/{eventId}/reorder")
+    @Operation(summary = "Переместить событие без времени на новую позицию", 
+               description = "Позволяет перемещать только события без конкретного времени. События со временем автоматически сортируются по времени.")
+    public ResponseEntity<EventDto> reorderEvent(
+            @CurrentUser Long userId,
+            @PathVariable Long tripId,
+            @PathVariable Long dayId,
+            @PathVariable Long eventId,
+            @Valid @RequestBody ReorderEventDto reorderDto) {
+        return ResponseEntity.ok(eventService.reorderEvent(userId, tripId, dayId, eventId, reorderDto.getNewPosition()));
     }
 
     @DeleteMapping("/{eventId}")

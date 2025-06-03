@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.putevod.app.library.annotation.TrackMetrics;
 import ru.putevod.app.library.client.AuthServiceClient;
 import ru.putevod.app.library.dto.ReviewDto;
 import ru.putevod.app.library.security.CurrentUser;
@@ -32,6 +33,7 @@ public class ReviewController {
     private final AuthServiceClient authServiceClient;
 
     @GetMapping
+    @TrackMetrics(value = "get_route_reviews", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Получить отзывы на маршрут", description = "Возвращает список отзывов на указанный маршрут")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Отзывы успешно получены",
@@ -45,6 +47,7 @@ public class ReviewController {
     }
 
     @PostMapping
+    @TrackMetrics(value = "add_route_review", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Добавить отзыв к маршруту", description = "Добавляет новый отзыв к указанному маршруту",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses(value = {
@@ -66,6 +69,7 @@ public class ReviewController {
     }
 
     @PutMapping
+    @TrackMetrics(value = "update_route_review", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Обновить отзыв к маршруту", description = "Обновляет существующий отзыв к указанному маршруту",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses(value = {
@@ -88,6 +92,7 @@ public class ReviewController {
     }
 
     @DeleteMapping
+    @TrackMetrics(value = "delete_route_review", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Удалить отзыв", description = "Удаляет отзыв на маршрут",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses(value = {
@@ -106,6 +111,7 @@ public class ReviewController {
     }
 
     @GetMapping("/my")
+    @TrackMetrics(value = "get_my_review", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Получить мой отзыв на маршрут", description = "Возвращает отзыв текущего пользователя на указанный маршрут",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses(value = {

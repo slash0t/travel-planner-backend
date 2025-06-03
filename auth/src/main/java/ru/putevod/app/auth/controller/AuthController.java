@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.auth.dto.*;
 import ru.putevod.app.auth.service.AuthService;
 import ru.putevod.app.auth.config.CurrentUser;
+import ru.putevod.app.auth.annotation.TrackMetrics;
+import ru.putevod.app.auth.service.MetricsService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +34,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final AuthenticationManager authenticationManager;
+    private final MetricsService metricsService;
 
     @Operation(
             summary = "Авторизация пользователя",
@@ -47,6 +50,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Неверный запрос")
     })
     @PostMapping("/login")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -83,6 +87,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Неверный запрос")
     })
     @PostMapping("/refresh")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "refresh_token")
     public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshRequest,
                                                      HttpServletRequest request) {
         String ipAddress = request.getRemoteAddr();
@@ -100,7 +105,7 @@ public class AuthController {
     @Operation(
             summary = "Выход из системы",
             description = "Выполняет выход пользователя из системы и инвалидирует refresh token",
-            security = {@SecurityRequirement(name = "bearerAuth")}
+    security = {@SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -111,6 +116,7 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "Не авторизован")
     })
     @PostMapping("/logout")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "logout")
     public ResponseEntity<Map<String, String>> logout(@RequestBody RefreshTokenRequest refreshRequest) {
         authService.logout(refreshRequest.getRefreshToken());
         SecurityContextHolder.clearContext();
@@ -134,6 +140,7 @@ public class AuthController {
             @ApiResponse(responseCode = "409", description = "Пользователь с таким email уже существует")
     })
     @PostMapping("/register")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "register")
     public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterRequest registerRequest,
                                                         HttpServletRequest request) {
         String ipAddress = request.getRemoteAddr();
@@ -161,6 +168,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Неверный или истекший токен")
     })
     @PostMapping("/verify-email")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "verify_email")
     public ResponseEntity<AuthResponse> verifyEmail(@Valid @RequestBody EmailVerificationRequest verificationRequest,
                                                     HttpServletRequest request) {
         String ipAddress = request.getRemoteAddr();
@@ -184,6 +192,7 @@ public class AuthController {
             @ApiResponse(responseCode = "404", description = "Пользователь не найден")
     })
     @PostMapping("/resend-verification")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "resend_verification")
     public ResponseEntity<Map<String, String>> resendVerification(@Valid @RequestBody EmailRequest emailRequest) {
         authService.resendVerificationEmail(emailRequest.getEmail());
 
@@ -202,6 +211,7 @@ public class AuthController {
             @ApiResponse(responseCode = "404", description = "Пользователь не найден")
     })
     @PostMapping("/forgot-password")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "forgot_password")
     public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody EmailRequest emailRequest) {
         authService.sendPasswordResetEmail(emailRequest.getEmail());
 
@@ -220,6 +230,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Неверный код или email")
     })
     @PostMapping("/verify-reset-code")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "verify_reset_code")
     public ResponseEntity<Map<String, String>> verifyResetCode(@Valid @RequestBody VerifyResetCodeRequest resetCodeRequest) {
         String resetToken = authService.verifyPasswordResetCode(resetCodeRequest.getEmail(), resetCodeRequest.getCode());
 
@@ -234,11 +245,13 @@ public class AuthController {
             summary = "Восстановление пароля",
             description = "Устанавливает новый пароль пользователя по токену сброса"
     )
+
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Пароль успешно изменен"),
             @ApiResponse(responseCode = "400", description = "Неверный или истекший токен")
     })
     @PostMapping("/reset-password")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "reset_password")
     public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest) {
         authService.resetPassword(resetPasswordRequest.getResetToken(), resetPasswordRequest.getNewPassword());
 
@@ -252,10 +265,12 @@ public class AuthController {
             summary = "Получение анонимного токена",
             description = "Создает анонимный токен для неавторизованных пользователей"
     )
+
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Токен успешно создан")
     })
     @PostMapping("/anonymous-token")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "anonymous_token")
     public ResponseEntity<Map<String, Object>> getAnonymousToken(@RequestBody(required = false) Map<String, String> request) {
         String deviceId = request != null ? request.get("deviceId") : null;
 
@@ -264,18 +279,6 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(
-            summary = "Валидация токена",
-            description = "Проверяет JWT токен и возвращает информацию о нем"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Информация о токене",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = TokenValidationResponse.class))
-            ),
-            @ApiResponse(responseCode = "401", description = "Токен недействителен")
-    })
     @PostMapping("/auth/validate")
     public ResponseEntity<TokenValidationResponse> validateToken(
             @RequestBody TokenValidationRequest tokenRequest,
@@ -285,36 +288,15 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(
-            summary = "Получение информации о пользователе",
-            description = "Извлекает информацию о пользователе из JWT токена"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Информация о пользователе"),
-            @ApiResponse(responseCode = "401", description = "Токен недействителен")
-    })
-    @PostMapping("/auth/userinfo")
+    @PostMapping("/auth/user-info")
     public ResponseEntity<Map<String, Object>> getUserInfo(
             @RequestBody TokenValidationRequest tokenRequest,
             @RequestHeader(value = "X-Service-Token", required = false) String serviceToken) {
-
+        
         Map<String, Object> userInfo = authService.getUserInfoFromToken(tokenRequest.getToken(), serviceToken);
         return ResponseEntity.ok(userInfo);
     }
 
-    @Operation(
-            summary = "Получить пользователя по ID",
-            description = "Получает полную информацию о пользователе по его ID для межсервисного взаимодействия"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Информация о пользователе",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserInfoDto.class))
-            ),
-            @ApiResponse(responseCode = "404", description = "Пользователь не найден"),
-            @ApiResponse(responseCode = "401", description = "Неверный сервисный токен")
-    })
     @GetMapping("/users/{userId}")
     public ResponseEntity<UserInfoDto> getUserById(
             @PathVariable Integer userId,
@@ -340,14 +322,14 @@ public class AuthController {
             @ApiResponse(responseCode = "409", description = "Email или username уже используются")
     })
     @PutMapping("/profile")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "update_profile")
     public ResponseEntity<UserInfoDto> updateProfile(
             @CurrentUser Integer userId,
             @Valid @RequestBody UpdateProfileRequest updateProfileRequest) {
-        
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        
+
         UserInfoDto updatedUser = authService.updateUserProfile(userId, updateProfileRequest);
         return ResponseEntity.ok(updatedUser);
     }
