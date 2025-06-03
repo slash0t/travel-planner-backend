@@ -17,6 +17,27 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findByDayOrderByOrderPositionAsc(TripDay day);
 
+    /**
+     * Получить события дня, отсортированные сначала по времени (для событий со временем),
+     * затем по orderPosition (для событий без времени и в качестве второго критерия)
+     */
+    @Query("SELECT e FROM Event e WHERE e.day = :day ORDER BY " +
+           "CASE WHEN e.hasSpecificTime = true AND e.startTime IS NOT NULL THEN e.startTime END ASC NULLS LAST, " +
+           "e.orderPosition ASC")
+    List<Event> findByDayOrderByTimeAndPosition(@Param("day") TripDay day);
+
+    /**
+     * Получить только события со временем для дня, отсортированные по времени
+     */
+    @Query("SELECT e FROM Event e WHERE e.day = :day AND e.hasSpecificTime = true AND e.startTime IS NOT NULL ORDER BY e.startTime ASC")
+    List<Event> findTimedEventsByDay(@Param("day") TripDay day);
+
+    /**
+     * Получить только события без времени для дня, отсортированные по orderPosition
+     */
+    @Query("SELECT e FROM Event e WHERE e.day = :day AND (e.hasSpecificTime = false OR e.startTime IS NULL) ORDER BY e.orderPosition ASC")
+    List<Event> findUntimedEventsByDay(@Param("day") TripDay day);
+
     @Query("SELECT e FROM Event e WHERE e.day.trip = :trip ORDER BY e.day.dayNumber ASC, e.orderPosition ASC")
     List<Event> findAllByTrip(@Param("trip") Trip trip);
 

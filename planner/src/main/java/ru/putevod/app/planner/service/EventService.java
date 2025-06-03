@@ -34,4 +34,15 @@ public interface EventService {
     void processReminders();
 
     Event getEventEntityById(Long eventId);
+
+    /**
+     * Перемещение события без времени на новую позицию
+     * @param userId ID пользователя
+     * @param tripId ID поездки  
+     * @param dayId ID дня
+     * @param eventId ID перемещаемого события
+     * @param newPosition новая позиция (может быть между событиями со временем)
+     * @return обновленное событие
+     */
+    EventDto reorderEvent(Long userId, Long tripId, Long dayId, Long eventId, Integer newPosition);
 } 
