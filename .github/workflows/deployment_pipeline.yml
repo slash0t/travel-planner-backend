@@ -48,11 +48,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run migrations
-        run: mvn liquibase:update
-
       - name: Compile project
         run: mvn compile
+
+      - name: Run migrations
+        run: mvn liquibase:update
 
       - name: Run tests
         run: mvn test
