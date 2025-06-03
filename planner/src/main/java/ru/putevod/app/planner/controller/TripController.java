@@ -127,11 +127,37 @@ public class TripController {
     }
 
     @PostMapping("/{tripId}/share")
-    @Operation(summary = "Предоставить доступ к поездке")
+    @Operation(summary = "Предоставить доступ к поездке", description = "Приглашает пользователя к поездке. Можно указать либо userId, либо username пользователя")
     public ResponseEntity<TripAccessDto> shareTrip(
             @CurrentUser Long userId,
             @PathVariable Long tripId,
             @Valid @RequestBody CreateTripAccessDto accessDto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(tripService.shareTrip(userId, tripId, accessDto));
+    }
+
+    @PostMapping("/{tripId}/invite-by-username")
+    @Operation(summary = "Пригласить пользователя по никнейму", 
+               description = "Упрощенный способ приглашения пользователя к поездке по его никнейму")
+    public ResponseEntity<TripAccessDto> inviteUserByUsername(
+            @CurrentUser Long userId,
+            @PathVariable Long tripId,
+            @RequestParam @Parameter(description = "Никнейм пользователя", required = true, example = "john_doe") String username,
+            @RequestParam(defaultValue = "read") @Parameter(description = "Уровень доступа", schema = @Schema(allowableValues = {"read", "write", "admin"})) String accessLevel) {
+        
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Никнейм пользователя не может быть пустым");
+        }
+        
+        if (!accessLevel.matches("read|write|admin")) {
+            throw new IllegalArgumentException("Недопустимый уровень доступа: " + accessLevel);
+        }
+        
+        CreateTripAccessDto accessDto = CreateTripAccessDto.builder()
+                .username(username.trim())
+                .accessLevel(accessLevel)
+                .build();
+                
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(tripService.shareTrip(userId, tripId, accessDto));
     }

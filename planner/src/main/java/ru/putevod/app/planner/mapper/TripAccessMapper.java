@@ -27,13 +27,12 @@ public interface TripAccessMapper {
     @Mapping(target = "updatedAt", ignore = true)
     TripAccess toEntity(TripAccessDto tripAccessDto);
 
-    // Маппинг из CreateTripAccessDto в TripAccess
     @BeanMapping(unmappedTargetPolicy = ReportingPolicy.IGNORE)
     @Mapping(target = "accessId", ignore = true)
     @Mapping(source = "createTripAccessDto.accessLevel", target = "accessLevel")
     @Mapping(source = "user", target = "user")
     @Mapping(source = "trip", target = "trip")
-    @Mapping(target = "invitationStatus", constant = "PENDING")
+    @Mapping(target = "invitationStatus", constant = "pending")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     TripAccess toEntityFromCreate(CreateTripAccessDto createTripAccessDto, User user, Trip trip);
