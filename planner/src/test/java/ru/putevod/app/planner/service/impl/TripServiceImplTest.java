@@ -366,7 +366,7 @@ class TripServiceImplTest {
         when(tripRepository.findById(tripId)).thenReturn(Optional.of(savedTripEntity));
         when(tripRepository.save(any(Trip.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(tripDayRepository.findByTripOrderByDayNumberAsc(savedTripEntity)).thenReturn(existingTripDays);
-        
+
         TripDto updatedTripDto = new TripDto();
         updatedTripDto.setId(tripId);
         updatedTripDto.setStartDate(newStartDate);
