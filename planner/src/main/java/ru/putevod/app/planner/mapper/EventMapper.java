@@ -81,7 +81,6 @@ public interface EventMapper {
     @Mapping(source = "orderPosition", target = "orderPosition")
     @Mapping(target = "eventId", ignore = true)
     @Mapping(target = "day", ignore = true)
-    @Mapping(target = "place", ignore = true)
     @Mapping(target = "files", ignore = true)
     @Mapping(target = "reminders", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

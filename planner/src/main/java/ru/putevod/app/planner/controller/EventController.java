@@ -60,7 +60,8 @@ public class EventController {
     }
 
     @PutMapping("/{eventId}")
-    @Operation(summary = "Обновить событие")
+    @Operation(summary = "Обновить событие", 
+               description = "Обновляет событие и связанное с ним место. Если поле 'place' передано как null, связь с местом будет удалена. Если поле 'place' не передано, место остается без изменений.")
     public ResponseEntity<EventDto> updateEvent(
             @CurrentUser Long userId,
             @PathVariable Long tripId,

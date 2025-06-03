@@ -31,4 +31,18 @@ public interface TodoItemRepository extends JpaRepository<TodoItem, Long> {
 
     @Query("SELECT COUNT(i) FROM TodoItem i WHERE i.todoList = :todoList AND i.completed = true")
     int countCompletedByTodoList(@Param("todoList") TodoList todoList);
-} 
+
+    @Query("SELECT COALESCE(MAX(i.orderPosition), 0) FROM TodoItem i WHERE i.todoList = :todoList")
+    Integer findMaxOrderPositionByTodoList(@Param("todoList") TodoList todoList);
+
+    @Modifying
+    @Query("UPDATE TodoItem i SET i.orderPosition = i.orderPosition + 1 WHERE i.todoList = :todoList AND i.orderPosition >= :position")
+    void incrementOrderPositionsFrom(@Param("todoList") TodoList todoList, @Param("position") Integer position);
+
+    @Modifying
+    @Query("UPDATE TodoItem i SET i.orderPosition = i.orderPosition - 1 WHERE i.todoList = :todoList AND i.orderPosition > :position")
+    void decrementOrderPositionsAfter(@Param("todoList") TodoList todoList, @Param("position") Integer position);
+
+    @Query("SELECT i FROM TodoItem i WHERE i.todoList = :todoList AND i.orderPosition >= :fromPosition AND i.orderPosition <= :toPosition ORDER BY i.orderPosition")
+    List<TodoItem> findByTodoListAndOrderPositionBetween(@Param("todoList") TodoList todoList, @Param("fromPosition") Integer fromPosition, @Param("toPosition") Integer toPosition);
+}

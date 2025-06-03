@@ -35,4 +35,6 @@ public interface TodoListService {
     void toggleAllTodoItemsComplete(Long userId, Long listId, boolean completed);
 
     void deleteTodoItem(Long userId, Long listId, Long itemId);
-} 
+
+    TodoItemDto reorderTodoItem(Long userId, Long listId, Long itemId, Integer newPosition);
+}

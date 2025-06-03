@@ -32,7 +32,6 @@ public class TripDayServiceImpl implements TripDayService {
     public TripDayDto createTripDay(Long userId, Long tripId, TripDayDto tripDayDto) {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
 
-        // Проверяем, что день с таким номером не существует в поездке
         if (tripDayDto.getDayNumber() != null) {
             boolean dayNumberExists = tripDayRepository.findByTripOrderByDayNumberAsc(trip).stream()
                     .anyMatch(day -> tripDayDto.getDayNumber().equals(day.getDayNumber()));
@@ -41,7 +40,6 @@ public class TripDayServiceImpl implements TripDayService {
                 throw new BadRequestException("День с указанным номером уже существует в этой поездке");
             }
         } else {
-            // Если номер дня не указан, вычисляем его автоматически
             Integer maxDayNumber = tripDayRepository.findByTripOrderByDayNumberAsc(trip).stream()
                     .map(TripDay::getDayNumber)
                     .max(Integer::compareTo)
@@ -50,7 +48,6 @@ public class TripDayServiceImpl implements TripDayService {
             tripDayDto.setDayNumber(maxDayNumber + 1);
         }
 
-        // Проверяем уникальность даты, если она указана
         if (tripDayDto.getDate() != null) {
             boolean dateExists = tripDayRepository.findByTripAndDate(trip, tripDayDto.getDate()).isPresent();
 
@@ -73,7 +70,6 @@ public class TripDayServiceImpl implements TripDayService {
         TripDay tripDay = tripDayRepository.findByTripAndDayId(trip, dayId)
                 .orElseThrow(() -> new ResourceNotFoundException("День", "id", dayId));
 
-        // Проверяем, что изменяемый номер дня не конфликтует с существующими
         if (tripDayDto.getDayNumber() != null && !tripDayDto.getDayNumber().equals(tripDay.getDayNumber())) {
             boolean dayNumberExists = tripDayRepository.findByTripOrderByDayNumberAsc(trip).stream()
                     .filter(day -> !day.getDayId().equals(dayId))
@@ -84,7 +80,6 @@ public class TripDayServiceImpl implements TripDayService {
             }
         }
 
-        // Проверяем уникальность даты, если она изменяется
         if (tripDayDto.getDate() != null && !tripDayDto.getDate().equals(tripDay.getDate())) {
             boolean dateExists = tripDayRepository.findByTripAndDate(trip, tripDayDto.getDate())
                     .map(day -> !day.getDayId().equals(dayId))

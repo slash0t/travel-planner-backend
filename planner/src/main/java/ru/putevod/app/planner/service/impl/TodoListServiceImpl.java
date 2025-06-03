@@ -170,7 +170,6 @@ public class TodoListServiceImpl implements TodoListService {
         TodoList todoList = todoListRepository.findById(listId)
                 .orElseThrow(() -> new ResourceNotFoundException("Список задач", "id", listId));
 
-        // Проверяем права на добавление элементов
         if (todoList.getTrip() != null) {
             if (!tripService.hasAccessToTrip(user, todoList.getTrip(), "admin", "write")) {
                 throw new BadRequestException("У вас нет прав на добавление задач в этот список");
@@ -179,14 +178,16 @@ public class TodoListServiceImpl implements TodoListService {
             throw new BadRequestException("У вас нет прав на добавление задач в этот список");
         }
 
-        // Если позиция не указана, устанавливаем в конец списка
         if (createTodoItemDto.getOrderPosition() == null) {
-            Integer maxPosition = todoItemRepository.findByTodoListOrderByOrderPositionAsc(todoList).stream()
-                    .map(TodoItem::getOrderPosition)
-                    .max(Integer::compareTo)
-                    .orElse(0);
-
+            Integer maxPosition = todoItemRepository.findMaxOrderPositionByTodoList(todoList);
             createTodoItemDto.setOrderPosition(maxPosition + 1);
+        } else {
+            Integer newPosition = createTodoItemDto.getOrderPosition();
+            Integer maxPosition = todoItemRepository.findMaxOrderPositionByTodoList(todoList);
+            
+            if (newPosition <= maxPosition) {
+                todoItemRepository.incrementOrderPositionsFrom(todoList, newPosition);
+            }
         }
 
         TodoItem todoItem = todoItemMapper.fromCreateDto(createTodoItemDto, todoList);
@@ -203,8 +204,7 @@ public class TodoListServiceImpl implements TodoListService {
         TodoList todoList = todoListRepository.findById(listId)
                 .orElseThrow(() -> new ResourceNotFoundException("Список задач", "id", listId));
 
-        // Проверяем права на редактирование элементов
-        if (todoList.getTrip() != null) {
+         if (todoList.getTrip() != null) {
             if (!tripService.hasAccessToTrip(user, todoList.getTrip(), "admin", "write")) {
                 throw new BadRequestException("У вас нет прав на редактирование задач в этом списке");
             }
@@ -229,7 +229,6 @@ public class TodoListServiceImpl implements TodoListService {
         TodoList todoList = todoListRepository.findById(listId)
                 .orElseThrow(() -> new ResourceNotFoundException("Список задач", "id", listId));
 
-        // Проверяем права на редактирование элементов
         if (todoList.getTrip() != null) {
             if (!tripService.hasAccessToTrip(user, todoList.getTrip(), "admin", "write", "read")) {
                 throw new BadRequestException("У вас нет прав на изменение статуса задач в этом списке");
@@ -242,12 +241,9 @@ public class TodoListServiceImpl implements TodoListService {
                 .orElseThrow(() -> new ResourceNotFoundException("Задача", "id", itemId));
 
         boolean newStatus = !todoItem.isCompleted();
-        todoItem.setCompleted(newStatus);
-        newStatus = !todoItem.isCompleted();
         todoItemRepository.updateCompletionStatus(todoList, itemId, newStatus);
 
-        // Обновляем объект в памяти после обновления в БД
-        todoItem.setCompleted(newStatus);
+       todoItem.setCompleted(newStatus);
 
         return todoItemMapper.toDto(todoItem);
     }
@@ -260,7 +256,6 @@ public class TodoListServiceImpl implements TodoListService {
         TodoList todoList = todoListRepository.findById(listId)
                 .orElseThrow(() -> new ResourceNotFoundException("Список задач", "id", listId));
 
-        // Проверяем права на редактирование элементов
         if (todoList.getTrip() != null) {
             if (!tripService.hasAccessToTrip(user, todoList.getTrip(), "admin", "write")) {
                 throw new BadRequestException("У вас нет прав на изменение статуса задач в этом списке");
@@ -269,10 +264,8 @@ public class TodoListServiceImpl implements TodoListService {
             throw new BadRequestException("У вас нет прав на изменение статуса задач в этом списке");
         }
 
-        // Изменяем статус всех элементов списка
         todoItemRepository.updateAllCompletionStatus(todoList, completed);
 
-        // Обновляем статусы и в объектах в памяти
         for (TodoItem item : todoList.getItems()) {
             item.setCompleted(completed);
         }
@@ -286,7 +279,6 @@ public class TodoListServiceImpl implements TodoListService {
         TodoList todoList = todoListRepository.findById(listId)
                 .orElseThrow(() -> new ResourceNotFoundException("Список задач", "id", listId));
 
-        // Проверяем права на удаление элементов
         if (todoList.getTrip() != null) {
             if (!tripService.hasAccessToTrip(user, todoList.getTrip(), "admin", "write")) {
                 throw new BadRequestException("У вас нет прав на удаление задач из этого списка");
@@ -298,6 +290,63 @@ public class TodoListServiceImpl implements TodoListService {
         TodoItem todoItem = todoItemRepository.findByTodoListAndItemId(todoList, itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Задача", "id", itemId));
 
+        Integer deletedPosition = todoItem.getOrderPosition();
         todoItemRepository.delete(todoItem);
+        
+        todoItemRepository.decrementOrderPositionsAfter(todoList, deletedPosition);
     }
-} 
+
+    @Override
+    @Transactional
+    public TodoItemDto reorderTodoItem(Long userId, Long listId, Long itemId, Integer newPosition) {
+        User user = userService.getUserEntityById(userId);
+
+        TodoList todoList = todoListRepository.findById(listId)
+                .orElseThrow(() -> new ResourceNotFoundException("Список задач", "id", listId));
+
+        if (todoList.getTrip() != null) {
+            if (!tripService.hasAccessToTrip(user, todoList.getTrip(), "admin", "write")) {
+                throw new BadRequestException("У вас нет прав на изменение порядка задач в этом списке");
+            }
+        } else if (!todoList.getUser().getUserId().equals(userId)) {
+            throw new BadRequestException("У вас нет прав на изменение порядка задач в этом списке");
+        }
+
+        TodoItem todoItem = todoItemRepository.findByTodoListAndItemId(todoList, itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Задача", "id", itemId));
+
+        Integer currentPosition = todoItem.getOrderPosition();
+        Integer maxPosition = todoItemRepository.findMaxOrderPositionByTodoList(todoList);
+
+        if (newPosition < 1 || newPosition > maxPosition) {
+            throw new BadRequestException("Недопустимая позиция. Позиция должна быть от 1 до " + maxPosition);
+        }
+
+        if (currentPosition.equals(newPosition)) {
+            return todoItemMapper.toDto(todoItem);
+        }
+
+        if (newPosition < currentPosition) {
+            List<TodoItem> itemsToShift = todoItemRepository
+                    .findByTodoListAndOrderPositionBetween(todoList, newPosition, currentPosition - 1);
+            
+            for (TodoItem item : itemsToShift) {
+                item.setOrderPosition(item.getOrderPosition() + 1);
+            }
+            todoItemRepository.saveAll(itemsToShift);
+        } else {
+            List<TodoItem> itemsToShift = todoItemRepository
+                    .findByTodoListAndOrderPositionBetween(todoList, currentPosition + 1, newPosition);
+            
+            for (TodoItem item : itemsToShift) {
+                item.setOrderPosition(item.getOrderPosition() - 1);
+            }
+            todoItemRepository.saveAll(itemsToShift);
+        }
+
+        todoItem.setOrderPosition(newPosition);
+        todoItem = todoItemRepository.save(todoItem);
+
+        return todoItemMapper.toDto(todoItem);
+    }
+}
