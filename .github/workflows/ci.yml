@@ -44,11 +44,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build and install project
-        run: mvn install
-
       - name: Run migrations
         run: mvn liquibase:update
+
+      - name: Compile project
+        run: mvn compile
 
       - name: Run tests
         run: mvn test
@@ -83,3 +83,4 @@ jobs:
           name: planner-target.jar
           path: planner/target/*SNAPSHOT.jar
           if-no-files-found: error
+
