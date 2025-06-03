@@ -22,6 +22,8 @@ public interface TodoListService {
 
     Page<TodoListDto> getUserTodoLists(Long userId, Pageable pageable);
 
+    Page<TodoListDto> getUserTodoListsSimple(Long userId, Pageable pageable);
+
     List<TodoListDto> getTripTodoLists(Long userId, Long tripId);
 
     void deleteTodoList(Long userId, Long listId);

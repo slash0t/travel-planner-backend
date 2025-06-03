@@ -18,6 +18,8 @@ import ru.putevod.app.planner.dto.TodoItemDto;
 import ru.putevod.app.planner.dto.TodoListDto;
 import ru.putevod.app.planner.dto.UpdateTodoItemDto;
 import ru.putevod.app.planner.service.TodoListService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -29,6 +31,7 @@ import java.util.List;
 public class TodoListController {
 
     private final TodoListService todoListService;
+    private static final Logger log = LoggerFactory.getLogger(TodoListController.class);
 
     @PostMapping("/todo-lists")
     @Operation(summary = "Создать новый список задач")
@@ -54,7 +57,43 @@ public class TodoListController {
     public ResponseEntity<Page<TodoListDto>> getUserTodoLists(
             @CurrentUser Long userId,
             Pageable pageable) {
-        return ResponseEntity.ok(todoListService.getUserTodoLists(userId, pageable));
+        log.info("Запрос на получение списков задач для пользователя с ID: {}, pageable: {}", userId, pageable);
+        try {
+            Page<TodoListDto> result = todoListService.getUserTodoLists(userId, pageable);
+            log.info("Найдено {} списков задач для пользователя {}", result.getTotalElements(), userId);
+            
+            if (result.hasContent()) {
+                log.info("Списки задач для пользователя {}: {}", userId, 
+                    result.getContent().stream()
+                        .map(todo -> String.format("ID:%s, Title:'%s', Trip:%s", 
+                            todo.getId(), todo.getTitle(), 
+                            todo.getTripId() != null ? "ID:" + todo.getTripId() : "null/deleted"))
+                        .collect(java.util.stream.Collectors.toList()));
+            } else {
+                log.warn("Для пользователя {} не найдено ни одного списка задач", userId);
+            }
+            
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Ошибка при получении списков задач для пользователя {}: {}", userId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @GetMapping("/todo-lists/debug")
+    @Operation(summary = "Диагностический эндпоинт для получения всех списков пользователя без фильтрации")
+    public ResponseEntity<Page<TodoListDto>> getUserTodoListsDebug(
+            @CurrentUser Long userId,
+            Pageable pageable) {
+        log.info("DEBUG: Запрос на получение всех списков задач для пользователя с ID: {}", userId);
+        try {
+            Page<TodoListDto> result = todoListService.getUserTodoListsSimple(userId, pageable);
+            log.info("DEBUG: Найдено {} списков задач для пользователя {}", result.getTotalElements(), userId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("DEBUG: Ошибка при получении списков задач для пользователя {}: {}", userId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/trips/{tripId}/todo-lists")
