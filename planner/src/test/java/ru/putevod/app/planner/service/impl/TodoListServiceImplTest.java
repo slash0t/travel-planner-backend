@@ -96,6 +96,9 @@ class TodoListServiceImplTest {
 
         // Common stubs
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
+        
+        // Мок для нового метода маппера
+        when(todoListMapper.toDtoWithTripCheck(any(TodoList.class))).thenReturn(todoListDto);
     }
 
     @Test
@@ -103,7 +106,7 @@ class TodoListServiceImplTest {
     void createTodoList_Success() {
         when(todoListMapper.toEntity(any())).thenReturn(todoList);
         when(todoListRepository.save(any())).thenReturn(todoList);
-        when(todoListMapper.toDto(any())).thenReturn(todoListDto);
+        when(todoListMapper.toDtoWithTripCheck(any())).thenReturn(todoListDto);
 
         TodoListDto result = todoListService.createTodoList(1L, todoListDto);
 
@@ -118,7 +121,7 @@ class TodoListServiceImplTest {
         when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("write"))).thenReturn(true);
         when(todoListMapper.toEntity(any())).thenReturn(todoList);
         when(todoListRepository.save(any())).thenReturn(todoList);
-        when(todoListMapper.toDto(any())).thenReturn(todoListDto);
+        when(todoListMapper.toDtoWithTripCheck(any())).thenReturn(todoListDto);
 
         TodoListDto result = todoListService.createTripTodoList(1L, 1L, todoListDto);
 
@@ -143,7 +146,7 @@ class TodoListServiceImplTest {
     void updateTodoList_Success() {
         when(todoListRepository.findByUserAndListId(any(), anyLong())).thenReturn(Optional.of(todoList));
         when(todoListRepository.save(any())).thenReturn(todoList);
-        when(todoListMapper.toDto(any())).thenReturn(todoListDto);
+        when(todoListMapper.toDtoWithTripCheck(any())).thenReturn(todoListDto);
 
         TodoListDto result = todoListService.updateTodoList(1L, 1L, todoListDto);
 
@@ -179,7 +182,7 @@ class TodoListServiceImplTest {
     @DisplayName("Should get todo list by id successfully")
     void getTodoListById_Success() {
         when(todoListRepository.findById(anyLong())).thenReturn(Optional.of(todoList));
-        when(todoListMapper.toDto(any())).thenReturn(todoListDto);
+        when(todoListMapper.toDtoWithTripCheck(any())).thenReturn(todoListDto);
 
         TodoListDto result = todoListService.getTodoListById(1L, 1L);
 
@@ -229,7 +232,6 @@ class TodoListServiceImplTest {
     void getUserTodoLists_Success() {
         Page<TodoList> todoListPage = new PageImpl<>(List.of(todoList));
         when(todoListRepository.findAllActiveByUser(any(), any(Pageable.class))).thenReturn(todoListPage);
-        when(todoListMapper.toDto(any())).thenReturn(todoListDto);
 
         Page<TodoListDto> result = todoListService.getUserTodoLists(1L, mock(Pageable.class));
 
@@ -243,7 +245,6 @@ class TodoListServiceImplTest {
         when(tripService.getTripEntityWithAccessCheck(anyLong(), anyLong())).thenReturn(trip);
         when(tripService.hasAccessToTrip(any(), any(), eq("admin"), eq("read"), eq("write"))).thenReturn(true);
         when(trip.getTodoLists()).thenReturn(List.of(todoList));
-        when(todoListMapper.toDto(any())).thenReturn(todoListDto);
 
         List<TodoListDto> result = todoListService.getTripTodoLists(1L, 1L);
 
