@@ -75,6 +75,8 @@ logging:
     org.springdoc: DEBUG
     com.zaxxer.hikari: DEBUG
     org.springframework.jdbc: DEBUG
+    ru.putevod.app.library.service.MetricsService: DEBUG
+    ru.putevod.app.library.aspect.MetricsAspect: DEBUG
 
 services:
   auth:
@@ -83,28 +85,25 @@ services:
 auth:
   token: ${AUTH_SERVICE_TOKEN:service_token_for_development}
 
----
-# Профиль для CI/CD среды
-spring:
-  config:
-    activate:
-      on-profile: ci
-  datasource:
-    hikari:
-      maximum-pool-size: 2
-      minimum-idle: 1
-      connection-timeout: 5000
-      idle-timeout: 180000
-      max-lifetime: 300000
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        operation.duration.seconds: true
+      percentiles:
+        http.server.requests: 0.5,0.95,0.99
+        operation.duration.seconds: 0.5,0.95,0.99
 
----
-# Профиль для тестирования
-spring:
-  config:
-    activate:
-      on-profile: test
-  datasource:
-    hikari:
-      maximum-pool-size: 3
-      minimum-idle: 1
-      connection-timeout: 5000
