@@ -44,8 +44,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Build library module first
+        run: mvn install -pl library -am
+
       - name: Run migrations
-        run: mvn liquibase:update
+        run: mvn liquibase:update -N
 
       - name: Build and install project
         run: mvn install
