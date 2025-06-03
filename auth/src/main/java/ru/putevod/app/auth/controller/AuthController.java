@@ -288,6 +288,15 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/auth/user-info")
+    public ResponseEntity<Map<String, Object>> getUserInfo(
+            @RequestBody TokenValidationRequest tokenRequest,
+            @RequestHeader(value = "X-Service-Token", required = false) String serviceToken) {
+        
+        Map<String, Object> userInfo = authService.getUserInfoFromToken(tokenRequest.getToken(), serviceToken);
+        return ResponseEntity.ok(userInfo);
+    }
+
     @GetMapping("/users/{userId}")
     public ResponseEntity<UserInfoDto> getUserById(
             @PathVariable Integer userId,

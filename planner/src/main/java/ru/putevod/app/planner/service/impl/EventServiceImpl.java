@@ -253,15 +253,12 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Событие не принадлежит указанному дню");
         }
 
-        // Сохраняем информацию о удаляемом событии для пересчета позиций
         boolean isUntimedEvent = !event.isHasSpecificTime() || event.getStartTime() == null;
         int deletedEventPosition = event.getOrderPosition();
 
-        // Удаляем событие
-        eventRepository.delete(event);
+       eventRepository.delete(event);
 
-        // Если удаляемое событие было без времени, нужно сдвинуть позиции остальных событий без времени
-        if (isUntimedEvent) {
+       if (isUntimedEvent) {
             shiftUntimedEventsPositionAfterDeletion(day, deletedEventPosition);
         }
     }
@@ -272,7 +269,6 @@ public class EventServiceImpl implements EventService {
     private void shiftUntimedEventsPositionAfterDeletion(TripDay day, int deletedPosition) {
         List<Event> untimedEvents = eventRepository.findUntimedEventsByDay(day);
         
-        // Сдвигаем все события с позициями больше удаленного на -1
         untimedEvents.stream()
                 .filter(e -> e.getOrderPosition() > deletedPosition)
                 .forEach(e -> e.setOrderPosition(e.getOrderPosition() - 1));
