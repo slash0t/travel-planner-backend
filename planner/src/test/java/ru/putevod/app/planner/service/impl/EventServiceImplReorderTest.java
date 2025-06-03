@@ -202,8 +202,8 @@ class EventServiceImplReorderTest {
         EventDto result = eventService.createEvent(1L, 1L, 1L, createDto);
 
         assertNotNull(result);
-        // Новое событие должно вставиться между событиями в позицию 3 (между 10:00 и 14:00)
-        assertEquals(3, createDto.getOrderPosition());
+        // Новое событие должно вставиться между событиями в позицию 4 (перед событием 14:00)
+        assertEquals(4, createDto.getOrderPosition());
         verify(eventRepository).saveAll(any()); // Сдвиг событий справа
     }
 

@@ -125,7 +125,7 @@ class EventServiceImplTest {
         doReturn(user).when(userService).getUserEntityById(anyLong());
         doReturn(true).when(tripService).hasAccessToTrip(any(User.class), any(Trip.class), eq("admin"), eq("write"));
         doReturn(Optional.of(tripDay)).when(tripDayRepository).findByTripAndDayId(any(), any());
-        doReturn(List.of()).when(eventRepository).findUntimedEventsByDay(any());
+        doReturn(List.of()).when(eventRepository).findByDayOrderByTimeAndPosition(any());
         doReturn(event).when(eventMapper).toEntityFromCreate(any(), any());
         doReturn(event).when(eventRepository).save(any());
         doReturn(eventDto).when(eventMapper).toDto(any());
@@ -172,8 +172,7 @@ class EventServiceImplTest {
         doReturn(user).when(userService).getUserEntityById(anyLong());
         doReturn(true).when(tripService).hasAccessToTrip(any(User.class), any(Trip.class), eq("admin"), eq("read"), eq("write"));
         doReturn(Optional.of(tripDay)).when(tripDayRepository).findByTripAndDayId(any(), any());
-        doReturn(List.of()).when(eventRepository).findUntimedEventsByDay(any());
-        doReturn(List.of(event)).when(eventRepository).findTimedEventsByDay(any());
+        doReturn(List.of(event)).when(eventRepository).findByDayOrderByTimeAndPosition(any());
         doReturn(eventDto).when(eventMapper).toDto(any());
 
         List<EventDto> result = eventService.getDayEvents(1L, 1L, 1L);
