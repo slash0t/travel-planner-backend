@@ -46,4 +46,19 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Query("SELECT e FROM Event e JOIN e.reminders r WHERE r.remindAt BETWEEN :startTime AND :endTime AND r.sent = false")
     List<Event> findEventsWithRemindersInTimeRange(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
+
+    /**
+     * Подсчитывает количество событий во всех путешествиях пользователя
+     * События связаны с днями поездок, которые связаны с путешествиями
+     *
+     * @param user пользователь
+     * @return количество событий
+     */
+    @Query("SELECT COUNT(e) FROM Event e " +
+           "JOIN e.day d " +
+           "JOIN d.trip t " +
+           "WHERE (t.creator = :user OR EXISTS (" +
+           "    SELECT a FROM TripAccess a WHERE a.trip = t AND a.user = :user AND a.invitationStatus = 'accepted'" +
+           ")) AND t.isDeleted = false")
+    Long countUserEvents(@Param("user") User user);
 } 

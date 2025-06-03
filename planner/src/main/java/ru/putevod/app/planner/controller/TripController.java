@@ -206,13 +206,13 @@ public class TripController {
 
     @GetMapping("/stats/total-places")
     @Operation(
-            summary = "Получить общее количество мест во всех путешествиях пользователя",
-            description = "Возвращает общее количество уникальных мест, добавленных во все путешествия пользователя"
+            summary = "Получить общее количество событий во всех путешествиях пользователя",
+            description = "Возвращает общее количество событий, добавленных во все путешествия пользователя"
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Количество мест успешно получено",
+                    description = "Количество событий успешно получено",
                     content = @Content(mediaType = "application/json")
             ),
             @ApiResponse(
@@ -222,7 +222,7 @@ public class TripController {
             )
     })
     public ResponseEntity<Long> getTotalPlacesCount(@Parameter(hidden = true) @CurrentUser Long userId) {
-        log.info("Getting total places count for user: {}", userId);
+        log.info("Getting total events count for user: {}", userId);
         return ResponseEntity.ok(tripService.getTotalPlacesCount(userId));
     }
 } 

@@ -59,10 +59,10 @@ public interface TripService {
     Long getTotalTripsCount(Long userId);
 
     /**
-     * Получить общее количество мест во всех путешествиях пользователя
+     * Получить общее количество событий во всех путешествиях пользователя
      *
      * @param userId ID пользователя
-     * @return общее количество добавленных мест
+     * @return общее количество событий
      */
     Long getTotalPlacesCount(Long userId);
 } 
