@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.external.exception.ServiceUnavailableException;
 import ru.putevod.app.external.service.AiTripListService;
+import ru.putevod.app.library.annotation.TrackMetrics;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +29,7 @@ public class AiTripListController {
     private final AiTripListService aiTripListService;
 
     @PostMapping("/generate")
+    @TrackMetrics(value = "ai_generate_trip_list", type = TrackMetrics.EventType.EXTERNAL)
     @Operation(summary = "Универсальная генерация списка для поездки",
             description = "Генерирует список элементов для поездки на основе: текстового запроса, существующей поездки с промптом, или шаблона с промптом и параметрами")
     @ApiResponses(value = {

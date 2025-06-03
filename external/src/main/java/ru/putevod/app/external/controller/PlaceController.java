@@ -15,6 +15,7 @@ import ru.putevod.app.external.dto.PlaceResponseDto;
 import ru.putevod.app.external.dto.response.PlaceSearchResponse;
 import ru.putevod.app.external.dto.response.PlaceSuggestionResponse;
 import ru.putevod.app.external.service.PlaceService;
+import ru.putevod.app.library.annotation.TrackMetrics;
 
 import java.util.Map;
 
@@ -28,6 +29,7 @@ public class PlaceController {
     private final PlaceService placeService;
 
     @GetMapping("/search")
+    @TrackMetrics(value = "search_places", type = TrackMetrics.EventType.EXTERNAL)
     @Operation(summary = "Поиск мест", description = "Поиск мест по заданному запросу с возможностью фильтрации по местоположению и категориям")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Успешный поиск",
@@ -50,6 +52,7 @@ public class PlaceController {
     }
 
     @GetMapping("/{placeId}")
+    @TrackMetrics(value = "get_place_details", type = TrackMetrics.EventType.EXTERNAL)
     @Operation(summary = "Получить детальную информацию о месте", description = "Возвращает подробную информацию о месте по его ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Информация о месте успешно получена",
@@ -64,6 +67,7 @@ public class PlaceController {
     }
 
     @GetMapping("/autocomplete")
+    @TrackMetrics(value = "autocomplete_places", type = TrackMetrics.EventType.EXTERNAL)
     @Operation(summary = "Автодополнение для поиска мест", description = "Предлагает варианты завершения поискового запроса")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Варианты автодополнения успешно получены",
@@ -82,6 +86,7 @@ public class PlaceController {
     }
 
     @GetMapping("/geocode")
+    @TrackMetrics(value = "geocode_address", type = TrackMetrics.EventType.EXTERNAL)
     @Operation(summary = "Геокодирование адреса", description = "Получение координат по адресу или названию места")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Координаты успешно получены",
@@ -101,6 +106,7 @@ public class PlaceController {
     }
 
     @GetMapping("/nearby")
+    @TrackMetrics(value = "get_nearby_places", type = TrackMetrics.EventType.EXTERNAL)
     @Operation(summary = "Найти ближайшие места", description = "Поиск мест вокруг заданной точки")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Ближайшие места успешно найдены",
