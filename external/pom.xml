@@ -86,13 +86,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Library модуль для общих компонентов и метрик -->
-        <dependency>
-            <groupId>ru.putevod.app</groupId>
-            <artifactId>library</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- Micrometer для метрик Prometheus -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

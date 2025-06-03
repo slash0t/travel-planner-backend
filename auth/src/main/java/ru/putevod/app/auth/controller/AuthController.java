@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.auth.dto.*;
 import ru.putevod.app.auth.service.AuthService;
 import ru.putevod.app.auth.config.CurrentUser;
-import ru.putevod.app.library.annotation.TrackMetrics;
-import ru.putevod.app.library.service.MetricsService;
+import ru.putevod.app.auth.annotation.TrackMetrics;
+import ru.putevod.app.auth.service.MetricsService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,7 +50,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Неверный запрос")
     })
     @PostMapping("/login")
-    @TrackMetrics(value = "login", type = TrackMetrics.EventType.AUTH)
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -87,7 +87,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Неверный запрос")
     })
     @PostMapping("/refresh")
-    @TrackMetrics(value = "refresh_token", type = TrackMetrics.EventType.AUTH)
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "refresh_token")
     public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshRequest,
                                                      HttpServletRequest request) {
         String ipAddress = request.getRemoteAddr();
@@ -116,7 +116,7 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "Не авторизован")
     })
     @PostMapping("/logout")
-    @TrackMetrics(value = "logout", type = TrackMetrics.EventType.AUTH)
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "logout")
     public ResponseEntity<Map<String, String>> logout(@RequestBody RefreshTokenRequest refreshRequest) {
         authService.logout(refreshRequest.getRefreshToken());
         SecurityContextHolder.clearContext();
@@ -140,7 +140,7 @@ public class AuthController {
             @ApiResponse(responseCode = "409", description = "Пользователь с таким email уже существует")
     })
     @PostMapping("/register")
-    @TrackMetrics(value = "register", type = TrackMetrics.EventType.AUTH)
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "register")
     public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterRequest registerRequest,
                                                         HttpServletRequest request) {
         String ipAddress = request.getRemoteAddr();
@@ -168,7 +168,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Неверный или истекший токен")
     })
     @PostMapping("/verify-email")
-    @TrackMetrics(value = "verify_email", type = TrackMetrics.EventType.AUTH)
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "verify_email")
     public ResponseEntity<AuthResponse> verifyEmail(@Valid @RequestBody EmailVerificationRequest verificationRequest,
                                                     HttpServletRequest request) {
         String ipAddress = request.getRemoteAddr();
@@ -192,7 +192,7 @@ public class AuthController {
             @ApiResponse(responseCode = "404", description = "Пользователь не найден")
     })
     @PostMapping("/resend-verification")
-    @TrackMetrics(value = "resend_verification", type = TrackMetrics.EventType.AUTH)
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "resend_verification")
     public ResponseEntity<Map<String, String>> resendVerification(@Valid @RequestBody EmailRequest emailRequest) {
         authService.resendVerificationEmail(emailRequest.getEmail());
 
@@ -211,7 +211,7 @@ public class AuthController {
             @ApiResponse(responseCode = "404", description = "Пользователь не найден")
     })
     @PostMapping("/forgot-password")
-    @TrackMetrics(value = "forgot_password", type = TrackMetrics.EventType.AUTH)
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "forgot_password")
     public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody EmailRequest emailRequest) {
         authService.sendPasswordResetEmail(emailRequest.getEmail());
 
@@ -230,7 +230,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Неверный код или email")
     })
     @PostMapping("/verify-reset-code")
-    @TrackMetrics(value = "verify_reset_code", type = TrackMetrics.EventType.AUTH)
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "verify_reset_code")
     public ResponseEntity<Map<String, String>> verifyResetCode(@Valid @RequestBody VerifyResetCodeRequest resetCodeRequest) {
         String resetToken = authService.verifyPasswordResetCode(resetCodeRequest.getEmail(), resetCodeRequest.getCode());
 
@@ -251,7 +251,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Неверный или истекший токен")
     })
     @PostMapping("/reset-password")
-    @TrackMetrics(value = "reset_password", type = TrackMetrics.EventType.AUTH)
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "reset_password")
     public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest) {
         authService.resetPassword(resetPasswordRequest.getResetToken(), resetPasswordRequest.getNewPassword());
 
@@ -270,7 +270,7 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Токен успешно создан")
     })
     @PostMapping("/anonymous-token")
-    @TrackMetrics(value = "anonymous_token", type = TrackMetrics.EventType.AUTH)
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "anonymous_token")
     public ResponseEntity<Map<String, Object>> getAnonymousToken(@RequestBody(required = false) Map<String, String> request) {
         String deviceId = request != null ? request.get("deviceId") : null;
 
@@ -322,7 +322,7 @@ public class AuthController {
             @ApiResponse(responseCode = "409", description = "Email или username уже используются")
     })
     @PutMapping("/profile")
-    @TrackMetrics(value = "update_profile", type = TrackMetrics.EventType.AUTH)
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "update_profile")
     public ResponseEntity<UserInfoDto> updateProfile(
             @CurrentUser Integer userId,
             @Valid @RequestBody UpdateProfileRequest updateProfileRequest) {

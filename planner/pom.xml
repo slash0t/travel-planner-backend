@@ -107,13 +107,6 @@
             <artifactId>mapstruct</artifactId>
             <version>${org.mapstruct.version}</version>
         </dependency>
-
-        <!-- Library модуль для общих компонентов и метрик -->
-        <dependency>
-            <groupId>ru.putevod.app</groupId>
-            <artifactId>library</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
     <build>

@@ -23,7 +23,6 @@ import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.dto.UpdateTripDto;
 import ru.putevod.app.planner.service.TripService;
-import ru.putevod.app.library.annotation.TrackMetrics;
 
 import java.util.List;
 
@@ -37,7 +36,6 @@ public class TripController {
     private final TripService tripService;
 
     @PostMapping
-    @TrackMetrics(value = "create_trip", type = TrackMetrics.EventType.PLANNER)
     @Operation(
             summary = "Создать новую поездку",
             description = "Создает новую поездку с указанными параметрами. Обязательные поля: title, startDate, endDate, country, city"
@@ -73,7 +71,6 @@ public class TripController {
     }
 
     @GetMapping
-    @TrackMetrics(value = "get_user_trips", type = TrackMetrics.EventType.PLANNER)
     @Operation(summary = "Получить список поездок пользователя")
     public ResponseEntity<Page<TripDto>> getUserTrips(
             @CurrentUser Long userId,
@@ -104,7 +101,6 @@ public class TripController {
     }
 
     @GetMapping("/{tripId}")
-    @TrackMetrics(value = "get_trip_by_id", type = TrackMetrics.EventType.PLANNER)
     @Operation(summary = "Получить поездку по ID")
     public ResponseEntity<TripDto> getTripById(
             @CurrentUser Long userId,
@@ -113,7 +109,6 @@ public class TripController {
     }
 
     @PutMapping("/{tripId}")
-    @TrackMetrics(value = "update_trip", type = TrackMetrics.EventType.PLANNER)
     @Operation(summary = "Обновить поездку")
     public ResponseEntity<TripDto> updateTrip(
             @CurrentUser Long userId,
@@ -123,7 +118,6 @@ public class TripController {
     }
 
     @DeleteMapping("/{tripId}")
-    @TrackMetrics(value = "delete_trip", type = TrackMetrics.EventType.PLANNER)
     @Operation(summary = "Удалить поездку")
     public ResponseEntity<Void> deleteTrip(
             @CurrentUser Long userId,
@@ -133,7 +127,6 @@ public class TripController {
     }
 
     @PostMapping("/{tripId}/share")
-    @TrackMetrics(value = "share_trip", type = TrackMetrics.EventType.PLANNER)
     @Operation(summary = "Предоставить доступ к поездке")
     public ResponseEntity<TripAccessDto> shareTrip(
             @CurrentUser Long userId,
@@ -180,7 +173,6 @@ public class TripController {
     }
 
     @PostMapping("/{tripId}/publish")
-    @TrackMetrics(value = "publish_trip", type = TrackMetrics.EventType.PLANNER)
     @Operation(summary = "Публиковать или снять с публикации маршрут")
     public ResponseEntity<TripDto> publishTrip(
             @CurrentUser Long userId,
