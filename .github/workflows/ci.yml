@@ -44,11 +44,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build library without JPA
-        run: mvn compile -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - name: Compile and install library module first
+        run: mvn install -pl library -DskipTests
 
       - name: Run migrations
-        run: mvn liquibase:update -N
+        run: mvn liquibase:update
 
       - name: Build and install project
         run: mvn install
