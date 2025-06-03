@@ -15,6 +15,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import ru.putevod.app.library.annotation.TrackMetrics;
 import ru.putevod.app.library.dto.ReviewDto;
 import ru.putevod.app.library.service.ReviewService;
 
@@ -27,6 +28,7 @@ public class AdminController {
     private final ReviewService reviewService;
 
     @GetMapping("/reviews")
+    @TrackMetrics(value = "admin_get_all_reviews", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Получить все отзывы",
             description = "Возвращает пагинированный список всех отзывов на маршруты (требует прав администратора)",
             security = {@SecurityRequirement(name = "bearerAuth")})
@@ -44,6 +46,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/reviews/{reviewId}")
+    @TrackMetrics(value = "admin_delete_review", type = TrackMetrics.EventType.CUSTOM)
     @Operation(summary = "Удалить отзыв по ID",
             description = "Удаляет отзыв по его идентификатору (требует прав администратора)",
             security = {@SecurityRequirement(name = "bearerAuth")})
