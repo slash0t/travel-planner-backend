@@ -10,6 +10,8 @@ import ru.putevod.app.planner.dto.CreateEventDto;
 import ru.putevod.app.planner.dto.EventDto;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.mapper.EventMapper;
+import ru.putevod.app.planner.mapper.PlaceMapper;
+import ru.putevod.app.planner.mapper.EventReminderMapper;
 import ru.putevod.app.planner.model.*;
 import ru.putevod.app.planner.repository.*;
 import ru.putevod.app.planner.service.*;
@@ -32,11 +34,21 @@ class EventServiceImplReorderTest {
     @Mock
     private TripDayRepository tripDayRepository;
     @Mock
+    private EventReminderRepository eventReminderRepository;
+    @Mock
+    private PlaceRepository placeRepository;
+    @Mock
     private TripService tripService;
     @Mock
     private UserService userService;
     @Mock
+    private NotificationService notificationService;
+    @Mock
     private EventMapper eventMapper;
+    @Mock
+    private PlaceMapper placeMapper;
+    @Mock
+    private EventReminderMapper eventReminderMapper;
 
     @InjectMocks
     private EventServiceImpl eventService;
@@ -107,20 +119,17 @@ class EventServiceImplReorderTest {
 
     @Test
     void reorderEvent_Success_MoveUntimedEventDown() {
-        // Arrange
         when(tripService.getTripEntityWithAccessCheck(anyLong(), anyLong())).thenReturn(trip);
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
-        when(tripService.hasAccessToTrip(any(), any(), anyString())).thenReturn(true);
+        when(tripService.hasAccessToTrip(any(User.class), any(Trip.class), eq("admin"), eq("write"))).thenReturn(true);
         when(tripDayRepository.findByTripAndDayId(any(), any())).thenReturn(Optional.of(tripDay));
         when(eventRepository.findById(1L)).thenReturn(Optional.of(untimedEvent1));
         when(eventRepository.findUntimedEventsByDay(tripDay)).thenReturn(Arrays.asList(untimedEvent1, untimedEvent2, untimedEvent3));
         when(eventRepository.save(any())).thenReturn(untimedEvent1);
         when(eventMapper.toDto(any())).thenReturn(new EventDto());
 
-        // Act
         EventDto result = eventService.reorderEvent(1L, 1L, 1L, 1L, 3);
 
-        // Assert
         assertNotNull(result);
         assertEquals(3, untimedEvent1.getOrderPosition());
         assertEquals(1, untimedEvent2.getOrderPosition());
@@ -130,14 +139,12 @@ class EventServiceImplReorderTest {
 
     @Test
     void reorderEvent_ThrowsException_WhenTryingToMoveTimedEvent() {
-        // Arrange
         when(tripService.getTripEntityWithAccessCheck(anyLong(), anyLong())).thenReturn(trip);
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
-        when(tripService.hasAccessToTrip(any(), any(), anyString())).thenReturn(true);
+        when(tripService.hasAccessToTrip(any(User.class), any(Trip.class), eq("admin"), eq("write"))).thenReturn(true);
         when(tripDayRepository.findByTripAndDayId(any(), any())).thenReturn(Optional.of(tripDay));
         when(eventRepository.findById(4L)).thenReturn(Optional.of(timedEvent1));
 
-        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, 
                 () -> eventService.reorderEvent(1L, 1L, 1L, 4L, 2));
         
@@ -153,7 +160,7 @@ class EventServiceImplReorderTest {
 
         when(tripService.getTripEntityWithAccessCheck(anyLong(), anyLong())).thenReturn(trip);
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
-        when(tripService.hasAccessToTrip(any(), any(), anyString())).thenReturn(true);
+        when(tripService.hasAccessToTrip(any(User.class), any(Trip.class), eq("admin"), eq("write"))).thenReturn(true);
         when(tripDayRepository.findByTripAndDayId(any(), any())).thenReturn(Optional.of(tripDay));
         when(eventRepository.findUntimedEventsByDay(tripDay)).thenReturn(Arrays.asList(untimedEvent1, untimedEvent2));
         when(eventMapper.toEntityFromCreate(any(), any())).thenReturn(untimedEvent1);
@@ -177,7 +184,7 @@ class EventServiceImplReorderTest {
 
         when(tripService.getTripEntityWithAccessCheck(anyLong(), anyLong())).thenReturn(trip);
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
-        when(tripService.hasAccessToTrip(any(), any(), anyString())).thenReturn(true);
+        when(tripService.hasAccessToTrip(any(User.class), any(Trip.class), eq("admin"), eq("write"))).thenReturn(true);
         when(tripDayRepository.findByTripAndDayId(any(), any())).thenReturn(Optional.of(tripDay));
         when(eventRepository.findTimedEventsByDay(tripDay)).thenReturn(Arrays.asList(timedEvent1, timedEvent2));
         when(eventRepository.findUntimedEventsByDay(tripDay)).thenReturn(Arrays.asList(untimedEvent1, untimedEvent2));
@@ -185,20 +192,20 @@ class EventServiceImplReorderTest {
         when(eventRepository.save(any())).thenReturn(timedEvent1);
         when(eventMapper.toDto(any())).thenReturn(new EventDto());
 
-         EventDto result = eventService.createEvent(1L, 1L, 1L, createDto);
+        EventDto result = eventService.createEvent(1L, 1L, 1L, createDto);
 
         assertNotNull(result);
-         assertEquals(4, createDto.getOrderPosition());
+        assertEquals(4, createDto.getOrderPosition());
     }
 
     @Test
     void deleteEvent_UntimedEvent_ReordersRemainingEvents() {
         when(tripService.getTripEntityWithAccessCheck(anyLong(), anyLong())).thenReturn(trip);
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
-        when(tripService.hasAccessToTrip(any(), any(), anyString())).thenReturn(true);
+        when(tripService.hasAccessToTrip(any(User.class), any(Trip.class), eq("admin"), eq("write"))).thenReturn(true);
         when(tripDayRepository.findByTripAndDayId(any(), any())).thenReturn(Optional.of(tripDay));
-        when(eventRepository.findById(2L)).thenReturn(Optional.of(untimedEvent2)); // Удаляем второе событие
-        when(eventRepository.findUntimedEventsByDay(tripDay)).thenReturn(Arrays.asList(untimedEvent1, untimedEvent3)); // После удаления остаются 1 и 3
+        when(eventRepository.findById(2L)).thenReturn(Optional.of(untimedEvent2));
+        when(eventRepository.findUntimedEventsByDay(tripDay)).thenReturn(Arrays.asList(untimedEvent1, untimedEvent3));
 
         eventService.deleteEvent(1L, 1L, 1L, 2L);
 
@@ -209,38 +216,30 @@ class EventServiceImplReorderTest {
 
     @Test
     void deleteEvent_TimedEvent_NoReordering() {
-        // Arrange
         when(tripService.getTripEntityWithAccessCheck(anyLong(), anyLong())).thenReturn(trip);
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
-        when(tripService.hasAccessToTrip(any(), any(), anyString())).thenReturn(true);
+        when(tripService.hasAccessToTrip(any(User.class), any(Trip.class), eq("admin"), eq("write"))).thenReturn(true);
         when(tripDayRepository.findByTripAndDayId(any(), any())).thenReturn(Optional.of(tripDay));
-        when(eventRepository.findById(4L)).thenReturn(Optional.of(timedEvent1)); // Удаляем событие со временем
+        when(eventRepository.findById(4L)).thenReturn(Optional.of(timedEvent1));
 
-        // Act
         eventService.deleteEvent(1L, 1L, 1L, 4L);
 
-        // Assert
         verify(eventRepository).delete(timedEvent1);
-        // Для событий со временем не должно быть пересчета позиций
         verify(eventRepository, never()).saveAll(any());
     }
 
     @Test
     void deleteEvent_FirstUntimedEvent_ReordersCorrectly() {
-        // Arrange
         when(tripService.getTripEntityWithAccessCheck(anyLong(), anyLong())).thenReturn(trip);
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
-        when(tripService.hasAccessToTrip(any(), any(), anyString())).thenReturn(true);
+        when(tripService.hasAccessToTrip(any(User.class), any(Trip.class), eq("admin"), eq("write"))).thenReturn(true);
         when(tripDayRepository.findByTripAndDayId(any(), any())).thenReturn(Optional.of(tripDay));
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(untimedEvent1)); // Удаляем первое событие
-        when(eventRepository.findUntimedEventsByDay(tripDay)).thenReturn(Arrays.asList(untimedEvent2, untimedEvent3)); // После удаления остаются 2 и 3
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(untimedEvent1));
+        when(eventRepository.findUntimedEventsByDay(tripDay)).thenReturn(Arrays.asList(untimedEvent2, untimedEvent3));
 
-        // Act
         eventService.deleteEvent(1L, 1L, 1L, 1L);
 
-        // Assert
         verify(eventRepository).delete(untimedEvent1);
-        // Проверяем что события с позициями 2 и 3 стали иметь позиции 1 и 2
         assertEquals(1, untimedEvent2.getOrderPosition());
         assertEquals(2, untimedEvent3.getOrderPosition());
         verify(eventRepository).saveAll(any());

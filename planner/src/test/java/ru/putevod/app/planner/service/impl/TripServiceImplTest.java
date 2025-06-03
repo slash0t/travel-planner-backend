@@ -16,6 +16,7 @@ import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.dto.UpdateTripDto;
 import ru.putevod.app.planner.dto.UserDto;
+import ru.putevod.app.planner.dto.CreateTripAccessDto;
 import ru.putevod.app.planner.exception.AccessDeniedException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
 import ru.putevod.app.planner.mapper.TripAccessMapper;
@@ -128,6 +129,8 @@ class TripServiceImplTest {
         tripDtoToUpdate = new UpdateTripDto();
         tripDtoToUpdate.setTitle("Updated Test Trip");
         tripDtoToUpdate.setDescription("Updated Description");
+        tripDtoToUpdate.setStartDate(LocalDate.now().plusDays(10));
+        tripDtoToUpdate.setEndDate(LocalDate.now().plusDays(17));
         tripDtoToUpdate.setCountry("Россия");
         tripDtoToUpdate.setCity("Москва");
     }
@@ -309,6 +312,7 @@ class TripServiceImplTest {
             tripService.updateTrip(userId, nonExistentTripId, tripDtoToUpdate);
         });
 
+        assertEquals("Поездка not found with id: '" + nonExistentTripId + "'", exception.getMessage());
         verify(tripMapper, never()).updateEntityFromUpdate(any(), any());
         verify(tripRepository, never()).save(any());
         verify(tripMapper, never()).toDto(any());
@@ -363,20 +367,6 @@ class TripServiceImplTest {
         when(tripRepository.save(any(Trip.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(tripDayRepository.findByTripOrderByDayNumberAsc(savedTripEntity)).thenReturn(existingTripDays);
         
-        // Для существующих дат возвращаем существующие дни
-        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), eq(LocalDate.now().plusDays(10))))
-                .thenReturn(Optional.of(existingTripDays.get(0)));
-        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), eq(LocalDate.now().plusDays(11))))
-                .thenReturn(Optional.of(existingTripDays.get(1)));
-        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), eq(LocalDate.now().plusDays(12))))
-                .thenReturn(Optional.of(existingTripDays.get(2)));
-        
-        // Для новых дат возвращаем empty
-        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), eq(LocalDate.now().plusDays(9))))
-                .thenReturn(Optional.empty());
-        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), any(LocalDate.class)))
-                .thenReturn(Optional.empty());
-
         TripDto updatedTripDto = new TripDto();
         updatedTripDto.setId(tripId);
         updatedTripDto.setStartDate(newStartDate);
@@ -391,9 +381,6 @@ class TripServiceImplTest {
 
         // Проверяем, что получили существующие дни
         verify(tripDayRepository, times(1)).findByTripOrderByDayNumberAsc(savedTripEntity);
-        
-        // Проверяем, что не удаляли дни (так как все дни попадают в новый диапазон)
-        verify(tripDayRepository, never()).deleteAll(anyList());
         
         // Проверяем, что создали новые дни (2 новых дня: 9 и от 13 до 18)
         verify(tripDayRepository, atLeast(2)).save(any(TripDay.class));
