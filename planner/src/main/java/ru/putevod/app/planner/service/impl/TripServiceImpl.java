@@ -11,6 +11,7 @@ import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.dto.UpdateTripDto;
 import ru.putevod.app.planner.dto.CreateTripAccessDto;
+import ru.putevod.app.planner.dto.UserDto;
 import ru.putevod.app.planner.exception.AccessDeniedException;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
@@ -328,7 +329,23 @@ public class TripServiceImpl implements TripService {
         User owner = userService.getUserEntityById(userId);
         Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin");
 
-        User userToShare = userService.getUserEntityById(accessDto.getUserId());
+        User userToShare;
+        if (accessDto.getUserId() != null) {
+            userToShare = userService.getUserEntityById(accessDto.getUserId());
+        } else if (accessDto.getUsername() != null && !accessDto.getUsername().trim().isEmpty()) {
+            try {
+                UserDto userDto = userService.findByUsername(accessDto.getUsername().trim());
+                userToShare = userService.getUserEntityById(userDto.getId());
+            } catch (Exception e) {
+                throw new BadRequestException("Пользователь с никнеймом '" + accessDto.getUsername() + "' не найден");
+            }
+        } else {
+            throw new BadRequestException("Необходимо указать либо ID пользователя, либо его никнейм");
+        }
+
+        if (userToShare.getUserId().equals(userId)) {
+            throw new BadRequestException("Вы не можете пригласить самого себя");
+        }
 
         if (tripAccessRepository.existsByTripAndUser(trip, userToShare)) {
             throw new BadRequestException("Пользователь уже имеет доступ к этой поездке");
