@@ -49,7 +49,7 @@ public class TodoListServiceImpl implements TodoListService {
 
         todoList = todoListRepository.save(todoList);
 
-        return todoListMapper.toDtoSafe(todoList);
+        return todoListMapper.toDtoWithTripCheck(todoList);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class TodoListServiceImpl implements TodoListService {
 
         todoList = todoListRepository.save(todoList);
 
-        return todoListMapper.toDtoSafe(todoList);
+        return todoListMapper.toDtoWithTripCheck(todoList);
     }
 
     @Override
@@ -90,7 +90,7 @@ public class TodoListServiceImpl implements TodoListService {
         todoListMapper.updateEntityFromDto(todoListDto, todoList);
         todoList = todoListRepository.save(todoList);
 
-        return todoListMapper.toDtoSafe(todoList);
+        return todoListMapper.toDtoWithTripCheck(todoList);
     }
 
     @Override
@@ -110,7 +110,7 @@ public class TodoListServiceImpl implements TodoListService {
             throw new BadRequestException("У вас нет доступа к этому списку задач");
         }
 
-        return todoListMapper.toDtoSafe(todoList);
+        return todoListMapper.toDtoWithTripCheck(todoList);
     }
 
     @Override
@@ -140,8 +140,7 @@ public class TodoListServiceImpl implements TodoListService {
                 }
             }
 
-            // Используем специальный маппер с проверкой удаленных поездок
-            Page<TodoListDto> result = todoLists.map(todoListMapper::toDtoSafe);
+            Page<TodoListDto> result = todoLists.map(todoListMapper::toDtoWithTripCheck);
             log.info("Успешно преобразованы списки задач в DTO для пользователя {} (с обработкой удаленных поездок)", userId);
             return result;
             
@@ -164,7 +163,7 @@ public class TodoListServiceImpl implements TodoListService {
             log.info("DEBUG: Найдено {} простых списков задач для пользователя {}", todoLists.getTotalElements(), userId);
 
             // Используем специальный маппер с проверкой удаленных поездок
-            Page<TodoListDto> result = todoLists.map(todoListMapper::toDtoSafe);
+            Page<TodoListDto> result = todoLists.map(todoListMapper::toDtoWithTripCheck);
             log.info("DEBUG: Успешно преобразованы простые списки задач в DTO для пользователя {} (с обработкой удаленных поездок)", userId);
             return result;
             
@@ -188,7 +187,7 @@ public class TodoListServiceImpl implements TodoListService {
         List<TodoList> todoLists = trip.getTodoLists();
 
         return todoLists.stream()
-                .map(todoListMapper::toDtoSafe)
+                .map(todoListMapper::toDtoWithTripCheck)
                 .collect(Collectors.toList());
     }
 
