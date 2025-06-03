@@ -22,6 +22,7 @@ import ru.putevod.app.planner.mapper.TripAccessMapper;
 import ru.putevod.app.planner.mapper.TripMapper;
 import ru.putevod.app.planner.model.Trip;
 import ru.putevod.app.planner.model.TripAccess;
+import ru.putevod.app.planner.model.TripDay;
 import ru.putevod.app.planner.model.User;
 import ru.putevod.app.planner.repository.TripAccessRepository;
 import ru.putevod.app.planner.repository.TripDayRepository;
@@ -336,6 +337,149 @@ class TripServiceImplTest {
         verify(tripRepository, never()).save(any());
         verify(tripMapper, never()).toDto(any());
         verify(tripAccessRepository, times(1)).findByTripAndUser(savedTripEntity, anotherUser);
+    }
+
+    @Test
+    @DisplayName("Should update trip days when dates are changed")
+    void updateTrip_DatesChanged_ShouldUpdateTripDays() {
+        Long userId = currentUser.getUserId();
+        Long tripId = savedTripEntity.getTripId();
+        
+        // Устанавливаем новые даты (расширяем диапазон)
+        LocalDate newStartDate = LocalDate.now().plusDays(9);  // на 1 день раньше
+        LocalDate newEndDate = LocalDate.now().plusDays(18);   // на 1 день позже
+        tripDtoToUpdate.setStartDate(newStartDate);
+        tripDtoToUpdate.setEndDate(newEndDate);
+
+        // Мокаем существующие дни поездки (с 10 по 17 день)
+        List<TripDay> existingTripDays = List.of(
+            createTripDay(1, LocalDate.now().plusDays(10)),
+            createTripDay(2, LocalDate.now().plusDays(11)),
+            createTripDay(3, LocalDate.now().plusDays(12))
+        );
+
+        when(userService.getUserEntityById(userId)).thenReturn(currentUser);
+        when(tripRepository.findById(tripId)).thenReturn(Optional.of(savedTripEntity));
+        when(tripRepository.save(any(Trip.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(tripDayRepository.findByTripOrderByDayNumberAsc(savedTripEntity)).thenReturn(existingTripDays);
+        
+        // Для существующих дат возвращаем существующие дни
+        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), eq(LocalDate.now().plusDays(10))))
+                .thenReturn(Optional.of(existingTripDays.get(0)));
+        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), eq(LocalDate.now().plusDays(11))))
+                .thenReturn(Optional.of(existingTripDays.get(1)));
+        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), eq(LocalDate.now().plusDays(12))))
+                .thenReturn(Optional.of(existingTripDays.get(2)));
+        
+        // Для новых дат возвращаем empty
+        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), eq(LocalDate.now().plusDays(9))))
+                .thenReturn(Optional.empty());
+        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), any(LocalDate.class)))
+                .thenReturn(Optional.empty());
+
+        TripDto updatedTripDto = new TripDto();
+        updatedTripDto.setId(tripId);
+        updatedTripDto.setStartDate(newStartDate);
+        updatedTripDto.setEndDate(newEndDate);
+        when(tripMapper.toDto(any(Trip.class))).thenReturn(updatedTripDto);
+
+        TripDto result = tripService.updateTrip(userId, tripId, tripDtoToUpdate);
+
+        assertNotNull(result);
+        assertEquals(newStartDate, result.getStartDate());
+        assertEquals(newEndDate, result.getEndDate());
+
+        // Проверяем, что получили существующие дни
+        verify(tripDayRepository, times(1)).findByTripOrderByDayNumberAsc(savedTripEntity);
+        
+        // Проверяем, что не удаляли дни (так как все дни попадают в новый диапазон)
+        verify(tripDayRepository, never()).deleteAll(anyList());
+        
+        // Проверяем, что создали новые дни (2 новых дня: 9 и от 13 до 18)
+        verify(tripDayRepository, atLeast(2)).save(any(TripDay.class));
+        
+        verify(tripRepository, times(1)).save(savedTripEntity);
+    }
+
+    @Test
+    @DisplayName("Should remove days outside new date range and preserve existing days")
+    void updateTrip_ShouldRemoveDaysOutsideRange() {
+        Long userId = currentUser.getUserId();
+        Long tripId = savedTripEntity.getTripId();
+        
+        LocalDate newStartDate = LocalDate.now().plusDays(12);
+        LocalDate newEndDate = LocalDate.now().plusDays(14);
+        tripDtoToUpdate.setStartDate(newStartDate);
+        tripDtoToUpdate.setEndDate(newEndDate);
+
+        List<TripDay> existingTripDays = List.of(
+            createTripDay(1, LocalDate.now().plusDays(10)), 
+            createTripDay(2, LocalDate.now().plusDays(11)), 
+            createTripDay(3, LocalDate.now().plusDays(12)),
+            createTripDay(4, LocalDate.now().plusDays(13)),
+            createTripDay(5, LocalDate.now().plusDays(14)), 
+            createTripDay(6, LocalDate.now().plusDays(15))  
+        );
+
+        when(userService.getUserEntityById(userId)).thenReturn(currentUser);
+        when(tripRepository.findById(tripId)).thenReturn(Optional.of(savedTripEntity));
+        when(tripRepository.save(any(Trip.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(tripDayRepository.findByTripOrderByDayNumberAsc(savedTripEntity)).thenReturn(existingTripDays);
+        
+        // Мокаем поиск дней по датам
+        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), eq(LocalDate.now().plusDays(12))))
+                .thenReturn(Optional.of(existingTripDays.get(2)));
+        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), eq(LocalDate.now().plusDays(13))))
+                .thenReturn(Optional.of(existingTripDays.get(3)));
+        when(tripDayRepository.findByTripAndDate(eq(savedTripEntity), eq(LocalDate.now().plusDays(14))))
+                .thenReturn(Optional.of(existingTripDays.get(4)));
+
+        TripDto updatedTripDto = new TripDto();
+        updatedTripDto.setId(tripId);
+        when(tripMapper.toDto(any(Trip.class))).thenReturn(updatedTripDto);
+
+        TripDto result = tripService.updateTrip(userId, tripId, tripDtoToUpdate);
+
+        assertNotNull(result);
+
+        ArgumentCaptor<List<TripDay>> deletedDaysCaptor = ArgumentCaptor.forClass(List.class);
+        verify(tripDayRepository).deleteAll(deletedDaysCaptor.capture());
+        
+        List<TripDay> deletedDays = deletedDaysCaptor.getValue();
+        assertEquals(3, deletedDays.size());
+        
+        verify(tripDayRepository, atLeast(3)).save(any(TripDay.class));
+        
+        verify(tripRepository, times(1)).save(savedTripEntity);
+    }
+
+    @Test
+    @DisplayName("Should not update trip days when dates are not changed")
+    void updateTrip_DatesNotChanged_ShouldNotUpdateTripDays() {
+        Long userId = currentUser.getUserId();
+        Long tripId = savedTripEntity.getTripId();
+        
+        // Устанавливаем те же даты, что и были
+        tripDtoToUpdate.setStartDate(savedTripEntity.getStartDate());
+        tripDtoToUpdate.setEndDate(savedTripEntity.getEndDate());
+
+        when(userService.getUserEntityById(userId)).thenReturn(currentUser);
+        when(tripRepository.findById(tripId)).thenReturn(Optional.of(savedTripEntity));
+        when(tripRepository.save(any(Trip.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TripDto updatedTripDto = new TripDto();
+        updatedTripDto.setId(tripId);
+        when(tripMapper.toDto(any(Trip.class))).thenReturn(updatedTripDto);
+
+        TripDto result = tripService.updateTrip(userId, tripId, tripDtoToUpdate);
+
+        assertNotNull(result);
+
+        verify(tripDayRepository, never()).findByTripOrderByDayNumberAsc(any());
+        verify(tripDayRepository, never()).deleteAll(any());
+        verify(tripDayRepository, never()).save(any(TripDay.class));
+        
+        verify(tripRepository, times(1)).save(savedTripEntity);
     }
 
     @Test
@@ -662,5 +806,14 @@ class TripServiceImplTest {
         dto.setAccessLevel(accessLevel);
         dto.setInvitationStatus("accepted");
         return dto;
+    }
+
+    private TripDay createTripDay(int dayNumber, LocalDate date) {
+        TripDay tripDay = new TripDay();
+        tripDay.setDayId((long) dayNumber);
+        tripDay.setTrip(savedTripEntity);
+        tripDay.setDayNumber(dayNumber);
+        tripDay.setDate(date);
+        return tripDay;
     }
 } 
