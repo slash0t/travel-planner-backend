@@ -167,6 +167,39 @@ public class EventServiceImpl implements EventService {
 
         eventMapper.updateEntityFromUpdate(updateEventDto, event);
 
+        // Обработка обновления места
+        if (updateEventDto.getPlace() != null) {
+            // Если передано место - обновляем или создаем новое
+            Place place;
+            if (event.getPlace() != null) {
+                // Обновляем существующее место
+                place = event.getPlace();
+                place.setName(updateEventDto.getPlace().getName());
+                place.setLatitude(updateEventDto.getPlace().getLatitude());
+                place.setLongitude(updateEventDto.getPlace().getLongitude());
+                place.setAddress(updateEventDto.getPlace().getAddress());
+                place.setPlaceType(updateEventDto.getPlace().getPlaceType());
+                place.setExternalId(updateEventDto.getPlace().getExternalId());
+                place.setPreviewUrl(updateEventDto.getPlace().getPreviewUrl());
+            } else {
+                // Создаем новое место
+                place = new Place();
+                place.setName(updateEventDto.getPlace().getName());
+                place.setLatitude(updateEventDto.getPlace().getLatitude());
+                place.setLongitude(updateEventDto.getPlace().getLongitude());
+                place.setAddress(updateEventDto.getPlace().getAddress());
+                place.setPlaceType(updateEventDto.getPlace().getPlaceType());
+                place.setExternalId(updateEventDto.getPlace().getExternalId());
+                place.setPreviewUrl(updateEventDto.getPlace().getPreviewUrl());
+            }
+            place = placeRepository.save(place);
+            event.setPlace(place);
+        } else if (updateEventDto.getPlace() == null && event.getPlace() != null) {
+            // Если место явно передано как null и у события было место - удаляем связь
+            // Примечание: само место не удаляем, так как оно может использоваться в других событиях
+            event.setPlace(null);
+        }
+
         boolean willBeTimedEvent = event.isHasSpecificTime() && event.getStartTime() != null;
 
         if (wasTimedEvent != willBeTimedEvent) {
