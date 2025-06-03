@@ -18,12 +18,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByDayOrderByOrderPositionAsc(TripDay day);
 
     /**
-     * Получить события дня, отсортированные сначала по времени (для событий со временем),
-     * затем по orderPosition (для событий без времени и в качестве второго критерия)
+     * Получить все события дня, отсортированные по orderPosition
+     * (сквозная нумерация для всех типов событий)
      */
-    @Query("SELECT e FROM Event e WHERE e.day = :day ORDER BY " +
-           "CASE WHEN e.hasSpecificTime = true AND e.startTime IS NOT NULL THEN e.startTime END ASC NULLS LAST, " +
-           "e.orderPosition ASC")
+    @Query("SELECT e FROM Event e WHERE e.day = :day ORDER BY e.orderPosition ASC")
     List<Event> findByDayOrderByTimeAndPosition(@Param("day") TripDay day);
 
     /**

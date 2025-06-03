@@ -29,6 +29,10 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Comparator;
 
 @Service
 @RequiredArgsConstructor
@@ -59,20 +63,19 @@ public class EventServiceImpl implements EventService {
         TripDay day = tripDayRepository.findByTripAndDayId(trip, dayId)
                 .orElseThrow(() -> new ResourceNotFoundException("День", "id", dayId));
 
+        // Сквозная нумерация: определяем позицию для нового события
         if (createEventDto.getOrderPosition() == null) {
             if (Boolean.TRUE.equals(createEventDto.getHasSpecificTime()) && createEventDto.getStartTime() != null) {
-                createEventDto.setOrderPosition(calculatePositionForTimedEvent(day, createEventDto.getStartTime()));
+                // Для события со временем находим правильную позицию среди всех событий
+                createEventDto.setOrderPosition(calculatePositionForTimedEventInSequence(day, createEventDto.getStartTime()));
             } else {
+                // Для события без времени добавляем в начало (позиция 1)
                 createEventDto.setOrderPosition(1);
-                shiftUntimedEventsPosition(day, 1, 1);
+                shiftAllEventsPosition(day, 1, 1);
             }
         } else {
-            if (Boolean.TRUE.equals(createEventDto.getHasSpecificTime()) && createEventDto.getStartTime() != null) {
-                log.warn("Игнорируем заданную позицию для события со временем, вычисляем по времени");
-                createEventDto.setOrderPosition(calculatePositionForTimedEvent(day, createEventDto.getStartTime()));
-            } else {
-                shiftUntimedEventsPosition(day, createEventDto.getOrderPosition(), 1);
-            }
+            // Если позиция указана явно - вставляем туда, сдвигая остальные
+            shiftAllEventsPosition(day, createEventDto.getOrderPosition(), 1);
         }
 
         Event event = eventMapper.toEntityFromCreate(createEventDto, day);
@@ -96,29 +99,46 @@ public class EventServiceImpl implements EventService {
         return eventMapper.toDto(event);
     }
 
-    private Integer calculatePositionForTimedEvent(TripDay day, LocalTime startTime) {
-        List<Event> timedEvents = eventRepository.findTimedEventsByDay(day);
+    /**
+     * Вычисляет правильную позицию для события со временем в общей последовательности
+     */
+    private Integer calculatePositionForTimedEventInSequence(TripDay day, LocalTime startTime) {
+        // Получаем все события дня, отсортированные по позиции
+        List<Event> allEvents = eventRepository.findByDayOrderByTimeAndPosition(day);
         
-        int position = 1;
-        for (Event timedEvent : timedEvents) {
-            if (timedEvent.getStartTime().isAfter(startTime)) {
-                break;
+        int insertPosition = allEvents.size() + 1; // По умолчанию в конец
+        
+        for (int i = 0; i < allEvents.size(); i++) {
+            Event currentEvent = allEvents.get(i);
+            
+            // Если текущее событие имеет время и оно позже нашего - вставляем перед ним
+            if (currentEvent.isHasSpecificTime() && currentEvent.getStartTime() != null) {
+                if (currentEvent.getStartTime().isAfter(startTime)) {
+                    insertPosition = currentEvent.getOrderPosition();
+                    break;
+                }
             }
-            position++;
         }
         
-        List<Event> untimedEvents = eventRepository.findUntimedEventsByDay(day);
-        return position + untimedEvents.size();
+        // Сдвигаем все события с позиции insertPosition на 1 вправо
+        shiftAllEventsPosition(day, insertPosition, 1);
+        
+        return insertPosition;
     }
 
-    private void shiftUntimedEventsPosition(TripDay day, int fromPosition, int shift) {
-        List<Event> untimedEvents = eventRepository.findUntimedEventsByDay(day);
+    /**
+     * Сдвигает позиции ВСЕХ событий (и с временем, и без) начиная с указанной позиции
+     */
+    private void shiftAllEventsPosition(TripDay day, int fromPosition, int shift) {
+        List<Event> allEvents = eventRepository.findByDayOrderByTimeAndPosition(day);
         
-        untimedEvents.stream()
+        allEvents.stream()
                 .filter(e -> e.getOrderPosition() >= fromPosition)
                 .forEach(e -> e.setOrderPosition(e.getOrderPosition() + shift));
                 
-        eventRepository.saveAll(untimedEvents);
+        if (!allEvents.isEmpty()) {
+            eventRepository.saveAll(allEvents);
+        }
     }
 
     @Override
@@ -126,7 +146,6 @@ public class EventServiceImpl implements EventService {
     public EventDto updateEvent(Long userId, Long tripId, Long dayId, Long eventId, UpdateEventDto updateEventDto) {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
 
-        // Проверяем доступ на запись
         User user = userService.getUserEntityById(userId);
         if (!tripService.hasAccessToTrip(user, trip, "admin", "write")) {
             throw new BadRequestException("У вас нет прав на редактирование событий в этой поездке");
@@ -142,21 +161,26 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Событие не принадлежит указанному дню");
         }
 
-        // Сохраняем старые значения для анализа изменений
         boolean wasTimedEvent = event.isHasSpecificTime() && event.getStartTime() != null;
-        boolean willBeTimedEvent = updateEventDto.isHasSpecificTime() && updateEventDto.getStartTime() != null;
+        LocalTime oldStartTime = event.getStartTime();
+        int oldPosition = event.getOrderPosition();
 
         eventMapper.updateEntityFromUpdate(updateEventDto, event);
 
+        boolean willBeTimedEvent = event.isHasSpecificTime() && event.getStartTime() != null;
+
         if (wasTimedEvent != willBeTimedEvent) {
             if (willBeTimedEvent) {
-                event.setOrderPosition(calculatePositionForTimedEvent(day, updateEventDto.getStartTime()));
+                shiftAllEventsPositionAfterDeletion(day, oldPosition);
+                event.setOrderPosition(calculatePositionForTimedEventInSequence(day, event.getStartTime()));
             } else {
-                shiftUntimedEventsPosition(day, 1, 1);
+                shiftAllEventsPositionAfterDeletion(day, oldPosition);
+                shiftAllEventsPosition(day, 1, 1);
                 event.setOrderPosition(1);
             }
-        } else if (willBeTimedEvent && !updateEventDto.getStartTime().equals(event.getStartTime())) {
-            event.setOrderPosition(calculatePositionForTimedEvent(day, updateEventDto.getStartTime()));
+        } else if (willBeTimedEvent && !event.getStartTime().equals(oldStartTime)) {
+            shiftAllEventsPositionAfterDeletion(day, oldPosition);
+            event.setOrderPosition(calculatePositionForTimedEventInSequence(day, event.getStartTime()));
         }
 
         event = eventRepository.save(event);
@@ -169,7 +193,6 @@ public class EventServiceImpl implements EventService {
     public EventDto getEvent(Long userId, Long tripId, Long dayId, Long eventId) {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
 
-        // Проверяем доступ на чтение
         User user = userService.getUserEntityById(userId);
         if (!tripService.hasAccessToTrip(user, trip, "admin", "read", "write")) {
             throw new BadRequestException("У вас нет прав на просмотр событий в этой поездке");
@@ -198,18 +221,10 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("У вас нет прав на просмотр событий в этой поездке");
         }
 
-        TripDay day = tripDayRepository.findByTripAndDayId(trip, dayId)
+        TripDay tripDay = tripDayRepository.findByTripAndDayId(trip, dayId)
                 .orElseThrow(() -> new ResourceNotFoundException("День", "id", dayId));
 
-        // Используем новую умную сортировку: сначала события без времени по orderPosition, 
-        // затем события со временем по startTime
-        List<Event> untimedEvents = eventRepository.findUntimedEventsByDay(day);
-        List<Event> timedEvents = eventRepository.findTimedEventsByDay(day);
-        
-        // Объединяем списки: сначала события без времени, затем со временем
-        List<Event> allEvents = untimedEvents.stream()
-                .collect(Collectors.toList());
-        allEvents.addAll(timedEvents);
+        List<Event> allEvents = eventRepository.findByDayOrderByTimeAndPosition(tripDay);
 
         return allEvents.stream()
                 .map(eventMapper::toDto)
@@ -253,28 +268,25 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Событие не принадлежит указанному дню");
         }
 
-        boolean isUntimedEvent = !event.isHasSpecificTime() || event.getStartTime() == null;
         int deletedEventPosition = event.getOrderPosition();
 
-       eventRepository.delete(event);
+        eventRepository.delete(event);
 
-       if (isUntimedEvent) {
-            shiftUntimedEventsPositionAfterDeletion(day, deletedEventPosition);
-        }
+        shiftAllEventsPositionAfterDeletion(day, deletedEventPosition);
     }
 
     /**
-     * Сдвигает позиции событий без времени после удаления события
+     * Сдвигает позиции всех событий после удаления события
      */
-    private void shiftUntimedEventsPositionAfterDeletion(TripDay day, int deletedPosition) {
-        List<Event> untimedEvents = eventRepository.findUntimedEventsByDay(day);
+    private void shiftAllEventsPositionAfterDeletion(TripDay day, int deletedPosition) {
+        List<Event> allEvents = eventRepository.findByDayOrderByTimeAndPosition(day);
         
-        untimedEvents.stream()
+        allEvents.stream()
                 .filter(e -> e.getOrderPosition() > deletedPosition)
                 .forEach(e -> e.setOrderPosition(e.getOrderPosition() - 1));
                 
-        if (!untimedEvents.isEmpty()) {
-            eventRepository.saveAll(untimedEvents);
+        if (!allEvents.isEmpty()) {
+            eventRepository.saveAll(allEvents);
         }
     }
 
@@ -427,8 +439,9 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Нельзя перемещать события с конкретным временем. Они автоматически позиционируются по времени.");
         }
 
-        List<Event> untimedEvents = eventRepository.findUntimedEventsByDay(day);
-        int maxPosition = untimedEvents.size();
+        List<Event> allEvents = eventRepository.findByDayOrderByTimeAndPosition(day);
+
+        int maxPosition = allEvents.size();
         
         if (newPosition < 1 || newPosition > maxPosition) {
             throw new BadRequestException("Позиция должна быть от 1 до " + maxPosition);
@@ -441,17 +454,19 @@ public class EventServiceImpl implements EventService {
         }
 
         if (currentPosition < newPosition) {
-            untimedEvents.stream()
+            allEvents.stream()
+                    .filter(e -> !e.getEventId().equals(eventId))
                     .filter(e -> e.getOrderPosition() > currentPosition && e.getOrderPosition() <= newPosition)
                     .forEach(e -> e.setOrderPosition(e.getOrderPosition() - 1));
         } else {
-            untimedEvents.stream()
+            allEvents.stream()
+                    .filter(e -> !e.getEventId().equals(eventId))
                     .filter(e -> e.getOrderPosition() >= newPosition && e.getOrderPosition() < currentPosition)
                     .forEach(e -> e.setOrderPosition(e.getOrderPosition() + 1));
         }
 
         event.setOrderPosition(newPosition);
-        eventRepository.saveAll(untimedEvents);
+        eventRepository.saveAll(allEvents);
         event = eventRepository.save(event);
 
         return eventMapper.toDto(event);
