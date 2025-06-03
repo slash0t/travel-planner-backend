@@ -15,12 +15,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Schema(description = "Данные для предоставления доступа к поездке")
 public class CreateTripAccessDto {
-    @NotNull(message = "ID пользователя обязателен для заполнения")
-    @Schema(description = "Идентификатор пользователя, которому предоставляется доступ", example = "123", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Идентификатор пользователя, которому предоставляется доступ (если известен)", example = "123")
     private Long userId;
     
+    @Schema(description = "Никнейм пользователя, которому предоставляется доступ", example = "john_doe")
+    private String username;
+    
     @NotBlank(message = "Уровень доступа обязателен для заполнения")
-    @Pattern(regexp = "VIEW|EDIT|ADMIN", message = "Уровень доступа должен быть одним из: VIEW, EDIT, ADMIN")
-    @Schema(description = "Уровень доступа", allowableValues = {"VIEW", "EDIT", "ADMIN"}, example = "VIEW", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Pattern(regexp = "read|write|admin", message = "Уровень доступа должен быть одним из: read, write, admin")
+    @Schema(description = "Уровень доступа", allowableValues = {"read", "write", "admin"}, example = "read", requiredMode = Schema.RequiredMode.REQUIRED)
     private String accessLevel;
 } 
