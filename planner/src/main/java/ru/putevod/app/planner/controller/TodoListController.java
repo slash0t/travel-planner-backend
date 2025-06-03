@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.planner.config.CurrentUser;
 import ru.putevod.app.planner.dto.CreateTodoItemDto;
 import ru.putevod.app.planner.dto.CreateTodoListDto;
+import ru.putevod.app.planner.dto.ReorderTodoItemDto;
 import ru.putevod.app.planner.dto.TodoItemDto;
 import ru.putevod.app.planner.dto.TodoListDto;
 import ru.putevod.app.planner.dto.UpdateTodoItemDto;
@@ -110,6 +111,16 @@ public class TodoListController {
         return ResponseEntity.ok(todoListService.updateTodoItem(userId, listId, itemId, updateTodoItemDto));
     }
 
+    @PatchMapping("/todo-lists/{listId}/items/{itemId}/reorder")
+    @Operation(summary = "Изменить порядок элемента в списке задач")
+    public ResponseEntity<TodoItemDto> reorderTodoItem(
+            @CurrentUser Long userId,
+            @PathVariable Long listId,
+            @PathVariable Long itemId,
+            @Valid @RequestBody ReorderTodoItemDto reorderDto) {
+        return ResponseEntity.ok(todoListService.reorderTodoItem(userId, listId, itemId, reorderDto.getNewPosition()));
+    }
+
     @PutMapping("/todo-lists/{listId}/items/{itemId}/toggle")
     @Operation(summary = "Переключить статус выполнения задачи")
     public ResponseEntity<TodoItemDto> toggleTodoItemComplete(
@@ -138,4 +149,4 @@ public class TodoListController {
         todoListService.deleteTodoItem(userId, listId, itemId);
         return ResponseEntity.noContent().build();
     }
-} 
+}
