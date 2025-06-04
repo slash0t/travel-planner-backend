@@ -32,6 +32,11 @@ public class User {
     @Column(name = "is_admin")
     private Boolean isAdmin;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    @Builder.Default
+    private UserRole role = UserRole.USER;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -46,4 +51,7 @@ public class User {
 
     @Column(name = "is_verified")
     private Boolean isVerified;
+
+    @Column(name = "migrated_from_anonymous_id")
+    private Long migratedFromAnonymousId;
 } 
