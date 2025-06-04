@@ -59,6 +59,17 @@ public interface AuthService {
     AuthResponse verifyEmail(String token, String ipAddress, String deviceInfo);
 
     /**
+     * Подтверждает email пользователя по токену из письма с поддержкой миграции анонимного пользователя
+     *
+     * @param token      Токен подтверждения email
+     * @param ipAddress  IP-адрес пользователя
+     * @param deviceInfo Информация об устройстве
+     * @param deviceId   Идентификатор устройства для миграции данных анонимного пользователя (опционально)
+     * @return Объект с токенами и информацией о пользователе
+     */
+    AuthResponse verifyEmail(String token, String ipAddress, String deviceInfo, String deviceId);
+
+    /**
      * Повторно отправляет письмо для подтверждения email
      *
      * @param email Email пользователя

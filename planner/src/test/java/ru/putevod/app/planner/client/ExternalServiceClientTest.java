@@ -1,7 +1,6 @@
 package ru.putevod.app.planner.client;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -11,13 +10,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
-import ru.putevod.app.planner.dto.external.PixabayResponseDto;
+import ru.putevod.app.planner.dto.external.UnsplashResponseDto;
 
+import java.util.Collections;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,45 +43,70 @@ class ExternalServiceClientTest {
     }
 
     @Test
-    @DisplayName("Should return null when city is null")
     void getCityImages_WhenCityIsNull_ReturnsNull() {
-        PixabayResponseDto result = externalServiceClient.getCityImages(null);
-
+        UnsplashResponseDto result = externalServiceClient.getCityImages(null);
         assertNull(result);
     }
 
     @Test
-    @DisplayName("Should return null when city is empty")
     void getCityImages_WhenCityIsEmpty_ReturnsNull() {
-        PixabayResponseDto result = externalServiceClient.getCityImages("");
-
+        UnsplashResponseDto result = externalServiceClient.getCityImages("");
         assertNull(result);
     }
 
     @Test
-    @DisplayName("Should successfully get city images")
-    void getCityImages_WhenValidCity_ReturnsImages() {
+    void getCityImages_WhenSuccessfulResponse_ReturnsUnsplashResponseDto() {
         String city = "Moscow";
-        PixabayResponseDto expectedResponse = new PixabayResponseDto();
+
+        UnsplashResponseDto.UnsplashImage.Urls urls = new UnsplashResponseDto.UnsplashImage.Urls();
+        urls.setRegular("https://example.com/regular.jpg");
+        urls.setSmall("https://example.com/small.jpg");
+        urls.setThumb("https://example.com/thumb.jpg");
+
+        UnsplashResponseDto.UnsplashImage image = new UnsplashResponseDto.UnsplashImage();
+        image.setId("test-id");
+        image.setUrls(urls);
+
+        UnsplashResponseDto expectedResponse = new UnsplashResponseDto();
+        expectedResponse.setTotal(1);
+        expectedResponse.setResults(Collections.singletonList(image));
 
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.header(any(), any())).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(PixabayResponseDto.class)).thenReturn(Mono.just(expectedResponse));
+        when(responseSpec.bodyToMono(UnsplashResponseDto.class)).thenReturn(Mono.just(expectedResponse));
 
-        PixabayResponseDto result = externalServiceClient.getCityImages(city);
+        UnsplashResponseDto result = externalServiceClient.getCityImages(city);
 
         assertNotNull(result);
-        assertEquals(expectedResponse, result);
-        verify(webClient).get();
-        verify(requestHeadersUriSpec).uri(any(Function.class));
-        verify(requestHeadersSpec).header("X-Service-Token", "test_token");
+        assertEquals(1, result.getTotal());
+        assertNotNull(result.getResults());
+        assertEquals(1, result.getResults().size());
+        assertEquals("test-id", result.getResults().get(0).getId());
+        assertEquals("https://example.com/regular.jpg", result.getResults().get(0).getUrls().getRegular());
     }
 
     @Test
-    @DisplayName("Should handle 4xx client error")
+    void getCityImages_WhenServerError_ReturnsNull() {
+        String city = "Moscow";
+
+        when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.header(any(), any())).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(UnsplashResponseDto.class)).thenReturn(Mono.error(
+                WebClientResponseException.create(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        "Internal Server Error", null, null, null)));
+
+        UnsplashResponseDto result = externalServiceClient.getCityImages(city);
+
+        assertNull(result);
+    }
+
+    @Test
     void getCityImages_WhenClientError_ReturnsNull() {
         String city = "Moscow";
 
@@ -91,39 +115,14 @@ class ExternalServiceClientTest {
         when(requestHeadersSpec.header(any(), any())).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(PixabayResponseDto.class)).thenReturn(Mono.empty());
+        when(responseSpec.bodyToMono(UnsplashResponseDto.class)).thenReturn(Mono.empty());
 
-        PixabayResponseDto result = externalServiceClient.getCityImages(city);
-
-        assertNull(result);
-    }
-
-    @Test
-    @DisplayName("Should handle 5xx server error")
-    void getCityImages_WhenServerError_ReturnsNull() {
-        String city = "Moscow";
-        WebClientResponseException serverError = WebClientResponseException.create(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Internal Server Error",
-                null,
-                null,
-                null
-        );
-
-        when(webClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.header(any(), any())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(PixabayResponseDto.class)).thenReturn(Mono.error(serverError));
-
-        PixabayResponseDto result = externalServiceClient.getCityImages(city);
+        UnsplashResponseDto result = externalServiceClient.getCityImages(city);
 
         assertNull(result);
     }
 
     @Test
-    @DisplayName("Should handle general exception")
     void getCityImages_WhenGeneralException_ReturnsNull() {
         String city = "Moscow";
 
@@ -132,10 +131,10 @@ class ExternalServiceClientTest {
         when(requestHeadersSpec.header(any(), any())).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(PixabayResponseDto.class)).thenReturn(Mono.error(new RuntimeException("General error")));
+        when(responseSpec.bodyToMono(UnsplashResponseDto.class)).thenReturn(Mono.error(new RuntimeException("General error")));
 
-        PixabayResponseDto result = externalServiceClient.getCityImages(city);
+        UnsplashResponseDto result = externalServiceClient.getCityImages(city);
 
         assertNull(result);
     }
-} 
+}

@@ -11,11 +11,14 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 import ru.putevod.app.auth.annotation.RequireRole;
+import ru.putevod.app.auth.model.User;
 import ru.putevod.app.auth.model.UserRole;
 import ru.putevod.app.auth.security.JwtTokenProvider;
+import ru.putevod.app.auth.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.Optional;
 
 @Aspect
 @Component
@@ -24,6 +27,7 @@ import java.util.Arrays;
 public class RoleCheckAspect {
 
     private final JwtTokenProvider tokenProvider;
+    private final UserService userService;
 
     @Around("@annotation(requireRole)")
     public Object checkRole(ProceedingJoinPoint joinPoint, RequireRole requireRole) throws Throwable {
@@ -60,20 +64,36 @@ public class RoleCheckAspect {
                     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Недостаточно прав доступа");
                 }
             } else {
-                // Для обычных пользователей проверяем их роль
+                // Для обычных пользователей получаем роль из базы данных
                 String email = tokenProvider.getEmailFromToken(token);
-                // TODO: Здесь нужно получить роль пользователя из базы данных
-                // Пока что предполагаем, что все зарегистрированные пользователи имеют роль USER
-                boolean hasUserRole = Arrays.asList(allowedRoles).contains(UserRole.USER);
-                if (!hasUserRole) {
+                Optional<User> userOpt = userService.findByEmail(email);
+                
+                if (userOpt.isEmpty()) {
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Пользователь не найден");
+                }
+                
+                User user = userOpt.get();
+                UserRole userRole = user.getRole() != null ? user.getRole() : UserRole.USER;
+                
+                // Также проверяем isAdmin для обратной совместимости
+                if (Boolean.TRUE.equals(user.getIsAdmin()) && !Arrays.asList(allowedRoles).contains(UserRole.ADMIN)) {
+                    userRole = UserRole.ADMIN;
+                }
+                
+                boolean hasRequiredRole = Arrays.asList(allowedRoles).contains(userRole);
+                if (!hasRequiredRole) {
+                    log.warn("Пользователь {} с ролью {} не имеет доступа к методу, требующему роли: {}", 
+                            email, userRole, Arrays.toString(allowedRoles));
                     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Недостаточно прав доступа");
                 }
             }
 
             return joinPoint.proceed();
 
+        } catch (ResponseStatusException e) {
+            throw e;
         } catch (Exception e) {
-            log.warn("Ошибка при проверке роли: {}", e.getMessage());
+            log.warn("Ошибка при проверке роли: {}", e.getMessage(), e);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Ошибка аутентификации");
         }
     }

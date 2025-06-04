@@ -4,15 +4,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.putevod.app.auth.client.PlannerClient;
 import ru.putevod.app.auth.service.DataMigrationService;
+
+import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService {
 
-    // TODO: Добавить клиенты для взаимодействия с planner сервисом когда они будут доступны
-    // private final PlannerClient plannerClient;
+    private final PlannerClient plannerClient;
 
     @Override
     @Transactional
@@ -21,14 +23,15 @@ public class DataMigrationServiceImpl implements DataMigrationService {
                 anonymousUserId, registeredUserId);
         
         try {
-            // Мигрируем путешествия
-            migrateTrips(anonymousUserId, registeredUserId);
+            // Вызываем полную миграцию через planner сервис
+            Map<String, Object> result = plannerClient.migrateAllData(anonymousUserId, registeredUserId.longValue());
             
-            // Мигрируем TODO листы
-            migrateTodoLists(anonymousUserId, registeredUserId);
+            Integer transferredTrips = (Integer) result.get("transferredTrips");
+            Integer transferredTodoLists = (Integer) result.get("transferredTodoLists");
             
-            log.info("Миграция данных анонимного пользователя {} к зарегистрированному пользователю {} завершена успешно", 
-                    anonymousUserId, registeredUserId);
+            log.info("Миграция данных анонимного пользователя {} к зарегистрированному пользователю {} завершена успешно. " +
+                    "Перенесено путешествий: {}, TODO листов: {}", 
+                    anonymousUserId, registeredUserId, transferredTrips, transferredTodoLists);
             
         } catch (Exception e) {
             log.error("Ошибка при миграции данных анонимного пользователя {} к зарегистрированному пользователю {}: {}", 
@@ -44,15 +47,12 @@ public class DataMigrationServiceImpl implements DataMigrationService {
                 anonymousUserId, registeredUserId);
         
         try {
-            // TODO: Реализовать миграцию путешествий через вызов к planner сервису
-            // Пример:
-            // List<Trip> anonymousTrips = plannerClient.getAnonymousUserTrips(anonymousUserId);
-            // for (Trip trip : anonymousTrips) {
-            //     plannerClient.transferTripOwnership(trip.getId(), anonymousUserId, registeredUserId.longValue());
-            // }
+            Map<String, Object> result = plannerClient.transferTripsOwnership(anonymousUserId, registeredUserId.longValue());
             
-            log.info("Миграция путешествий анонимного пользователя {} завершена. " +
-                    "Заглушка - реальная миграция будет реализована после создания Feign клиентов", anonymousUserId);
+            Integer transferredTrips = (Integer) result.get("transferredTrips");
+            
+            log.info("Миграция путешествий анонимного пользователя {} завершена. Перенесено путешествий: {}", 
+                    anonymousUserId, transferredTrips);
             
         } catch (Exception e) {
             log.error("Ошибка при миграции путешествий анонимного пользователя {}: {}", anonymousUserId, e.getMessage(), e);
@@ -67,15 +67,12 @@ public class DataMigrationServiceImpl implements DataMigrationService {
                 anonymousUserId, registeredUserId);
         
         try {
-            // TODO: Реализовать миграцию TODO листов через вызов к planner сервису
-            // Пример:
-            // List<TodoList> anonymousTodoLists = plannerClient.getAnonymousUserTodoLists(anonymousUserId);
-            // for (TodoList todoList : anonymousTodoLists) {
-            //     plannerClient.transferTodoListOwnership(todoList.getId(), anonymousUserId, registeredUserId.longValue());
-            // }
+            Map<String, Object> result = plannerClient.transferTodoListsOwnership(anonymousUserId, registeredUserId.longValue());
             
-            log.info("Миграция TODO листов анонимного пользователя {} завершена. " +
-                    "Заглушка - реальная миграция будет реализована после создания Feign клиентов", anonymousUserId);
+            Integer transferredTodoLists = (Integer) result.get("transferredTodoLists");
+            
+            log.info("Миграция TODO листов анонимного пользователя {} завершена. Перенесено TODO листов: {}", 
+                    anonymousUserId, transferredTodoLists);
             
         } catch (Exception e) {
             log.error("Ошибка при миграции TODO листов анонимного пользователя {}: {}", anonymousUserId, e.getMessage(), e);

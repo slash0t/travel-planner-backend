@@ -26,6 +26,7 @@ import ru.putevod.app.auth.service.AuthService;
 import ru.putevod.app.auth.service.EmailService;
 import ru.putevod.app.auth.service.UserService;
 import ru.putevod.app.auth.config.AppProperties;
+import ru.putevod.app.auth.service.AnonymousUserService;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final AppProperties appProperties;
+    private final AnonymousUserService anonymousUserService;
 
     @Override
     @Transactional
@@ -125,11 +127,30 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse verifyEmail(String token, String ipAddress, String deviceInfo) {
+        return verifyEmail(token, ipAddress, deviceInfo, null);
+    }
+
+    @Override
+    @Transactional
+    public AuthResponse verifyEmail(String token, String ipAddress, String deviceInfo, String deviceId) {
         User user = emailService.verifyEmailToken(token);
 
         user.setIsVerified(true);
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
+
+        // Если предоставлен deviceId, выполняем миграцию анонимного пользователя
+        if (deviceId != null && !deviceId.trim().isEmpty()) {
+            try {
+                anonymousUserService.migrateAnonymousUserToRegistered(deviceId, user);
+                log.info("Успешно выполнена миграция анонимного пользователя с deviceId {} к пользователю {}", 
+                        deviceId, user.getUserId());
+            } catch (Exception e) {
+                log.warn("Ошибка при миграции анонимного пользователя с deviceId {} к пользователю {}: {}", 
+                        deviceId, user.getUserId(), e.getMessage());
+                // Не прерываем процесс верификации из-за ошибки миграции
+            }
+        }
 
         String accessToken = tokenProvider.generateAccessToken(user);
         String refreshToken = tokenProvider.generateRefreshToken(user, deviceInfo, ipAddress);
@@ -208,13 +229,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Map<String, Object> createAnonymousToken(String deviceId) {
-        String anonymousToken = tokenProvider.generateAnonymousToken(deviceId);
+        return anonymousUserService.createAnonymousToken(deviceId, null, null);
+    }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("anonymousToken", anonymousToken);
-        response.put("expiresIn", (int) (appProperties.getJwt().getAnonymousTokenExpirationMs() / 1000)); 
-
-        return response;
+    public Map<String, Object> createAnonymousToken(String deviceId, String deviceInfo, String ipAddress) {
+        return anonymousUserService.createAnonymousToken(deviceId, deviceInfo, ipAddress);
     }
 
     private String generateRandomCode() {
@@ -238,7 +257,19 @@ public class AuthServiceImpl implements AuthService {
             }
 
             if (tokenProvider.isAnonymousToken(token)) {
-                return TokenValidationResponse.builder().valid(true).build();
+                String deviceId = tokenProvider.getDeviceIdFromToken(token);
+                Long anonymousUserId = tokenProvider.getAnonymousUserIdFromToken(token);
+                
+                if (deviceId != null) {
+                    anonymousUserService.updateLastActivity(deviceId);
+                }
+                
+                return TokenValidationResponse.builder()
+                        .valid(true)
+                        .anonymousUserId(anonymousUserId)
+                        .deviceId(deviceId)
+                        .isAnonymous(true)
+                        .build();
             }
 
             String email = tokenProvider.getEmailFromToken(token);
@@ -317,8 +348,20 @@ public class AuthServiceImpl implements AuthService {
             }
 
             if (tokenProvider.isAnonymousToken(token)) {
+                String deviceId = tokenProvider.getDeviceIdFromToken(token);
+                Long anonymousUserId = tokenProvider.getAnonymousUserIdFromToken(token);
+                
                 Map<String, Object> info = new HashMap<>();
                 info.put("isAnonymous", true);
+                info.put("anonymousUserId", anonymousUserId);
+                info.put("deviceId", deviceId);
+                info.put("roles", new String[]{"ROLE_ANONYMOUS"});
+                
+                // Обновляем активность
+                if (deviceId != null) {
+                    anonymousUserService.updateLastActivity(deviceId);
+                }
+                
                 return info;
             }
 
