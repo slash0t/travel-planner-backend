@@ -128,7 +128,7 @@ class AuthServiceClientTest {
         assertNotNull(result);
         assertEquals(expectedUserInfo, result);
         verify(webClient).post();
-        verify(requestBodyUriSpec).uri("/auth/userinfo");
+        verify(requestBodyUriSpec).uri("/auth/user-info");
         verify(requestBodySpec).bodyValue(any(AuthServiceClient.TokenValidationRequest.class));
         verify(requestBodySpec).header("X-Service-Token", "test-service-token");
     }
@@ -153,7 +153,7 @@ class AuthServiceClientTest {
 
         assertNull(result);
         verify(webClient).post();
-        verify(requestBodyUriSpec).uri("/auth/userinfo");
+        verify(requestBodyUriSpec).uri("/auth/user-info");
         verify(requestBodySpec).bodyValue(any(AuthServiceClient.TokenValidationRequest.class));
         verify(requestBodySpec).header("X-Service-Token", "test-service-token");
     }
