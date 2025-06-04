@@ -39,7 +39,7 @@ public class ExternalServiceClient {
             log.info("Запрос изображений для города: {}", city);
             return webClient.get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/api/v1/images/city")
+                            .path("/api/v1/images/city/service")
                             .queryParam("city", city)
                             .build())
                     .header("X-Service-Token", serviceToken)

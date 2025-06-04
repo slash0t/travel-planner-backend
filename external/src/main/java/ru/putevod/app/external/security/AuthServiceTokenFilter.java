@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,11 +27,24 @@ import java.util.Map;
 public class AuthServiceTokenFilter extends OncePerRequestFilter {
 
     private final AuthServiceClient authServiceClient;
+    
+    @Value("${auth.token:service_token_for_development}")
+    private String expectedServiceToken;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
+            // Проверяем сервисный токен
+            String serviceToken = resolveServiceToken(request);
+            if (serviceToken != null && serviceToken.equals(expectedServiceToken)) {
+                log.debug("Авторизация через сервисный токен для URI: {}", request.getRequestURI());
+                setServiceAuthenticationContext();
+                filterChain.doFilter(request, response);
+                return;
+            }
+            
+            // Проверяем пользовательский токен
             String token = resolveToken(request);
             if (token != null && authServiceClient.validateToken(token)) {
                 Map<String, Object> userInfo = authServiceClient.getUserInfoFromToken(token);
@@ -60,6 +74,22 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
             return bearerToken.substring(7);
         }
         return null;
+    }
+    
+    private String resolveServiceToken(HttpServletRequest request) {
+        return request.getHeader("X-Service-Token");
+    }
+    
+    private void setServiceAuthenticationContext() {
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_SERVICE"));
+        
+        User serviceUser = new User("service", "", authorities);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(serviceUser, null, authorities);
+                
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        log.debug("Установлен контекст аутентификации для сервисного пользователя");
     }
 
     private boolean isAiEndpoint(HttpServletRequest request) {
