@@ -7,6 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -207,19 +208,24 @@ class AnonymousUserServiceImplTest {
 
     @Test
     void cleanupInactiveAnonymousUsers() {
-        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(30);
+        LocalDateTime fixedNow = LocalDateTime.of(2025, 5, 5, 20, 3, 38);
+        LocalDateTime cutoffDate = fixedNow.minusDays(30);
         AnonymousUser user1 = AnonymousUser.builder().anonymousUserId(1L).deviceId("device1").build();
         AnonymousUser user2 = AnonymousUser.builder().anonymousUserId(2L).deviceId("device2").build();
         List<AnonymousUser> inactiveUsers = List.of(user1, user2);
 
-        when(anonymousUserRepository.findInactiveAnonymousUsers(cutoffDate)).thenReturn(inactiveUsers);
+        try (MockedStatic<LocalDateTime> mockedLocalDateTime = mockStatic(LocalDateTime.class)) {
+            mockedLocalDateTime.when(LocalDateTime::now).thenReturn(fixedNow);
+            
+            when(anonymousUserRepository.findInactiveAnonymousUsers(cutoffDate)).thenReturn(inactiveUsers);
 
-        anonymousUserService.cleanupInactiveAnonymousUsers();
+            anonymousUserService.cleanupInactiveAnonymousUsers();
 
-        verify(anonymousUserRepository).findInactiveAnonymousUsers(cutoffDate);
-        verify(anonymousUserRepository).delete(user1);
-        verify(anonymousUserRepository).delete(user2);
-        verifyNoMoreInteractions(anonymousUserRepository);
+            verify(anonymousUserRepository).findInactiveAnonymousUsers(cutoffDate);
+            verify(anonymousUserRepository).delete(user1);
+            verify(anonymousUserRepository).delete(user2);
+            verifyNoMoreInteractions(anonymousUserRepository);
+        }
     }
 
     @Test
