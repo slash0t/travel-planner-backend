@@ -644,4 +644,16 @@ public class TripServiceImpl implements TripService {
         log.info("Обновление дней поездки {} завершено: диапазон дат [{} - {}]", 
                 trip.getTripId(), newStartDate, newEndDate);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TripDto getTripWithDetails(Long userId, Long tripId) {
+        User user = userService.getUserEntityById(userId);
+        Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin", "read", "write");
+
+        List<TripDay> tripDays = tripDayRepository.findByTripOrderByDayNumberAsc(trip);
+        trip.setDays(tripDays);
+        
+        return tripMapper.toDto(trip);
+    }
 } 
