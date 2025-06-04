@@ -19,21 +19,18 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import ru.putevod.app.library.client.AuthServiceClient;
 import ru.putevod.app.library.client.PlannerClient;
-import ru.putevod.app.library.dto.PublicRouteDetailDto;
-import ru.putevod.app.library.dto.PublicRouteDto;
-import ru.putevod.app.library.dto.RoutePreviewDto;
+import ru.putevod.app.library.dto.*;
 import ru.putevod.app.library.entity.PublishedRoute;
 import ru.putevod.app.library.entity.Trip;
-import ru.putevod.app.library.service.LibraryService;
-import ru.putevod.app.library.dto.CopyRouteRequestDto;
-import ru.putevod.app.library.dto.CopyRouteResponseDto;
 import ru.putevod.app.library.exception.ResourceNotFoundException;
+import ru.putevod.app.library.service.LibraryService;
 
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -72,9 +69,9 @@ class LibraryControllerTest {
         trip = new Trip();
 
         adminAuth = new UsernamePasswordAuthenticationToken(
-            "admin", "token", Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+                "admin", "token", Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
         userAuth = new UsernamePasswordAuthenticationToken(
-            "user", "token", Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+                "user", "token", Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
     }
 
     @Test
@@ -93,7 +90,7 @@ class LibraryControllerTest {
     void getPendingRoutes_WithAdminRole_ShouldReturnPageOfRoutes() {
         SecurityContextHolder.setContext(securityContext);
         when(securityContext.getAuthentication()).thenReturn(adminAuth);
-        
+
         Page<RoutePreviewDto> expectedPage = new PageImpl<>(Collections.singletonList(routePreviewDto));
         when(libraryService.getPendingRoutes(any(Pageable.class))).thenReturn(expectedPage);
 
@@ -132,10 +129,10 @@ class LibraryControllerTest {
     void filterRoutes_ShouldReturnPageOfRoutes() {
         Page<RoutePreviewDto> expectedPage = new PageImpl<>(Collections.singletonList(routePreviewDto));
         when(libraryService.getFilteredRoutes(any(), any(), any(), any(), any(), any(Pageable.class)))
-            .thenReturn(expectedPage);
+                .thenReturn(expectedPage);
 
         ResponseEntity<Page<RoutePreviewDto>> response = libraryController.filterRoutes(
-            "country", "city", 1, 10, "tag", pageable);
+                "country", "city", 1, 10, "tag", pageable);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedPage, response.getBody());
@@ -237,7 +234,7 @@ class LibraryControllerTest {
     void approveRoute_WithAdminRole_ShouldApproveRoute() {
         SecurityContextHolder.setContext(securityContext);
         when(securityContext.getAuthentication()).thenReturn(adminAuth);
-        
+
         Long routeId = 1L;
         when(libraryService.approvePublishedRoute(routeId)).thenReturn(publicRouteDto);
 
@@ -283,7 +280,7 @@ class LibraryControllerTest {
         Long routeId = 1L;
         Long userId = 1L;
         LocalDate startDate = LocalDate.of(2024, 7, 15);
-        
+
         CopyRouteRequestDto copyRequest = CopyRouteRequestDto.builder()
                 .startDate(startDate)
                 .title("Мой новый маршрут")
@@ -313,7 +310,7 @@ class LibraryControllerTest {
         Long routeId = 1L;
         Long userId = 1L;
         LocalDate startDate = LocalDate.of(2024, 7, 15);
-        
+
         CopyRouteRequestDto copyRequest = CopyRouteRequestDto.builder()
                 .startDate(startDate)
                 .title("Мой новый маршрут")

@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -21,15 +22,10 @@ import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.library.annotation.TrackMetrics;
 import ru.putevod.app.library.client.AuthServiceClient;
 import ru.putevod.app.library.client.PlannerClient;
-import ru.putevod.app.library.dto.PublicRouteDetailDto;
-import ru.putevod.app.library.dto.PublicRouteDto;
-import ru.putevod.app.library.dto.RoutePreviewDto;
+import ru.putevod.app.library.dto.*;
 import ru.putevod.app.library.entity.Trip;
 import ru.putevod.app.library.security.CurrentUser;
 import ru.putevod.app.library.service.LibraryService;
-import ru.putevod.app.library.dto.CopyRouteRequestDto;
-import ru.putevod.app.library.dto.CopyRouteResponseDto;
-import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -250,9 +246,9 @@ public class LibraryController {
 
     @PostMapping("/{id}/copy")
     @TrackMetrics(value = "copy_route", type = TrackMetrics.EventType.CUSTOM)
-    @Operation(summary = "Копировать опубликованный маршрут", 
-               description = "Создает копию опубликованного маршрута с новой датой начала",
-               security = {@SecurityRequirement(name = "bearerAuth")})
+    @Operation(summary = "Копировать опубликованный маршрут",
+            description = "Создает копию опубликованного маршрута с новой датой начала",
+            security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Маршрут успешно скопирован",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = CopyRouteResponseDto.class))),
@@ -266,11 +262,11 @@ public class LibraryController {
             @Valid @RequestBody CopyRouteRequestDto copyRequest,
             @CurrentUser Long userId,
             Authentication authentication) {
-        
+
         String token = (String) authentication.getCredentials();
-        
+
         CopyRouteResponseDto response = libraryService.copyRoute(id, copyRequest, userId, token);
-        
+
         return ResponseEntity.ok(response);
     }
 } 

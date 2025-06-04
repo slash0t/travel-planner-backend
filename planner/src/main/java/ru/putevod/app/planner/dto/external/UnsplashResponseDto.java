@@ -15,10 +15,10 @@ import java.util.List;
 public class UnsplashResponseDto {
 
     private Integer total;
-    
+
     @JsonProperty("total_pages")
     private Integer totalPages;
-    
+
     private List<UnsplashImage> results;
 
     @Data
@@ -28,10 +28,10 @@ public class UnsplashResponseDto {
     public static class UnsplashImage {
         private String id;
         private String description;
-        
+
         @JsonProperty("alt_description")
         private String altDescription;
-        
+
         private Urls urls;
 
         @Data

@@ -7,28 +7,23 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.putevod.app.library.client.PlannerClient;
-import ru.putevod.app.library.dto.CopyRouteRequestDto;
-import ru.putevod.app.library.dto.CopyRouteResponseDto;
-import ru.putevod.app.library.dto.PublicRouteDetailDto;
-import ru.putevod.app.library.dto.PublicRouteDto;
-import ru.putevod.app.library.dto.RoutePreviewDto;
+import ru.putevod.app.library.dto.*;
+import ru.putevod.app.library.dto.planner.CreateEventDto;
 import ru.putevod.app.library.dto.planner.CreateTripDto;
 import ru.putevod.app.library.dto.planner.TripDetailDto;
-import ru.putevod.app.library.dto.planner.CreateTripDayDto;
-import ru.putevod.app.library.dto.planner.CreateEventDto;
 import ru.putevod.app.library.dto.planner.UpdateTripDayDto;
 import ru.putevod.app.library.entity.PublishedRoute;
 import ru.putevod.app.library.entity.Trip;
 import ru.putevod.app.library.entity.User;
-import ru.putevod.app.library.exception.ResourceNotFoundException;
 import ru.putevod.app.library.exception.ExternalServiceException;
+import ru.putevod.app.library.exception.ResourceNotFoundException;
 import ru.putevod.app.library.repository.PublishedRouteRepository;
 import ru.putevod.app.library.repository.UserRepository;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -163,9 +158,9 @@ public class LibraryService {
 
         try {
             TripDetailDto originalTrip = plannerClient.getTripWithDetails(
-                publishedRoute.getOriginalRouteId(),  // правильное имя поля
-                publishedRoute.getUserId(),          // правильное имя поля для создателя
-                authToken
+                    publishedRoute.getOriginalRouteId(),  // правильное имя поля
+                    publishedRoute.getUserId(),          // правильное имя поля для создателя
+                    authToken
             );
 
             if (originalTrip == null) {
@@ -176,8 +171,8 @@ public class LibraryService {
             LocalDate newEndDate = request.getStartDate().plusDays(duration - 1);
 
             String newTitle = (request.getTitle() != null && !request.getTitle().trim().isEmpty())
-                ? request.getTitle().trim() 
-                : "Копия: " + originalTrip.getTitle();
+                    ? request.getTitle().trim()
+                    : "Копия: " + originalTrip.getTitle();
 
             CreateTripDto createTripDto = CreateTripDto.builder()
                     .title(newTitle)
@@ -194,9 +189,9 @@ public class LibraryService {
             }
 
             int copiedDaysCount = copyTripDays(newTrip.getId(), originalTrip.getDays(),
-                                             request.getStartDate(), authToken);
+                    request.getStartDate(), authToken);
 
-            log.info("Маршрут {} успешно скопирован для пользователя {}. Новый ID: {}, скопировано дней: {}", 
+            log.info("Маршрут {} успешно скопирован для пользователя {}. Новый ID: {}, скопировано дней: {}",
                     routeId, userId, newTrip.getId(), copiedDaysCount);
 
             return CopyRouteResponseDto.builder()
@@ -227,60 +222,60 @@ public class LibraryService {
     /**
      * Копирует дни маршрута с пересчетом дат и события
      */
-    private int copyTripDays(Long newTripId, List<TripDetailDto.TripDayDto> originalDays, 
-                            LocalDate newStartDate, String authToken) {
-        
+    private int copyTripDays(Long newTripId, List<TripDetailDto.TripDayDto> originalDays,
+                             LocalDate newStartDate, String authToken) {
+
         List<TripDetailDto.TripDayDto> existingDays = plannerClient.getTripDays(newTripId, authToken);
-        
+
         if (existingDays == null || existingDays.isEmpty()) {
             log.warn("Не удалось получить дни для нового маршрута {}", newTripId);
             return 0;
         }
-        
+
         log.info("Найдено {} существующих дней для маршрута {}", existingDays.size(), newTripId);
-        
+
         int copiedDaysCount = 0;
-        
+
         for (int i = 0; i < originalDays.size() && i < existingDays.size(); i++) {
             TripDetailDto.TripDayDto originalDay = originalDays.get(i);
             TripDetailDto.TripDayDto existingDay = existingDays.get(i);
-            
+
             try {
                 LocalDate originalDayDate = originalDay.getDate();
                 LocalDate originalStartDate = originalDays.get(0).getDate();
                 LocalDate newDayDate = calculateNewDayDate(originalDayDate, originalStartDate, newStartDate);
-                
+
                 UpdateTripDayDto updateDayDto = UpdateTripDayDto.builder()
                         .date(newDayDate)
                         .note(originalDay.getDescription())
                         .dayNumber(i + 1)
                         .build();
-                
+
                 TripDetailDto.TripDayDto updatedDay = plannerClient.updateTripDay(
-                    newTripId, existingDay.getDayId(), updateDayDto, authToken);
-                
+                        newTripId, existingDay.getDayId(), updateDayDto, authToken);
+
                 if (updatedDay != null) {
                     copiedDaysCount++;
-                    log.info("Обновлен день {} для маршрута {} с датой {}", 
+                    log.info("Обновлен день {} для маршрута {} с датой {}",
                             updatedDay.getDayId(), newTripId, newDayDate);
-                    
+
                     if (originalDay.getEvents() != null && !originalDay.getEvents().isEmpty()) {
                         copyDayEvents(newTripId, updatedDay.getDayId(), originalDay.getEvents(), authToken);
                     }
                 } else {
                     log.warn("Не удалось обновить день {} для маршрута {}", existingDay.getDayId(), newTripId);
                 }
-                
+
             } catch (Exception e) {
-                log.error("Ошибка при обновлении дня {} для маршрута {}: {}", 
-                         existingDay.getDayId(), newTripId, e.getMessage());
+                log.error("Ошибка при обновлении дня {} для маршрута {}: {}",
+                        existingDay.getDayId(), newTripId, e.getMessage());
             }
         }
-        
+
         log.info("Успешно обновлено {} дней для маршрута {}", copiedDaysCount, newTripId);
         return copiedDaysCount;
     }
-    
+
     /**
      * Копирует события дня
      */
@@ -297,21 +292,21 @@ public class LibraryService {
                         .orderPosition(1) // Порядок будет установлен автоматически
                         .place(mapPlaceInfo(originalEvent.getPlace()))
                         .build();
-                
+
                 TripDetailDto.EventDto newEvent = plannerClient.createEvent(tripId, dayId, createEventDto, authToken);
                 if (newEvent != null) {
                     log.debug("Created event {} for day {} in trip {}", newEvent.getEventId(), dayId, tripId);
                 } else {
                     log.warn("Failed to create event '{}' for day {} in trip {}", originalEvent.getTitle(), dayId, tripId);
                 }
-                
+
             } catch (Exception e) {
-                log.error("Error copying event {} for day {} in trip {}: {}", 
-                         originalEvent.getEventId(), dayId, tripId, e.getMessage());
+                log.error("Error copying event {} for day {} in trip {}: {}",
+                        originalEvent.getEventId(), dayId, tripId, e.getMessage());
             }
         }
     }
-    
+
     /**
      * Пересчитывает дату дня относительно новой даты начала
      */
@@ -319,11 +314,11 @@ public class LibraryService {
         if (originalDayDate == null || originalStartDate == null) {
             return newStartDate;
         }
-        
+
         long daysDifference = originalDayDate.toEpochDay() - originalStartDate.toEpochDay();
         return newStartDate.plusDays(daysDifference);
     }
-    
+
     /**
      * Парсит время из строки
      */
@@ -338,7 +333,7 @@ public class LibraryService {
             return null;
         }
     }
-    
+
     /**
      * Маппит информацию о месте
      */
@@ -346,13 +341,13 @@ public class LibraryService {
         if (originalPlace == null) {
             return null;
         }
-        
+
         return CreateEventDto.PlaceInfo.builder()
                 .name(originalPlace.getName())
-                .latitude(originalPlace.getLatitude() != null ? 
-                         java.math.BigDecimal.valueOf(originalPlace.getLatitude()) : null)
-                .longitude(originalPlace.getLongitude() != null ? 
-                          java.math.BigDecimal.valueOf(originalPlace.getLongitude()) : null)
+                .latitude(originalPlace.getLatitude() != null ?
+                        java.math.BigDecimal.valueOf(originalPlace.getLatitude()) : null)
+                .longitude(originalPlace.getLongitude() != null ?
+                        java.math.BigDecimal.valueOf(originalPlace.getLongitude()) : null)
                 .address(originalPlace.getAddress())
                 .externalId(originalPlace.getExternalId())
                 .build();

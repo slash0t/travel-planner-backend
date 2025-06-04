@@ -46,7 +46,7 @@ public interface TodoListRepository extends JpaRepository<TodoList, Long> {
      * Переносит владение TODO листами от анонимного пользователя к зарегистрированному
      *
      * @param anonymousUserId ID анонимного пользователя
-     * @param newOwnerId ID нового владельца
+     * @param newOwnerId      ID нового владельца
      * @return количество обновленных записей
      */
     @Modifying

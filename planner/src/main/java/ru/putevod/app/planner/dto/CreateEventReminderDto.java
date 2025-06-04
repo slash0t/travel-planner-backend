@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class CreateEventReminderDto {
     @Schema(description = "Дата и время напоминания", example = "2024-07-15T09:00:00")
     private LocalDateTime remindAt;
-    
+
     @NotNull(message = "Количество минут до события обязательно для заполнения")
     @Positive(message = "Количество минут должно быть положительным числом")
     @Schema(description = "Количество минут до события для напоминания", example = "30", requiredMode = Schema.RequiredMode.REQUIRED)

@@ -17,10 +17,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import ru.putevod.app.auth.annotation.TrackMetrics;
+import ru.putevod.app.auth.config.CurrentUser;
 import ru.putevod.app.auth.dto.*;
 import ru.putevod.app.auth.service.AuthService;
-import ru.putevod.app.auth.config.CurrentUser;
-import ru.putevod.app.auth.annotation.TrackMetrics;
 import ru.putevod.app.auth.service.MetricsService;
 
 import java.util.HashMap;
@@ -105,7 +105,7 @@ public class AuthController {
     @Operation(
             summary = "Выход из системы",
             description = "Выполняет выход пользователя из системы и инвалидирует refresh token",
-    security = {@SecurityRequirement(name = "bearerAuth")}
+            security = {@SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -322,7 +322,7 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> getUserInfo(
             @RequestBody TokenValidationRequest tokenRequest,
             @RequestHeader(value = "X-Service-Token", required = false) String serviceToken) {
-        
+
         Map<String, Object> userInfo = authService.getUserInfoFromToken(tokenRequest.getToken(), serviceToken);
         return ResponseEntity.ok(userInfo);
     }
@@ -331,7 +331,7 @@ public class AuthController {
     public ResponseEntity<UserInfoDto> getUserById(
             @PathVariable Integer userId,
             @RequestHeader(value = "X-Service-Token", required = false) String serviceToken) {
-        
+
         UserInfoDto userInfo = authService.getUserById(userId, serviceToken);
         return ResponseEntity.ok(userInfo);
     }
@@ -381,11 +381,11 @@ public class AuthController {
     @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "check_anonymous")
     public ResponseEntity<Map<String, Object>> checkAnonymous(@RequestBody TokenValidationRequest tokenRequest) {
         TokenValidationResponse validationResponse = authService.validateToken(tokenRequest.getToken(), null);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("isAnonymous", validationResponse.isAnonymous());
         response.put("valid", validationResponse.isValid());
-        
+
         if (validationResponse.isAnonymous()) {
             response.put("message", "Пользователь является анонимным");
         } else {
@@ -394,7 +394,7 @@ public class AuthController {
                 response.put("userId", validationResponse.getUserId());
             }
         }
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -405,7 +405,7 @@ public class AuthController {
     )
     @ApiResponses(value = {
             @ApiResponse(
-                    responseCode = "200", 
+                    responseCode = "200",
                     description = "Информация об анонимности получена",
                     content = @Content(mediaType = "application/json")
             ),
@@ -416,18 +416,18 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> checkCurrentUserAnonymous(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         String token = null;
-        
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
         }
-        
+
         Map<String, Object> response = new HashMap<>();
-        
+
         if (token != null) {
             TokenValidationResponse validationResponse = authService.validateToken(token, null);
             response.put("isAnonymous", validationResponse.isAnonymous());
             response.put("valid", validationResponse.isValid());
-            
+
             if (validationResponse.isAnonymous()) {
                 response.put("message", "Текущий пользователь является анонимным");
             } else {
@@ -441,7 +441,7 @@ public class AuthController {
             response.put("valid", false);
             response.put("message", "Токен не предоставлен");
         }
-        
+
         return ResponseEntity.ok(response);
     }
 } 

@@ -23,7 +23,7 @@ public class UserServiceImpl implements UserService {
     public UserDto getUserById(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь", "id", userId));
-        
+
         return userMapper.toDto(user);
     }
 
@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
     public UserDto findByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь", "username", username));
-        
+
         return userMapper.toDto(user);
     }
 
@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
     public UserDto findByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь", "email", email));
-        
+
         return userMapper.toDto(user);
     }
 

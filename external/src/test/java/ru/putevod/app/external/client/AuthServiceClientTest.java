@@ -14,9 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,8 +53,8 @@ class AuthServiceClientTest {
         assertFalse(result);
         verify(webClient).post();
         verify(requestBodyUriSpec).uri("/auth/validate");
-        verify(requestBodySpec).bodyValue(argThat(request -> 
-            request.toString().contains("token=" + TEST_USER_TOKEN)
+        verify(requestBodySpec).bodyValue(argThat(request ->
+                request.toString().contains("token=" + TEST_USER_TOKEN)
         ));
         verify(requestBodySpec).header("X-Service-Token", TEST_SERVICE_TOKEN);
     }
@@ -80,8 +78,8 @@ class AuthServiceClientTest {
         assertFalse(result);
         verify(webClient).post();
         verify(requestBodyUriSpec).uri("/auth/validate");
-        verify(requestBodySpec).bodyValue(argThat(request -> 
-            request.toString().contains("token=" + TEST_USER_TOKEN)
+        verify(requestBodySpec).bodyValue(argThat(request ->
+                request.toString().contains("token=" + TEST_USER_TOKEN)
         ));
         verify(requestBodySpec).header("X-Service-Token", TEST_SERVICE_TOKEN);
     }
@@ -112,8 +110,8 @@ class AuthServiceClientTest {
         assertEquals(expectedUserInfo, result);
         verify(webClient).post();
         verify(requestBodyUriSpec).uri("/auth/user-info");
-        verify(requestBodySpec).bodyValue(argThat(request -> 
-            request.toString().contains("token=" + TEST_USER_TOKEN)
+        verify(requestBodySpec).bodyValue(argThat(request ->
+                request.toString().contains("token=" + TEST_USER_TOKEN)
         ));
         verify(requestBodySpec).header("X-Service-Token", TEST_SERVICE_TOKEN);
     }
@@ -137,8 +135,8 @@ class AuthServiceClientTest {
         assertEquals(Collections.emptyMap(), result);
         verify(webClient).post();
         verify(requestBodyUriSpec).uri("/auth/user-info");
-        verify(requestBodySpec).bodyValue(argThat(request -> 
-            request.toString().contains("token=" + TEST_USER_TOKEN)
+        verify(requestBodySpec).bodyValue(argThat(request ->
+                request.toString().contains("token=" + TEST_USER_TOKEN)
         ));
         verify(requestBodySpec).header("X-Service-Token", TEST_SERVICE_TOKEN);
     }
@@ -162,8 +160,8 @@ class AuthServiceClientTest {
         assertNull(result);
         verify(webClient).post();
         verify(requestBodyUriSpec).uri("/auth/user-info");
-        verify(requestBodySpec).bodyValue(argThat(request -> 
-            request.toString().contains("token=" + TEST_USER_TOKEN)
+        verify(requestBodySpec).bodyValue(argThat(request ->
+                request.toString().contains("token=" + TEST_USER_TOKEN)
         ));
         verify(requestBodySpec).header("X-Service-Token", TEST_SERVICE_TOKEN);
     }

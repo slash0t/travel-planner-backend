@@ -20,14 +20,14 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class PlannerClient {
-    
+
     private final RestTemplate restTemplate;
     private final AppProperties appProperties;
 
     /**
      * Переносит все данные (путешествия и TODO листы) от анонимного пользователя к зарегистрированному
      *
-     * @param anonymousUserId ID анонимного пользователя
+     * @param anonymousUserId  ID анонимного пользователя
      * @param registeredUserId ID зарегистрированного пользователя
      * @return результат миграции
      */
@@ -39,25 +39,25 @@ public class PlannerClient {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Service-Token", appProperties.getAuthToken());
-        
+
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         log.info("Вызов эндпоинта миграции данных: {} -> {}", anonymousUserId, registeredUserId);
-        
+
         try {
             ResponseEntity<Map> response = restTemplate.exchange(
-                    url, 
-                    HttpMethod.POST, 
-                    entity, 
+                    url,
+                    HttpMethod.POST,
+                    entity,
                     Map.class
             );
-            
+
             @SuppressWarnings("unchecked")
             Map<String, Object> responseBody = response.getBody();
-            
+
             log.info("Миграция данных выполнена успешно: {}", responseBody);
             return responseBody;
-            
+
         } catch (Exception e) {
             log.error("Ошибка при вызове эндпоинта миграции данных: {}", e.getMessage(), e);
             throw new RuntimeException("Ошибка при миграции данных: " + e.getMessage(), e);
@@ -67,7 +67,7 @@ public class PlannerClient {
     /**
      * Переносит путешествия от анонимного пользователя к зарегистрированному
      *
-     * @param anonymousUserId ID анонимного пользователя
+     * @param anonymousUserId  ID анонимного пользователя
      * @param registeredUserId ID зарегистрированного пользователя
      * @return результат переноса путешествий
      */
@@ -79,25 +79,25 @@ public class PlannerClient {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Service-Token", appProperties.getAuthToken());
-        
+
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         log.info("Вызов эндпоинта переноса путешествий: {} -> {}", anonymousUserId, registeredUserId);
-        
+
         try {
             ResponseEntity<Map> response = restTemplate.exchange(
-                    url, 
-                    HttpMethod.POST, 
-                    entity, 
+                    url,
+                    HttpMethod.POST,
+                    entity,
                     Map.class
             );
-            
+
             @SuppressWarnings("unchecked")
             Map<String, Object> responseBody = response.getBody();
-            
+
             log.info("Перенос путешествий выполнен успешно: {}", responseBody);
             return responseBody;
-            
+
         } catch (Exception e) {
             log.error("Ошибка при переносе путешествий: {}", e.getMessage(), e);
             throw new RuntimeException("Ошибка при переносе путешествий: " + e.getMessage(), e);
@@ -107,7 +107,7 @@ public class PlannerClient {
     /**
      * Переносит TODO листы от анонимного пользователя к зарегистрированному
      *
-     * @param anonymousUserId ID анонимного пользователя
+     * @param anonymousUserId  ID анонимного пользователя
      * @param registeredUserId ID зарегистрированного пользователя
      * @return результат переноса TODO листов
      */
@@ -119,25 +119,25 @@ public class PlannerClient {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Service-Token", appProperties.getAuthToken());
-        
+
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         log.info("Вызов эндпоинта переноса TODO листов: {} -> {}", anonymousUserId, registeredUserId);
-        
+
         try {
             ResponseEntity<Map> response = restTemplate.exchange(
-                    url, 
-                    HttpMethod.POST, 
-                    entity, 
+                    url,
+                    HttpMethod.POST,
+                    entity,
                     Map.class
             );
-            
+
             @SuppressWarnings("unchecked")
             Map<String, Object> responseBody = response.getBody();
-            
+
             log.info("Перенос TODO листов выполнен успешно: {}", responseBody);
             return responseBody;
-            
+
         } catch (Exception e) {
             log.error("Ошибка при переносе TODO листов: {}", e.getMessage(), e);
             throw new RuntimeException("Ошибка при переносе TODO листов: " + e.getMessage(), e);

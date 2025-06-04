@@ -1,19 +1,19 @@
 package ru.putevod.app.auth.aspect;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.stereotype.Component;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import ru.putevod.app.auth.annotation.TrackMetrics;
 import ru.putevod.app.auth.service.MetricsService;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,19 +34,19 @@ public class MetricsAspect {
         Integer userId = getCurrentUserId();
         String methodName = joinPoint.getSignature().getName();
         String eventName = trackMetrics.eventName().isEmpty() ? methodName : trackMetrics.eventName();
-        
+
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("method", methodName);
         parameters.put("class", joinPoint.getTarget().getClass().getSimpleName());
 
         collectHttpContextData(parameters);
-        
+
         try {
             Object result = joinPoint.proceed();
 
             long duration = System.currentTimeMillis() - startTime;
             parameters.put("duration_ms", duration);
-            
+
             // Отслеживаем событие в зависимости от типа
             switch (trackMetrics.type()) {
                 case AUTH:
@@ -55,30 +55,30 @@ public class MetricsAspect {
                 default:
                     log.debug("Неизвестный тип метрики: {}", trackMetrics.type());
             }
-            
+
             metricsService.trackPerformance(eventName, userId, parameters, duration);
-            
+
             return result;
-            
+
         } catch (Throwable throwable) {
             long duration = System.currentTimeMillis() - startTime;
             parameters.put("error_type", throwable.getClass().getSimpleName());
             parameters.put("duration_ms", duration);
-            
+
             metricsService.trackError(methodName, throwable.getMessage(), userId, parameters);
-            
+
             throw throwable;
         }
     }
-    
+
     /**
      * Собирает контекстные данные из HTTP запроса
      */
     private void collectHttpContextData(Map<String, Object> parameters) {
         try {
-            ServletRequestAttributes requestAttributes = 
-                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-            
+            ServletRequestAttributes requestAttributes =
+                    (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
             if (requestAttributes != null) {
                 HttpServletRequest request = requestAttributes.getRequest();
 

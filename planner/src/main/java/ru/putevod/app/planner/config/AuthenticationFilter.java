@@ -69,7 +69,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
             // Проверяем, анонимный ли это пользователь
             boolean isAnonymous = Boolean.TRUE.equals(userInfo.get("isAnonymous"));
-            
+
             if (isAnonymous) {
                 // Для анонимных пользователей используем anonymousUserId
                 Object anonymousUserId = userInfo.get("anonymousUserId");
@@ -91,14 +91,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                     log.error("Получены данные из токена для обычного пользователя без userId: {}", userInfo);
                     throw new AuthenticationException("Невозможно получить информацию о пользователе из токена");
                 }
-                
+
                 Long userId = Long.valueOf(userInfo.get("userId").toString());
                 request.setAttribute("userId", userId);
                 request.setAttribute("isAnonymous", false);
                 log.info("Установлен userId = {} для зарегистрированного пользователя", userId);
             }
 
-            log.info("Передаем запрос дальше с атрибутами: userId={}, isAnonymous={}", 
+            log.info("Передаем запрос дальше с атрибутами: userId={}, isAnonymous={}",
                     request.getAttribute("userId"), request.getAttribute("isAnonymous"));
             filterChain.doFilter(request, response);
             log.info("Запрос обработан filterChain");

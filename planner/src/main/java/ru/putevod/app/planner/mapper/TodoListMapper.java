@@ -96,16 +96,16 @@ public interface TodoListMapper {
         }
 
         TodoListDto dto = toDto(todoList);
-        
+
         // Если поездка удалена, убираем tripId
         if (todoList.getTrip() != null && todoList.getTrip().isDeleted()) {
             Long originalTripId = dto.getTripId();
             dto.setTripId(null);
             // Логируем для отладки (если нужно, можно убрать позже)
-            System.out.println("Удален tripId " + originalTripId + " для TodoList " + dto.getId() + 
-                " так как поездка помечена как удаленная");
+            System.out.println("Удален tripId " + originalTripId + " для TodoList " + dto.getId() +
+                    " так как поездка помечена как удаленная");
         }
-        
+
         return dto;
     }
 } 

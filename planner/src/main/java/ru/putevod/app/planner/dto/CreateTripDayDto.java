@@ -19,7 +19,7 @@ public class CreateTripDayDto {
     @NotNull(message = "Дата дня поездки обязательна для заполнения")
     @Schema(description = "Дата дня поездки", example = "2024-07-15", requiredMode = Schema.RequiredMode.REQUIRED, type = "string", format = "date")
     private LocalDate date;
-    
+
     @Size(max = 1000, message = "Заметка дня не должна превышать 1000 символов")
     @Schema(description = "Заметка для дня поездки", example = "Первый день - осмотр центра города")
     private String note;

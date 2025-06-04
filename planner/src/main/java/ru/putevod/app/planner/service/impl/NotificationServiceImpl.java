@@ -99,7 +99,7 @@ public class NotificationServiceImpl implements NotificationService {
             String content = "Пользователь " + inviterUsername + " пригласил вас присоединиться к поездке";
             Integer relatedId = tripId > Integer.MAX_VALUE ? null : tripId.intValue();
             createNotification(userId, "trip_invite", content, relatedId);
-            log.info("Создано уведомление о приглашении в поездку {} для пользователя {} от {}", 
+            log.info("Создано уведомление о приглашении в поездку {} для пользователя {} от {}",
                     tripId, userId, inviterUsername);
         } catch (Exception e) {
             log.error("Ошибка при создании уведомления о приглашении в поездку: {}", e.getMessage(), e);
@@ -113,7 +113,7 @@ public class NotificationServiceImpl implements NotificationService {
             String content = "Пользователь " + username + " принял ваше приглашение к поездке";
             Integer relatedId = tripId > Integer.MAX_VALUE ? null : tripId.intValue();
             createNotification(tripOwnerId, "trip_share_accepted", content, relatedId);
-            log.info("Создано уведомление о принятии приглашения в поездку {} для владельца {} от {}", 
+            log.info("Создано уведомление о принятии приглашения в поездку {} для владельца {} от {}",
                     tripId, tripOwnerId, username);
         } catch (Exception e) {
             log.error("Ошибка при создании уведомления о принятии приглашения: {}", e.getMessage(), e);
@@ -127,7 +127,7 @@ public class NotificationServiceImpl implements NotificationService {
             String content = "Пользователь " + ownerUsername + " отменил ваше приглашение к поездке";
             Integer relatedId = tripId > Integer.MAX_VALUE ? null : tripId.intValue();
             createNotification(userId, "trip_invite_cancelled", content, relatedId);
-            log.info("Создано уведомление об отмене приглашения в поездку {} для пользователя {} от {}", 
+            log.info("Создано уведомление об отмене приглашения в поездку {} для пользователя {} от {}",
                     tripId, userId, ownerUsername);
         } catch (Exception e) {
             log.error("Ошибка при создании уведомления об отмене приглашения: {}", e.getMessage(), e);

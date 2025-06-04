@@ -12,21 +12,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import ru.putevod.app.auth.dto.AuthResponse;
-import ru.putevod.app.auth.dto.RegisterRequest;
-import ru.putevod.app.auth.dto.TokenValidationResponse;
-import ru.putevod.app.auth.dto.UpdateProfileRequest;
-import ru.putevod.app.auth.dto.UserInfoDto;
+import ru.putevod.app.auth.config.AppProperties;
+import ru.putevod.app.auth.dto.*;
 import ru.putevod.app.auth.model.User;
 import ru.putevod.app.auth.model.UserSession;
 import ru.putevod.app.auth.repository.UserRepository;
 import ru.putevod.app.auth.repository.UserSessionRepository;
 import ru.putevod.app.auth.security.JwtTokenProvider;
+import ru.putevod.app.auth.service.AnonymousUserService;
 import ru.putevod.app.auth.service.AuthService;
 import ru.putevod.app.auth.service.EmailService;
 import ru.putevod.app.auth.service.UserService;
-import ru.putevod.app.auth.config.AppProperties;
-import ru.putevod.app.auth.service.AnonymousUserService;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -143,10 +139,10 @@ public class AuthServiceImpl implements AuthService {
         if (deviceId != null && !deviceId.trim().isEmpty()) {
             try {
                 anonymousUserService.migrateAnonymousUserToRegistered(deviceId, user);
-                log.info("Успешно выполнена миграция анонимного пользователя с deviceId {} к пользователю {}", 
+                log.info("Успешно выполнена миграция анонимного пользователя с deviceId {} к пользователю {}",
                         deviceId, user.getUserId());
             } catch (Exception e) {
-                log.warn("Ошибка при миграции анонимного пользователя с deviceId {} к пользователю {}: {}", 
+                log.warn("Ошибка при миграции анонимного пользователя с deviceId {} к пользователю {}: {}",
                         deviceId, user.getUserId(), e.getMessage());
                 // Не прерываем процесс верификации из-за ошибки миграции
             }
@@ -259,11 +255,11 @@ public class AuthServiceImpl implements AuthService {
             if (tokenProvider.isAnonymousToken(token)) {
                 String deviceId = tokenProvider.getDeviceIdFromToken(token);
                 Long anonymousUserId = tokenProvider.getAnonymousUserIdFromToken(token);
-                
+
                 if (deviceId != null) {
                     anonymousUserService.updateLastActivity(deviceId);
                 }
-                
+
                 return TokenValidationResponse.builder()
                         .valid(true)
                         .anonymousUserId(anonymousUserId)
@@ -350,18 +346,18 @@ public class AuthServiceImpl implements AuthService {
             if (tokenProvider.isAnonymousToken(token)) {
                 String deviceId = tokenProvider.getDeviceIdFromToken(token);
                 Long anonymousUserId = tokenProvider.getAnonymousUserIdFromToken(token);
-                
+
                 Map<String, Object> info = new HashMap<>();
                 info.put("isAnonymous", true);
                 info.put("anonymousUserId", anonymousUserId);
                 info.put("deviceId", deviceId);
                 info.put("roles", new String[]{"ROLE_ANONYMOUS"});
-                
+
                 // Обновляем активность
                 if (deviceId != null) {
                     anonymousUserService.updateLastActivity(deviceId);
                 }
-                
+
                 return info;
             }
 
@@ -379,8 +375,8 @@ public class AuthServiceImpl implements AuthService {
             userInfo.put("email", email);
             userInfo.put("username", user.getUsername());
             userInfo.put("isAdmin", user.getIsAdmin() != null ? user.getIsAdmin() : false);
-                userInfo.put("verified", user.getIsVerified());
-                userInfo.put("roles", user.getIsAdmin() ? new String[]{"ROLE_USER", "ROLE_ADMIN"} : new String[]{"ROLE_USER"});
+            userInfo.put("verified", user.getIsVerified());
+            userInfo.put("roles", user.getIsAdmin() ? new String[]{"ROLE_USER", "ROLE_ADMIN"} : new String[]{"ROLE_USER"});
 
             return userInfo;
 
@@ -435,21 +431,21 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
 
         if (updateProfileRequest.getEmail() != null &&
-            !updateProfileRequest.getEmail().equals(user.getEmail())) {
-            
+                !updateProfileRequest.getEmail().equals(user.getEmail())) {
+
             if (userRepository.existsByEmail(updateProfileRequest.getEmail())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, 
-                    "Пользователь с таким email уже существует");
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Пользователь с таким email уже существует");
             }
             user.setEmail(updateProfileRequest.getEmail());
         }
 
         if (updateProfileRequest.getUsername() != null &&
-            !updateProfileRequest.getUsername().equals(user.getUsername())) {
-            
+                !updateProfileRequest.getUsername().equals(user.getUsername())) {
+
             if (userRepository.existsByUsername(updateProfileRequest.getUsername())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, 
-                    "Пользователь с таким именем уже существует");
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Пользователь с таким именем уже существует");
             }
             user.setUsername(updateProfileRequest.getUsername());
         }

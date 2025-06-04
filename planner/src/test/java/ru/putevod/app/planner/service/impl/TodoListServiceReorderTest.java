@@ -23,11 +23,11 @@ import ru.putevod.app.planner.service.TripService;
 import ru.putevod.app.planner.service.UserService;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -164,14 +164,14 @@ class TodoListServiceReorderTest {
 
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> todoListService.reorderTodoItem(1L, 1L, 2L, 5));
-        
+
         assertTrue(exception.getMessage().contains("Недопустимая позиция"));
     }
 
     @Test
     void reorderTodoItem_TripTodoList_ChecksAccess() {
         todoList.setTrip(trip);
-        
+
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
         when(todoListRepository.findById(1L)).thenReturn(Optional.of(todoList));
         when(tripService.hasAccessToTrip(user, trip, "admin", "write")).thenReturn(true);

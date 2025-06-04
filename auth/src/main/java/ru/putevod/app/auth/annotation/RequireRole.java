@@ -11,12 +11,12 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequireRole {
     UserRole[] value() default {UserRole.USER};
-    
+
     /**
      * Запрещает доступ анонимным пользователям, даже если их роль указана в value
      */
     boolean denyAnonymous() default false;
-    
+
     /**
      * Сообщение об ошибке для анонимных пользователей
      */

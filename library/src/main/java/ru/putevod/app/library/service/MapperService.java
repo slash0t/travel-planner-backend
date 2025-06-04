@@ -133,11 +133,11 @@ public class MapperService {
 
     private String getPreviewImageUrl(PublishedRoute publishedRoute) {
         String previewUrl = publishedRoute.getPreviewUrl();
-        
+
         if (previewUrl != null && !previewUrl.trim().isEmpty()) {
             return previewUrl;
         }
-        
+
         return "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&crop=center";
     }
 } 

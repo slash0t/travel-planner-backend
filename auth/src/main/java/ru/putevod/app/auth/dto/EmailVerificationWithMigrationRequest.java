@@ -12,7 +12,7 @@ public class EmailVerificationWithMigrationRequest {
 
     @NotBlank(message = "Токен подтверждения не может быть пустым")
     private String token;
-    
+
     /**
      * ID устройства для миграции данных анонимного пользователя (опционально)
      */

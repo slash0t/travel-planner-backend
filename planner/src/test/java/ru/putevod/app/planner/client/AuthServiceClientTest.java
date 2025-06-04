@@ -6,13 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
-import ru.putevod.app.planner.dto.UserDto;
-import ru.putevod.app.planner.exception.AuthenticationException;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -20,7 +16,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,11 +38,14 @@ class AuthServiceClientTest {
             boolean emailVerified,
             boolean isAdmin,
             LocalDateTime createdAt
-    ) {}
+    ) {
+    }
 
-    private record TestTokenValidationRequest(String token) {}
+    private record TestTokenValidationRequest(String token) {
+    }
 
-    private record TestTokenValidationResponse(boolean valid) {}
+    private record TestTokenValidationResponse(boolean valid) {
+    }
 
     @BeforeEach
     void setUp() {

@@ -15,13 +15,13 @@ import java.time.LocalDate;
 public class CreateTripDto {
     private String title;
     private String description;
-    
+
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
-    
+
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
-    
+
     private String country;
     private String city;
     private boolean published = false;

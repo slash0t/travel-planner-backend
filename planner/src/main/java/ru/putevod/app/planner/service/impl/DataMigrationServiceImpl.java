@@ -41,28 +41,28 @@ public class DataMigrationServiceImpl implements DataMigrationService {
     @Override
     @Transactional
     public int transferTripsOwnership(Long anonymousUserId, Long registeredUserId) {
-        log.info("Перенос путешествий от анонимного пользователя {} к зарегистрированному пользователю {}", 
+        log.info("Перенос путешествий от анонимного пользователя {} к зарегистрированному пользователю {}",
                 anonymousUserId, registeredUserId);
-        
+
         int updatedTrips = tripRepository.transferTripOwnership(anonymousUserId, registeredUserId);
-        
-        log.info("Перенесено {} путешествий от анонимного пользователя {} к пользователю {}", 
+
+        log.info("Перенесено {} путешествий от анонимного пользователя {} к пользователю {}",
                 updatedTrips, anonymousUserId, registeredUserId);
-        
+
         return updatedTrips;
     }
 
     @Override
     @Transactional
     public int transferTodoListsOwnership(Long anonymousUserId, Long registeredUserId) {
-        log.info("Перенос TODO листов от анонимного пользователя {} к зарегистрированному пользователю {}", 
+        log.info("Перенос TODO листов от анонимного пользователя {} к зарегистрированному пользователю {}",
                 anonymousUserId, registeredUserId);
-        
+
         int updatedTodoLists = todoListRepository.transferTodoListOwnership(anonymousUserId, registeredUserId);
-        
-        log.info("Перенесено {} TODO листов от анонимного пользователя {} к пользователю {}", 
+
+        log.info("Перенесено {} TODO листов от анонимного пользователя {} к пользователю {}",
                 updatedTodoLists, anonymousUserId, registeredUserId);
-        
+
         return updatedTodoLists;
     }
 } 

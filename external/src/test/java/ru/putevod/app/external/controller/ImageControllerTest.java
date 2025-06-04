@@ -15,8 +15,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ImageControllerTest {
@@ -35,19 +35,19 @@ class ImageControllerTest {
         testResponse = new UnsplashResponse();
         testResponse.setTotal(1);
         testResponse.setTotalPages(1);
-        
+
         UnsplashResponse.UnsplashImage testImage = new UnsplashResponse.UnsplashImage();
         testImage.setId("test-image-id");
         testImage.setDescription("Test image description");
         testImage.setAltDescription("Test alt description");
-        
+
         UnsplashResponse.UnsplashImage.Urls urls = new UnsplashResponse.UnsplashImage.Urls();
         urls.setRaw("https://example.com/raw.jpg");
         urls.setFull("https://example.com/full.jpg");
         urls.setRegular("https://example.com/regular.jpg");
         urls.setSmall("https://example.com/small.jpg");
         urls.setThumb("https://example.com/thumb.jpg");
-        
+
         testImage.setUrls(urls);
         testResponse.setResults(List.of(testImage));
     }

@@ -105,8 +105,8 @@ class MapperServiceTest {
 
         RoutePreviewDto dto = mapperService.toRoutePreviewDto(mockPublishedRoute);
 
-        assertEquals("https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&crop=center", 
-                     dto.getPreviewImageUrl());
+        assertEquals("https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&crop=center",
+                dto.getPreviewImageUrl());
     }
 
     @Test

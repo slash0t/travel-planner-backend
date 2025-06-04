@@ -2,7 +2,6 @@ package ru.putevod.app.library.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -10,31 +9,24 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.putevod.app.library.client.PlannerClient;
 import ru.putevod.app.library.dto.CopyRouteRequestDto;
 import ru.putevod.app.library.dto.CopyRouteResponseDto;
-import ru.putevod.app.library.dto.planner.TripDetailDto;
-import ru.putevod.app.library.dto.planner.CreateTripDto;
-import ru.putevod.app.library.dto.planner.CreateTripDayDto;
-import ru.putevod.app.library.dto.planner.UpdateTripDayDto;
 import ru.putevod.app.library.dto.planner.CreateEventDto;
+import ru.putevod.app.library.dto.planner.TripDetailDto;
+import ru.putevod.app.library.dto.planner.UpdateTripDayDto;
 import ru.putevod.app.library.entity.PublishedRoute;
 import ru.putevod.app.library.entity.Trip;
-import ru.putevod.app.library.exception.ResourceNotFoundException;
 import ru.putevod.app.library.exception.ExternalServiceException;
+import ru.putevod.app.library.exception.ResourceNotFoundException;
 import ru.putevod.app.library.repository.PublishedRouteRepository;
 import ru.putevod.app.library.repository.UserRepository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LibraryServiceCopyTest {
@@ -138,7 +130,7 @@ class LibraryServiceCopyTest {
         Long routeId = 1L;
         Long userId = 100L;
         String authToken = "test-token";
-        
+
         CopyRouteRequestDto copyRequest = CopyRouteRequestDto.builder()
                 .startDate(LocalDate.of(2024, 7, 15))
                 .title("Мой новый маршрут")
@@ -150,7 +142,7 @@ class LibraryServiceCopyTest {
                 .thenReturn(mockTripDetail);
         when(plannerClient.createTrip(any(), eq(authToken)))
                 .thenReturn(mockCreatedTrip);
-        
+
         // Мокаем получение и обновление дней
         when(plannerClient.getTripDays(eq(20L), eq(authToken)))
                 .thenReturn(createMockExistingDays());
@@ -176,7 +168,7 @@ class LibraryServiceCopyTest {
         Long routeId = 1L;
         Long userId = 100L;
         String authToken = "test-token";
-        
+
         CopyRouteRequestDto copyRequest = CopyRouteRequestDto.builder()
                 .startDate(LocalDate.of(2024, 7, 15))
                 .build();
@@ -209,7 +201,7 @@ class LibraryServiceCopyTest {
         // Then
         assertNotNull(result);
         assertEquals(2, result.getCopiedDaysCount());
-        
+
         // Проверяем, что вызывались методы получения и обновления дней
         verify(plannerClient, times(1)).getTripDays(eq(20L), eq(authToken));
         verify(plannerClient, times(2)).updateTripDay(eq(20L), any(Long.class), any(UpdateTripDayDto.class), eq(authToken));
@@ -222,7 +214,7 @@ class LibraryServiceCopyTest {
         Long routeId = 1L;
         Long userId = 100L;
         String authToken = "test-token";
-        
+
         CopyRouteRequestDto copyRequest = CopyRouteRequestDto.builder()
                 .startDate(LocalDate.of(2024, 7, 15))
                 .title("Мой кастомный маршрут")
@@ -232,11 +224,11 @@ class LibraryServiceCopyTest {
                 .thenReturn(Optional.of(mockPublishedRoute));
         when(plannerClient.getTripWithDetails(eq(10L), eq(mockPublishedRoute.getUserId()), eq(authToken)))
                 .thenReturn(mockTripDetail);
-        
+
         mockCreatedTrip.setTitle("Мой кастомный маршрут");
         when(plannerClient.createTrip(any(), eq(authToken)))
                 .thenReturn(mockCreatedTrip);
-        
+
         when(plannerClient.getTripDays(eq(20L), eq(authToken)))
                 .thenReturn(createMockExistingDays());
         when(plannerClient.updateTripDay(eq(20L), any(Long.class), any(UpdateTripDayDto.class), eq(authToken)))
@@ -255,7 +247,7 @@ class LibraryServiceCopyTest {
         Long routeId = 1L;
         Long userId = 100L;
         String authToken = "test-token";
-        
+
         // Копируем с новой датой начала (смещение на 44 дня вперед)
         CopyRouteRequestDto copyRequest = CopyRouteRequestDto.builder()
                 .startDate(LocalDate.of(2024, 7, 15))
@@ -288,7 +280,7 @@ class LibraryServiceCopyTest {
         Long routeId = 999L;
         Long userId = 100L;
         String authToken = "test-token";
-        
+
         CopyRouteRequestDto copyRequest = CopyRouteRequestDto.builder()
                 .startDate(LocalDate.of(2024, 7, 15))
                 .build();
@@ -297,7 +289,7 @@ class LibraryServiceCopyTest {
                 .thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(ResourceNotFoundException.class, 
+        assertThrows(ResourceNotFoundException.class,
                 () -> libraryService.copyRoute(routeId, copyRequest, userId, authToken));
     }
 
@@ -307,7 +299,7 @@ class LibraryServiceCopyTest {
         Long routeId = 1L;
         Long userId = 100L;
         String authToken = "test-token";
-        
+
         CopyRouteRequestDto copyRequest = CopyRouteRequestDto.builder()
                 .startDate(LocalDate.of(2024, 7, 15))
                 .build();
@@ -318,7 +310,7 @@ class LibraryServiceCopyTest {
                 .thenReturn(null);
 
         // When & Then
-        assertThrows(ExternalServiceException.class, 
+        assertThrows(ExternalServiceException.class,
                 () -> libraryService.copyRoute(routeId, copyRequest, userId, authToken));
     }
 
@@ -328,7 +320,7 @@ class LibraryServiceCopyTest {
         Long routeId = 1L;
         Long userId = 100L;
         String authToken = "test-token";
-        
+
         CopyRouteRequestDto copyRequest = CopyRouteRequestDto.builder()
                 .startDate(LocalDate.of(2024, 7, 15))
                 .build();
@@ -341,7 +333,7 @@ class LibraryServiceCopyTest {
                 .thenReturn(null);
 
         // When & Then
-        assertThrows(ExternalServiceException.class, 
+        assertThrows(ExternalServiceException.class,
                 () -> libraryService.copyRoute(routeId, copyRequest, userId, authToken));
     }
 
@@ -351,7 +343,7 @@ class LibraryServiceCopyTest {
         Long routeId = 1L;
         Long userId = 100L;
         String authToken = "test-token";
-        
+
         CopyRouteRequestDto copyRequest = CopyRouteRequestDto.builder()
                 .startDate(LocalDate.of(2024, 7, 15))
                 .build();

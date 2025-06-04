@@ -29,20 +29,20 @@ public class MetricsService {
      */
     public void trackAuthEvent(String eventName, Integer userId, String email, Map<String, Object> parameters) {
         String metricName = "auth_events_total";
-        
+
         Counter.Builder counterBuilder = Counter.builder(metricName)
                 .description("Количество событий аутентификации")
                 .tag("event", eventName)
                 .tag("has_user_id", userId != null ? "true" : "false");
-        
+
         if (email != null) {
             String emailDomain = email.contains("@") ? email.split("@")[1] : "unknown";
             counterBuilder.tag("email_domain", emailDomain);
         }
-        
+
         addParameterTags(counterBuilder, parameters);
         counterBuilder.register(meterRegistry).increment();
-        
+
         log.debug("Tracked auth event: {} for user: {}", eventName, userId);
     }
 
@@ -51,16 +51,16 @@ public class MetricsService {
      */
     public void trackPlannerEvent(String eventName, Integer userId, String tripId, Map<String, Object> parameters) {
         String metricName = "planner_events_total";
-        
+
         Counter.Builder counterBuilder = Counter.builder(metricName)
                 .description("Количество событий планировщика")
                 .tag("event", eventName)
                 .tag("has_user_id", userId != null ? "true" : "false")
                 .tag("has_trip_id", tripId != null ? "true" : "false");
-        
+
         addParameterTags(counterBuilder, parameters);
         counterBuilder.register(meterRegistry).increment();
-        
+
         log.debug("Tracked planner event: {} for user: {}, trip: {}", eventName, userId, tripId);
     }
 
@@ -69,15 +69,15 @@ public class MetricsService {
      */
     public void trackExternalEvent(String eventName, Integer userId, Map<String, Object> parameters) {
         String metricName = "external_api_calls_total";
-        
+
         Counter.Builder counterBuilder = Counter.builder(metricName)
                 .description("Количество вызовов внешних API")
                 .tag("api_call", eventName)
                 .tag("has_user_id", userId != null ? "true" : "false");
-        
+
         addParameterTags(counterBuilder, parameters);
         counterBuilder.register(meterRegistry).increment();
-        
+
         log.debug("Tracked external API call: {} for user: {}", eventName, userId);
     }
 
@@ -86,15 +86,15 @@ public class MetricsService {
      */
     public void trackCustomEvent(String eventName, Integer userId, Map<String, Object> parameters) {
         String metricName = "custom_events_total";
-        
+
         Counter.Builder counterBuilder = Counter.builder(metricName)
                 .description("Количество пользовательских событий")
                 .tag("event", eventName)
                 .tag("has_user_id", userId != null ? "true" : "false");
-        
+
         addParameterTags(counterBuilder, parameters);
         counterBuilder.register(meterRegistry).increment();
-        
+
         log.debug("Tracked custom event: {} for user: {}", eventName, userId);
     }
 
@@ -111,14 +111,14 @@ public class MetricsService {
                 .increment();
 
         String timerKey = "operation_duration_" + operation;
-        Timer timer = timers.computeIfAbsent(timerKey, key -> 
+        Timer timer = timers.computeIfAbsent(timerKey, key ->
                 Timer.builder("operation_duration_seconds")
                         .description("Время выполнения операций")
                         .tag("operation", operation)
                         .register(meterRegistry));
-        
+
         timer.record(durationMs, java.util.concurrent.TimeUnit.MILLISECONDS);
-        
+
         log.debug("Tracked performance: {} took {}ms for user: {}", operation, durationMs, userId);
     }
 
@@ -130,16 +130,16 @@ public class MetricsService {
                 .description("Общее количество ошибок")
                 .tag("operation", operation)
                 .tag("has_user_id", userId != null ? "true" : "false");
-        
+
         if (errorMessage != null) {
             // Получаем тип ошибки из сообщения или параметров
             String errorType = (String) parameters.getOrDefault("error_type", "unknown");
             counterBuilder.tag("error_type", errorType);
         }
-        
+
         addParameterTags(counterBuilder, parameters);
         counterBuilder.register(meterRegistry).increment();
-        
+
         log.debug("Tracked error: {} - {} for user: {}", operation, errorMessage, userId);
     }
 
@@ -151,14 +151,14 @@ public class MetricsService {
             // Добавляем основные теги из контекста HTTP
             addTagIfPresent(counterBuilder, parameters, "http_method");
             addTagIfPresent(counterBuilder, parameters, "class");
-            
+
             // Добавляем информацию о результате
             if (parameters.containsKey("duration_ms")) {
                 Object duration = parameters.get("duration_ms");
                 if (duration instanceof Number) {
                     long durationMs = ((Number) duration).longValue();
-                    String performanceTag = durationMs < 100 ? "fast" : 
-                                          durationMs < 1000 ? "medium" : "slow";
+                    String performanceTag = durationMs < 100 ? "fast" :
+                            durationMs < 1000 ? "medium" : "slow";
                     counterBuilder.tag("performance", performanceTag);
                 }
             }
@@ -181,7 +181,7 @@ public class MetricsService {
     public void recordSystemHealth() {
         // Записываем базовые метрики системы
         meterRegistry.gauge("system_health", 1.0);
-        
+
         // Количество активных пользователей (может быть реализовано позже)
         // meterRegistry.gauge("active_users_count", getActiveUsersCount());
     }

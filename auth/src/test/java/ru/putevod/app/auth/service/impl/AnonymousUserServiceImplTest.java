@@ -3,11 +3,7 @@ package ru.putevod.app.auth.service.impl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -19,7 +15,6 @@ import ru.putevod.app.auth.security.JwtTokenProvider;
 import ru.putevod.app.auth.service.DataMigrationService;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -216,7 +211,7 @@ class AnonymousUserServiceImplTest {
 
         try (MockedStatic<LocalDateTime> mockedLocalDateTime = mockStatic(LocalDateTime.class)) {
             mockedLocalDateTime.when(LocalDateTime::now).thenReturn(fixedNow);
-            
+
             when(anonymousUserRepository.findInactiveAnonymousUsers(cutoffDate)).thenReturn(inactiveUsers);
 
             anonymousUserService.cleanupInactiveAnonymousUsers();

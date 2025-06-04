@@ -16,7 +16,8 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UnsplashImageServiceTest {
@@ -88,7 +89,7 @@ class UnsplashImageServiceTest {
                 argThat(entity -> {
                     HttpHeaders headers = entity.getHeaders();
                     return headers.getFirst("Authorization").equals("Client-ID " + TEST_ACCESS_KEY) &&
-                           headers.getFirst("Accept-Version").equals("v1");
+                            headers.getFirst("Accept-Version").equals("v1");
                 }),
                 eq(UnsplashResponse.class)
         );

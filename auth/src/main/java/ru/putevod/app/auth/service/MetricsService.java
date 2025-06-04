@@ -29,20 +29,20 @@ public class MetricsService {
      */
     public void trackAuthEvent(String eventName, Integer userId, String email, Map<String, Object> parameters) {
         String metricName = "auth_events_total";
-        
+
         Counter.Builder counterBuilder = Counter.builder(metricName)
                 .description("Количество событий аутентификации")
                 .tag("event", eventName)
                 .tag("has_user_id", userId != null ? "true" : "false");
-        
+
         if (email != null) {
             String emailDomain = email.contains("@") ? email.split("@")[1] : "unknown";
             counterBuilder.tag("email_domain", emailDomain);
         }
-        
+
         addParameterTags(counterBuilder, parameters);
         counterBuilder.register(meterRegistry).increment();
-        
+
         log.debug("Tracked auth event: {} for user: {}", eventName, userId);
     }
 
@@ -59,14 +59,14 @@ public class MetricsService {
                 .increment();
 
         String timerKey = "operation_duration_" + operation;
-        Timer timer = timers.computeIfAbsent(timerKey, key -> 
+        Timer timer = timers.computeIfAbsent(timerKey, key ->
                 Timer.builder("operation_duration_seconds")
                         .description("Время выполнения операций")
                         .tag("operation", operation)
                         .register(meterRegistry));
-        
+
         timer.record(durationMs, java.util.concurrent.TimeUnit.MILLISECONDS);
-        
+
         log.debug("Tracked performance: {} took {}ms for user: {}", operation, durationMs, userId);
     }
 
@@ -78,15 +78,15 @@ public class MetricsService {
                 .description("Общее количество ошибок")
                 .tag("operation", operation)
                 .tag("has_user_id", userId != null ? "true" : "false");
-        
+
         if (errorMessage != null) {
             String errorType = (String) parameters.getOrDefault("error_type", "unknown");
             counterBuilder.tag("error_type", errorType);
         }
-        
+
         addParameterTags(counterBuilder, parameters);
         counterBuilder.register(meterRegistry).increment();
-        
+
         log.debug("Tracked error: {} - {} for user: {}", operation, errorMessage, userId);
     }
 
@@ -97,13 +97,13 @@ public class MetricsService {
         if (parameters != null) {
             addTagIfPresent(counterBuilder, parameters, "http_method");
             addTagIfPresent(counterBuilder, parameters, "class");
-            
+
             if (parameters.containsKey("duration_ms")) {
                 Object duration = parameters.get("duration_ms");
                 if (duration instanceof Number) {
                     long durationMs = ((Number) duration).longValue();
-                    String performanceTag = durationMs < 100 ? "fast" : 
-                                          durationMs < 1000 ? "medium" : "slow";
+                    String performanceTag = durationMs < 100 ? "fast" :
+                            durationMs < 1000 ? "medium" : "slow";
                     counterBuilder.tag("performance", performanceTag);
                 }
             }

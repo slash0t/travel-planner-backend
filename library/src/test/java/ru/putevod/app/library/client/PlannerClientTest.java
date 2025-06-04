@@ -8,22 +8,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
-import ru.putevod.app.library.dto.planner.CreateTripDto;
-import ru.putevod.app.library.dto.planner.TripDetailDto;
-import ru.putevod.app.library.dto.planner.CreateTripDayDto;
-import ru.putevod.app.library.dto.planner.CreateEventDto;
-import ru.putevod.app.library.dto.planner.UpdateTripDayDto;
+import ru.putevod.app.library.dto.planner.*;
 import ru.putevod.app.library.entity.Trip;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class PlannerClientTest {

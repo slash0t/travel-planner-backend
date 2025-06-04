@@ -134,7 +134,7 @@ class TripTest {
         day1.setId(1L);
         day1.setDayNumber(1);
         day1.setDate(startDate);
-        
+
         TripDay day2 = new TripDay();
         day2.setId(2L);
         day2.setDayNumber(2);

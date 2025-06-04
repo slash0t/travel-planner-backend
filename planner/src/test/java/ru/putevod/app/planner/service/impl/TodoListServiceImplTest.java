@@ -33,7 +33,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class TodoListServiceImplTest {
@@ -97,7 +96,7 @@ class TodoListServiceImplTest {
 
         // Common stubs
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
-        
+
         // Общий мок для нового метода маппера (lenient, так как не все тесты его используют)
         lenient().when(todoListMapper.toDtoWithTripCheck(any(TodoList.class))).thenReturn(todoListDto);
     }
