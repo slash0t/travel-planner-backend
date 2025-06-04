@@ -51,6 +51,7 @@ class MapperServiceTest {
         mockPublishedRoute.setDuration(5);
         mockPublishedRoute.setAverageRating(4.5);
         mockPublishedRoute.setTags(new String[]{"tag1", "tag2"});
+        mockPublishedRoute.setPreviewUrl("https://example.com/preview.jpg");
         mockPublishedRoute.setCreatedAt(LocalDateTime.now());
         mockPublishedRoute.setUpdatedAt(LocalDateTime.now());
 
@@ -85,6 +86,27 @@ class MapperServiceTest {
         assertEquals(2, dto.getTags().size());
         assertNotNull(dto.getCreatedAt());
         assertNotNull(dto.getPreviewImageUrl());
+    }
+
+    @Test
+    void toRoutePreviewDto_WithPreviewUrl_ShouldReturnPreviewUrl() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
+        mockPublishedRoute.setPreviewUrl("https://example.com/custom-preview.jpg");
+
+        RoutePreviewDto dto = mapperService.toRoutePreviewDto(mockPublishedRoute);
+
+        assertEquals("https://example.com/custom-preview.jpg", dto.getPreviewImageUrl());
+    }
+
+    @Test
+    void toRoutePreviewDto_WithoutPreviewUrl_ShouldReturnFallback() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
+        mockPublishedRoute.setPreviewUrl(null);
+
+        RoutePreviewDto dto = mapperService.toRoutePreviewDto(mockPublishedRoute);
+
+        assertEquals("https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&crop=center", 
+                     dto.getPreviewImageUrl());
     }
 
     @Test
