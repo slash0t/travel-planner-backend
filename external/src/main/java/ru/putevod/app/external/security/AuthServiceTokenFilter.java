@@ -35,6 +35,14 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
             if (token != null && authServiceClient.validateToken(token)) {
                 Map<String, Object> userInfo = authServiceClient.getUserInfoFromToken(token);
                 if (userInfo != null) {
+                   if (isAiEndpoint(request) && isAnonymousUser(userInfo)) {
+                        log.warn("Анонимный пользователь пытается получить доступ к AI функциям: {}", request.getRequestURI());
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json;charset=UTF-8");
+                        response.getWriter().write("{\"error\":\"ИИ-функции доступны только зарегистрированным пользователям\"}");
+                        return;
+                    }
+                    
                     setAuthenticationContext(userInfo, token);
                 }
             }
@@ -54,27 +62,59 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
         return null;
     }
 
+    private boolean isAiEndpoint(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return uri.contains("/ai/") || uri.contains("/ai-");
+    }
+
+    private boolean isAnonymousUser(Map<String, Object> userInfo) {
+        return Boolean.TRUE.equals(userInfo.get("isAnonymous"));
+    }
+
     @SuppressWarnings("unchecked")
     private void setAuthenticationContext(Map<String, Object> userInfo, String token) {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
-        if (userInfo.containsKey("roles") && userInfo.get("roles") instanceof List) {
-            List<String> roles = (List<String>) userInfo.get("roles");
-            roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role)));
-        }
-
-        if (Boolean.TRUE.equals(userInfo.get("isAdmin"))) {
-            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        boolean isAnonymous = isAnonymousUser(userInfo);
+        
+        if (isAnonymous) {
+            // Для анонимных пользователей устанавливаем роль ANONYMOUS
+            authorities.add(new SimpleGrantedAuthority("ROLE_ANONYMOUS"));
+            
+            // Создаем пользователя с device ID как username
+            String deviceId = (String) userInfo.get("deviceId");
+            String username = deviceId != null ? "anonymous_" + deviceId : "anonymous_user";
+            
+            User user = new User(username, "", authorities);
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(user, token, authorities);
+            
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            log.debug("Установлен контекст аутентификации для анонимного пользователя: {}", username);
         } else {
-            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+            // Для зарегистрированных пользователей
+            if (userInfo.containsKey("roles") && userInfo.get("roles") instanceof List) {
+                List<String> roles = (List<String>) userInfo.get("roles");
+                roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role)));
+            }
+
+            if (Boolean.TRUE.equals(userInfo.get("isAdmin"))) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            } else {
+                authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+            }
+
+            String email = (String) userInfo.get("email");
+            if (email == null || email.isEmpty()) {
+                email = "user_" + userInfo.get("userId");
+            }
+            
+            User user = new User(email, "", authorities);
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(user, token, authorities);
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            log.debug("Установлен контекст аутентификации для пользователя: {}", email);
         }
-
-        String email = (String) userInfo.get("email");
-        User user = new User(email, "", authorities);
-
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(user, token, authorities);
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 } 
