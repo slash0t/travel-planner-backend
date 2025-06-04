@@ -35,7 +35,6 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            // Проверяем сервисный токен
             String serviceToken = resolveServiceToken(request);
             if (serviceToken != null && serviceToken.equals(expectedServiceToken)) {
                 log.debug("Авторизация через сервисный токен для URI: {}", request.getRequestURI());
@@ -44,7 +43,6 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
                 return;
             }
             
-            // Проверяем пользовательский токен
             String token = resolveToken(request);
             if (token != null && authServiceClient.validateToken(token)) {
                 Map<String, Object> userInfo = authServiceClient.getUserInfoFromToken(token);
