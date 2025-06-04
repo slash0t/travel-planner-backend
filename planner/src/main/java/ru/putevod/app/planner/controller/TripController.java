@@ -24,6 +24,7 @@ import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.dto.UpdateTripDto;
 import ru.putevod.app.planner.dto.RemoveShareResponseDto;
 import ru.putevod.app.planner.service.TripService;
+import ru.putevod.app.planner.exception.BadRequestException;
 
 import java.util.List;
 
@@ -107,6 +108,23 @@ public class TripController {
             @CurrentUser Long userId,
             @PathVariable Long tripId) {
         return ResponseEntity.ok(tripService.getTripById(userId, tripId));
+    }
+
+    @GetMapping("/{tripId}/details")
+    @Operation(summary = "Получить полную детальную информацию о поездке включая дни и события")
+    public ResponseEntity<TripDto> getTripWithDetails(
+            @CurrentUser Long userId,
+            @PathVariable Long tripId) {
+        return ResponseEntity.ok(tripService.getTripWithDetails(userId, tripId));
+    }
+
+    @GetMapping("/{tripId}/service-details")
+    @Operation(summary = "Получить полную детальную информацию о поездке для межсервисных вызовов",
+               description = "Специальный эндпоинт для получения данных о поездке из других сервисов")
+    public ResponseEntity<TripDto> getTripWithDetailsForService(
+            @PathVariable Long tripId,
+            @RequestParam Long userId) {
+        return ResponseEntity.ok(tripService.getTripWithDetails(userId, tripId));
     }
 
     @PutMapping("/{tripId}")

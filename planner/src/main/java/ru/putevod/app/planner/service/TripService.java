@@ -23,6 +23,8 @@ public interface TripService {
 
     TripDto getTripById(Long userId, Long tripId);
 
+    TripDto getTripWithDetails(Long userId, Long tripId);
+
     Trip getTripEntityById(Long tripId);
 
     Trip getTripEntityWithAccessCheck(Long userId, Long tripId);
