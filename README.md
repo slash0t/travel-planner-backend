@@ -330,7 +330,7 @@ docker-compose up liquibase-migrations
 |-------------|---------------------------------------|
 | 🔐 Auth     | http://localhost:8080/swagger-ui.html |
 | 📋 Planner  | http://localhost:8081/swagger-ui.html |
-| �� External | http://localhost:8083/swagger-ui.html |
+| 🌍 External | http://localhost:8083/swagger-ui.html |
 | 📚 Library  | http://localhost:8082/swagger-ui.html |
 
 ### Аутентификация
