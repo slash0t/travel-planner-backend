@@ -184,6 +184,36 @@ public class AuthController {
     }
 
     @Operation(
+            summary = "Подтверждение email с миграцией анонимного пользователя",
+            description = "Подтверждает email пользователя по токену из письма и мигрирует данные анонимного пользователя"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Email успешно подтвержден и данные мигрированы",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Неверный или истекший токен")
+    })
+    @PostMapping("/verify-email-with-migration")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "verify_email_migration")
+    public ResponseEntity<AuthResponse> verifyEmailWithMigration(
+            @Valid @RequestBody EmailVerificationWithMigrationRequest verificationRequest,
+            HttpServletRequest request) {
+        String ipAddress = request.getRemoteAddr();
+        String deviceInfo = request.getHeader("User-Agent");
+
+        AuthResponse authResponse = authService.verifyEmail(
+                verificationRequest.getToken(),
+                ipAddress,
+                deviceInfo,
+                verificationRequest.getDeviceId()
+        );
+
+        return ResponseEntity.ok(authResponse);
+    }
+
+    @Operation(
             summary = "Повторная отправка письма подтверждения",
             description = "Повторно отправляет письмо для подтверждения email"
     )
