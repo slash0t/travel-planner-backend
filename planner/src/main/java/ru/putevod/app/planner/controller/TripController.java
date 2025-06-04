@@ -17,14 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.planner.config.CurrentUser;
-import ru.putevod.app.planner.dto.CreateTripDto;
-import ru.putevod.app.planner.dto.CreateTripAccessDto;
-import ru.putevod.app.planner.dto.TripAccessDto;
-import ru.putevod.app.planner.dto.TripDto;
-import ru.putevod.app.planner.dto.UpdateTripDto;
-import ru.putevod.app.planner.dto.RemoveShareResponseDto;
+import ru.putevod.app.planner.dto.*;
 import ru.putevod.app.planner.service.TripService;
-import ru.putevod.app.planner.exception.BadRequestException;
 
 import java.util.List;
 
@@ -120,7 +114,7 @@ public class TripController {
 
     @GetMapping("/{tripId}/service-details")
     @Operation(summary = "Получить полную детальную информацию о поездке для межсервисных вызовов",
-               description = "Специальный эндпоинт для получения данных о поездке из других сервисов")
+            description = "Специальный эндпоинт для получения данных о поездке из других сервисов")
     public ResponseEntity<TripDto> getTripWithDetailsForService(
             @PathVariable Long tripId,
             @RequestParam Long userId) {
@@ -156,27 +150,27 @@ public class TripController {
     }
 
     @PostMapping("/{tripId}/invite-by-username")
-    @Operation(summary = "Пригласить пользователя по никнейму", 
-               description = "Упрощенный способ приглашения пользователя к поездке по его никнейму")
+    @Operation(summary = "Пригласить пользователя по никнейму",
+            description = "Упрощенный способ приглашения пользователя к поездке по его никнейму")
     public ResponseEntity<TripAccessDto> inviteUserByUsername(
             @CurrentUser Long userId,
             @PathVariable Long tripId,
             @RequestParam @Parameter(description = "Никнейм пользователя", required = true, example = "john_doe") String username,
             @RequestParam(defaultValue = "read") @Parameter(description = "Уровень доступа", schema = @Schema(allowableValues = {"read", "write", "admin"})) String accessLevel) {
-        
+
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Никнейм пользователя не может быть пустым");
         }
-        
+
         if (!accessLevel.matches("read|write|admin")) {
             throw new IllegalArgumentException("Недопустимый уровень доступа: " + accessLevel);
         }
-        
+
         CreateTripAccessDto accessDto = CreateTripAccessDto.builder()
                 .username(username.trim())
                 .accessLevel(accessLevel)
                 .build();
-                
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(tripService.shareTrip(userId, tripId, accessDto));
     }
@@ -190,8 +184,8 @@ public class TripController {
     }
 
     @DeleteMapping("/{tripId}/shares/{shareUserId}")
-    @Operation(summary = "Удалить доступ к поездке для пользователя", 
-               description = "Удаляет доступ пользователя к поездке. Если приглашение было в статусе pending, оно будет отменено.")
+    @Operation(summary = "Удалить доступ к поездке для пользователя",
+            description = "Удаляет доступ пользователя к поездке. Если приглашение было в статусе pending, оно будет отменено.")
     public ResponseEntity<RemoveShareResponseDto> removeShare(
             @CurrentUser Long userId,
             @PathVariable Long tripId,

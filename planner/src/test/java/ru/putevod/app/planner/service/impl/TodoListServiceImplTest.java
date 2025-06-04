@@ -33,7 +33,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class TodoListServiceImplTest {
@@ -97,7 +96,7 @@ class TodoListServiceImplTest {
 
         // Common stubs
         when(userService.getUserEntityById(anyLong())).thenReturn(user);
-        
+
         // Общий мок для нового метода маппера (lenient, так как не все тесты его используют)
         lenient().when(todoListMapper.toDtoWithTripCheck(any(TodoList.class))).thenReturn(todoListDto);
     }
@@ -458,5 +457,47 @@ class TodoListServiceImplTest {
                 todoListService.deleteTodoItem(1L, 1L, 1L)
         );
         assertEquals("Задача not found with id: '1'", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should get user todo lists simple successfully")
+    void getUserTodoListsSimple_Success() {
+        Page<TodoList> todoListPage = new PageImpl<>(List.of(todoList));
+        when(todoListRepository.findAllByUserSimple(any(), any(Pageable.class))).thenReturn(todoListPage);
+        when(todoListMapper.toDtoWithTripCheck(any())).thenReturn(todoListDto);
+
+        Page<TodoListDto> result = todoListService.getUserTodoListsSimple(1L, mock(Pageable.class));
+
+        assertNotNull(result);
+        assertFalse(result.getContent().isEmpty());
+        assertEquals(1, result.getContent().size());
+        verify(todoListRepository).findAllByUserSimple(any(), any(Pageable.class));
+        verify(todoListMapper).toDtoWithTripCheck(any());
+    }
+
+    @Test
+    @DisplayName("Should return empty page when no todo lists found")
+    void getUserTodoListsSimple_NoListsFound() {
+        Page<TodoList> emptyPage = new PageImpl<>(List.of());
+        when(todoListRepository.findAllByUserSimple(any(), any(Pageable.class))).thenReturn(emptyPage);
+
+        Page<TodoListDto> result = todoListService.getUserTodoListsSimple(1L, mock(Pageable.class));
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
+        verify(todoListRepository).findAllByUserSimple(any(), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("Should handle repository exception")
+    void getUserTodoListsSimple_RepositoryException() {
+        when(todoListRepository.findAllByUserSimple(any(), any(Pageable.class)))
+                .thenThrow(new RuntimeException("Database error"));
+
+        assertThrows(RuntimeException.class, () ->
+                todoListService.getUserTodoListsSimple(1L, mock(Pageable.class))
+        );
+
+        verify(todoListRepository).findAllByUserSimple(any(), any(Pageable.class));
     }
 } 

@@ -12,16 +12,16 @@ import java.util.Optional;
 
 @Repository
 public interface AnonymousUserRepository extends JpaRepository<AnonymousUser, Long> {
-    
+
     Optional<AnonymousUser> findByDeviceId(String deviceId);
-    
+
     boolean existsByDeviceId(String deviceId);
-    
+
     List<AnonymousUser> findByIsMigratedFalse();
-    
+
     @Query("SELECT au FROM AnonymousUser au WHERE au.lastActivity < :cutoffDate AND au.isMigrated = false")
     List<AnonymousUser> findInactiveAnonymousUsers(@Param("cutoffDate") LocalDateTime cutoffDate);
-    
+
     @Query("SELECT COUNT(au) FROM AnonymousUser au WHERE au.isMigrated = false")
     long countActiveAnonymousUsers();
 } 

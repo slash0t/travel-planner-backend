@@ -17,7 +17,7 @@ public class CreateEventDto {
     private String description;
     private LocalTime startTime;
     private LocalTime endTime;
-    private Boolean hasSpecificTime = false;
+    private Boolean hasSpecificTime;
     private String notes;
     private Integer orderPosition;
     private PlaceInfo place;

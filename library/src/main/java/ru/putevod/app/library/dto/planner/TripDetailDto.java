@@ -18,24 +18,24 @@ public class TripDetailDto {
     private Long tripId;
     private String title;
     private String description;
-    
+
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
-    
+
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
-    
+
     private String country;
     private String city;
     private boolean published;
     private String previewUrl;
-    
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
-    
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
-    
+
     private List<TripDayDto> days;
 
     @Data
@@ -45,10 +45,10 @@ public class TripDetailDto {
     public static class TripDayDto {
         private Long dayId;
         private Integer dayNumber;
-        
+
         @JsonFormat(pattern = "yyyy-MM-dd")
         private LocalDate date;
-        
+
         private String description;
         private List<EventDto> events;
     }

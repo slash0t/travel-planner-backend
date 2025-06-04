@@ -36,7 +36,7 @@ public class UnsplashImageService implements ImageService {
 
         try {
             String searchQuery = city.trim() + " city landmarks architecture";
-            
+
             String url = UriComponentsBuilder.fromHttpUrl(apiUrl + "/search/photos")
                     .queryParam("query", searchQuery)
                     .queryParam("page", 1)
@@ -50,15 +50,15 @@ public class UnsplashImageService implements ImageService {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Client-ID " + accessKey);
             headers.set("Accept-Version", "v1");
-            
+
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
             log.debug("Запрос к Unsplash API: {}", url);
 
             ResponseEntity<UnsplashResponse> response = restTemplate.exchange(
-                    url, 
-                    HttpMethod.GET, 
-                    entity, 
+                    url,
+                    HttpMethod.GET,
+                    entity,
                     UnsplashResponse.class
             );
 

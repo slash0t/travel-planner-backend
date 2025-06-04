@@ -4,16 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.putevod.app.planner.dto.CreateEventDto;
-import ru.putevod.app.planner.dto.UpdateEventDto;
-import ru.putevod.app.planner.dto.CreateEventReminderDto;
-import ru.putevod.app.planner.dto.EventDto;
-import ru.putevod.app.planner.dto.EventReminderDto;
+import ru.putevod.app.planner.dto.*;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
 import ru.putevod.app.planner.mapper.EventMapper;
-import ru.putevod.app.planner.mapper.PlaceMapper;
 import ru.putevod.app.planner.mapper.EventReminderMapper;
+import ru.putevod.app.planner.mapper.PlaceMapper;
 import ru.putevod.app.planner.model.*;
 import ru.putevod.app.planner.repository.EventReminderRepository;
 import ru.putevod.app.planner.repository.EventRepository;
@@ -29,10 +25,6 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Comparator;
 
 @Service
 @RequiredArgsConstructor
@@ -105,12 +97,12 @@ public class EventServiceImpl implements EventService {
     private Integer calculatePositionForTimedEventInSequence(TripDay day, LocalTime startTime) {
         // Получаем все события дня, отсортированные по позиции
         List<Event> allEvents = eventRepository.findByDayOrderByTimeAndPosition(day);
-        
+
         int insertPosition = allEvents.size() + 1; // По умолчанию в конец
-        
+
         for (int i = 0; i < allEvents.size(); i++) {
             Event currentEvent = allEvents.get(i);
-            
+
             // Если текущее событие имеет время и оно позже нашего - вставляем перед ним
             if (currentEvent.isHasSpecificTime() && currentEvent.getStartTime() != null) {
                 if (currentEvent.getStartTime().isAfter(startTime)) {
@@ -119,10 +111,10 @@ public class EventServiceImpl implements EventService {
                 }
             }
         }
-        
+
         // Сдвигаем все события с позиции insertPosition на 1 вправо
         shiftAllEventsPosition(day, insertPosition, 1);
-        
+
         return insertPosition;
     }
 
@@ -131,11 +123,11 @@ public class EventServiceImpl implements EventService {
      */
     private void shiftAllEventsPosition(TripDay day, int fromPosition, int shift) {
         List<Event> allEvents = eventRepository.findByDayOrderByTimeAndPosition(day);
-        
+
         allEvents.stream()
                 .filter(e -> e.getOrderPosition() >= fromPosition)
                 .forEach(e -> e.setOrderPosition(e.getOrderPosition() + shift));
-                
+
         if (!allEvents.isEmpty()) {
             eventRepository.saveAll(allEvents);
         }
@@ -313,11 +305,11 @@ public class EventServiceImpl implements EventService {
      */
     private void shiftAllEventsPositionAfterDeletion(TripDay day, int deletedPosition) {
         List<Event> allEvents = eventRepository.findByDayOrderByTimeAndPosition(day);
-        
+
         allEvents.stream()
                 .filter(e -> e.getOrderPosition() > deletedPosition)
                 .forEach(e -> e.setOrderPosition(e.getOrderPosition() - 1));
-                
+
         if (!allEvents.isEmpty()) {
             eventRepository.saveAll(allEvents);
         }
@@ -475,13 +467,13 @@ public class EventServiceImpl implements EventService {
         List<Event> allEvents = eventRepository.findByDayOrderByTimeAndPosition(day);
 
         int maxPosition = allEvents.size();
-        
+
         if (newPosition < 1 || newPosition > maxPosition) {
             throw new BadRequestException("Позиция должна быть от 1 до " + maxPosition);
         }
 
         int currentPosition = event.getOrderPosition();
-        
+
         if (currentPosition == newPosition) {
             return eventMapper.toDto(event);
         }

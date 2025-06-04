@@ -34,18 +34,18 @@ public class AuthServiceClient {
      */
     public UserDto getUserById(Long userId) {
         try {
-        return webClient.get()
-                .uri("/users/{id}", userId)
+            return webClient.get()
+                    .uri("/users/{id}", userId)
                     .header("X-Service-Token", serviceToken)
-                .retrieve()
-                .onStatus(status -> status.equals(HttpStatus.UNAUTHORIZED),
+                    .retrieve()
+                    .onStatus(status -> status.equals(HttpStatus.UNAUTHORIZED),
                             response -> Mono.error(new AuthenticationException("Недействительный сервисный токен")))
                     .onStatus(status -> status.equals(HttpStatus.NOT_FOUND),
                             response -> Mono.error(new AuthenticationException("Пользователь не найден")))
                     .bodyToMono(AuthUserInfoDto.class)
                     .map(this::mapToUserDto)
-                .doOnError(e -> log.error("Ошибка получения информации о пользователе из сервиса авторизации: {}", e.getMessage()))
-                .block();
+                    .doOnError(e -> log.error("Ошибка получения информации о пользователе из сервиса авторизации: {}", e.getMessage()))
+                    .block();
         } catch (Exception e) {
             log.error("Ошибка при получении пользователя по ID {}: {}", userId, e.getMessage());
             throw new AuthenticationException("Не удалось получить информацию о пользователе");

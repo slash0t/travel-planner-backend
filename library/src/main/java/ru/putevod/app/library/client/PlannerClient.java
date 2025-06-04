@@ -7,14 +7,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import ru.putevod.app.library.dto.planner.CreateTripDto;
-import ru.putevod.app.library.dto.planner.TripDetailDto;
-import ru.putevod.app.library.dto.planner.CreateTripDayDto;
-import ru.putevod.app.library.dto.planner.UpdateTripDayDto;
-import ru.putevod.app.library.dto.planner.CreateEventDto;
+import ru.putevod.app.library.dto.planner.*;
 import ru.putevod.app.library.entity.Trip;
-import java.util.List;
+
 import java.util.Arrays;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -92,9 +89,9 @@ public class PlannerClient {
     /**
      * Создает новый день в маршруте используя TripDayDto
      *
-     * @param tripId        id маршрута
-     * @param createDayDto  данные для создания дня
-     * @param token         токен авторизации из сервиса auth
+     * @param tripId       id маршрута
+     * @param createDayDto данные для создания дня
+     * @param token        токен авторизации из сервиса auth
      * @return созданный день
      */
     public TripDetailDto.TripDayDto createTripDayFromDto(Long tripId, CreateTripDayDto createDayDto, String token) {
@@ -118,9 +115,9 @@ public class PlannerClient {
     /**
      * Создает новый день в маршруте
      *
-     * @param tripId        id маршрута
-     * @param createDayDto  данные для создания дня
-     * @param token         токен авторизации из сервиса auth
+     * @param tripId       id маршрута
+     * @param createDayDto данные для создания дня
+     * @param token        токен авторизации из сервиса auth
      * @return созданный день
      */
     public TripDetailDto.TripDayDto createTripDay(Long tripId, CreateTripDayDto createDayDto, String token) {
@@ -254,7 +251,7 @@ public class PlannerClient {
      */
     private WebClient buildWebClient(String token) {
         log.debug("Building WebClient for planner service with baseUrl: {}", plannerServiceUrl);
-        
+
         return webClientBuilder
                 .baseUrl(plannerServiceUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -277,9 +274,9 @@ public class PlannerClient {
                 .previewUrl(tripDto.getPreviewUrl())
                 .createdAt(tripDto.getCreatedAt())
                 .updatedAt(tripDto.getUpdatedAt())
-                .days(tripDto.getDays() != null ? 
-                      tripDto.getDays().stream().map(this::mapToTripDayDto).toList() : 
-                      null)
+                .days(tripDto.getDays() != null ?
+                        tripDto.getDays().stream().map(this::mapToTripDayDto).toList() :
+                        null)
                 .build();
     }
 
@@ -289,8 +286,8 @@ public class PlannerClient {
                 .dayNumber(dayDto.getDayNumber())
                 .date(dayDto.getDate())
                 .description(dayDto.getNote())
-                .events(dayDto.getEvents() != null ? 
-                        dayDto.getEvents().stream().map(this::mapToEventDto).toList() : 
+                .events(dayDto.getEvents() != null ?
+                        dayDto.getEvents().stream().map(this::mapToEventDto).toList() :
                         null)
                 .build();
     }

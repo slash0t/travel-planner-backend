@@ -53,10 +53,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
      * @return количество событий
      */
     @Query("SELECT COUNT(e) FROM Event e " +
-           "JOIN e.day d " +
-           "JOIN d.trip t " +
-           "WHERE (t.creator = :user OR EXISTS (" +
-           "    SELECT a FROM TripAccess a WHERE a.trip = t AND a.user = :user AND a.invitationStatus = 'accepted'" +
-           ")) AND t.isDeleted = false")
+            "JOIN e.day d " +
+            "JOIN d.trip t " +
+            "WHERE (t.creator = :user OR EXISTS (" +
+            "    SELECT a FROM TripAccess a WHERE a.trip = t AND a.user = :user AND a.invitationStatus = 'accepted'" +
+            ")) AND t.isDeleted = false")
     Long countUserEvents(@Param("user") User user);
 } 

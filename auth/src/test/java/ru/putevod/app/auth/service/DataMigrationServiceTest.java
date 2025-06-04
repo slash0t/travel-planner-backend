@@ -11,7 +11,7 @@ import ru.putevod.app.auth.service.impl.DataMigrationServiceImpl;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +34,7 @@ class DataMigrationServiceTest {
         successResponse.put("transferredTrips", 2);
         successResponse.put("transferredTodoLists", 1);
         successResponse.put("message", "Данные успешно мигрированы");
-        
+
         when(plannerClient.migrateAllData(anyLong(), anyLong())).thenReturn(successResponse);
 
         assertDoesNotThrow(() -> {
@@ -51,7 +51,7 @@ class DataMigrationServiceTest {
         Map<String, Object> tripsResponse = new HashMap<>();
         tripsResponse.put("transferredTrips", 2);
         tripsResponse.put("message", "Путешествия успешно перенесены");
-        
+
         when(plannerClient.transferTripsOwnership(anyLong(), anyLong())).thenReturn(tripsResponse);
 
         assertDoesNotThrow(() -> {
@@ -68,7 +68,7 @@ class DataMigrationServiceTest {
         Map<String, Object> todoResponse = new HashMap<>();
         todoResponse.put("transferredTodoLists", 1);
         todoResponse.put("message", "TODO листы успешно перенесены");
-        
+
         when(plannerClient.transferTodoListsOwnership(anyLong(), anyLong())).thenReturn(todoResponse);
 
         assertDoesNotThrow(() -> {

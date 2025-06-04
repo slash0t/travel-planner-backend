@@ -63,10 +63,10 @@ class TripPreviewServiceImplTest {
     void generatePreviewForCity_WhenRegularUrlExists_ReturnsRegularUrl() {
         UnsplashResponseDto.UnsplashImage.Urls urls = new UnsplashResponseDto.UnsplashImage.Urls();
         urls.setRegular("https://example.com/regular.jpg");
-        
+
         UnsplashResponseDto.UnsplashImage image = new UnsplashResponseDto.UnsplashImage();
         image.setUrls(urls);
-        
+
         UnsplashResponseDto response = new UnsplashResponseDto();
         response.setResults(Collections.singletonList(image));
         when(externalServiceClient.getCityImages("Moscow")).thenReturn(response);
@@ -78,10 +78,10 @@ class TripPreviewServiceImplTest {
     void generatePreviewForCity_WhenSmallUrlExists_ReturnsSmallUrl() {
         UnsplashResponseDto.UnsplashImage.Urls urls = new UnsplashResponseDto.UnsplashImage.Urls();
         urls.setSmall("https://example.com/small.jpg");
-        
+
         UnsplashResponseDto.UnsplashImage image = new UnsplashResponseDto.UnsplashImage();
         image.setUrls(urls);
-        
+
         UnsplashResponseDto response = new UnsplashResponseDto();
         response.setResults(Collections.singletonList(image));
         when(externalServiceClient.getCityImages("Moscow")).thenReturn(response);
@@ -93,10 +93,10 @@ class TripPreviewServiceImplTest {
     void generatePreviewForCity_WhenThumbUrlExists_ReturnsThumbUrl() {
         UnsplashResponseDto.UnsplashImage.Urls urls = new UnsplashResponseDto.UnsplashImage.Urls();
         urls.setThumb("https://example.com/thumb.jpg");
-        
+
         UnsplashResponseDto.UnsplashImage image = new UnsplashResponseDto.UnsplashImage();
         image.setUrls(urls);
-        
+
         UnsplashResponseDto response = new UnsplashResponseDto();
         response.setResults(Collections.singletonList(image));
         when(externalServiceClient.getCityImages("Moscow")).thenReturn(response);

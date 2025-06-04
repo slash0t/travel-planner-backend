@@ -26,7 +26,7 @@ public class CopyRouteResponseDto {
     @Schema(description = "Дата начала путешествия", example = "2024-06-15")
     private LocalDate startDate;
 
-    @JsonFormat(pattern = "yyyy-MM-dd") 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @Schema(description = "Дата окончания путешествия", example = "2024-06-20")
     private LocalDate endDate;
 

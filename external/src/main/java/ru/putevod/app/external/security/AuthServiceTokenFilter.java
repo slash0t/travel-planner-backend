@@ -27,7 +27,7 @@ import java.util.Map;
 public class AuthServiceTokenFilter extends OncePerRequestFilter {
 
     private final AuthServiceClient authServiceClient;
-    
+
     @Value("${auth.token:service_token_for_development}")
     private String expectedServiceToken;
 
@@ -42,19 +42,19 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
                 return;
             }
-            
+
             String token = resolveToken(request);
             if (token != null && authServiceClient.validateToken(token)) {
                 Map<String, Object> userInfo = authServiceClient.getUserInfoFromToken(token);
                 if (userInfo != null) {
-                   if (isAiEndpoint(request) && isAnonymousUser(userInfo)) {
+                    if (isAiEndpoint(request) && isAnonymousUser(userInfo)) {
                         log.warn("Анонимный пользователь пытается получить доступ к AI функциям: {}", request.getRequestURI());
                         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                         response.setContentType("application/json;charset=UTF-8");
                         response.getWriter().write("{\"error\":\"ИИ-функции доступны только зарегистрированным пользователям\"}");
                         return;
                     }
-                    
+
                     setAuthenticationContext(userInfo, token);
                 }
             }
@@ -73,19 +73,19 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
         }
         return null;
     }
-    
+
     private String resolveServiceToken(HttpServletRequest request) {
         return request.getHeader("X-Service-Token");
     }
-    
+
     private void setServiceAuthenticationContext() {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_SERVICE"));
-        
+
         User serviceUser = new User("service", "", authorities);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(serviceUser, null, authorities);
-                
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         log.debug("Установлен контекст аутентификации для сервисного пользователя");
     }
@@ -104,19 +104,19 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
         boolean isAnonymous = isAnonymousUser(userInfo);
-        
+
         if (isAnonymous) {
             // Для анонимных пользователей устанавливаем роль ANONYMOUS
             authorities.add(new SimpleGrantedAuthority("ROLE_ANONYMOUS"));
-            
+
             // Создаем пользователя с device ID как username
             String deviceId = (String) userInfo.get("deviceId");
             String username = deviceId != null ? "anonymous_" + deviceId : "anonymous_user";
-            
+
             User user = new User(username, "", authorities);
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(user, token, authorities);
-            
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
             log.debug("Установлен контекст аутентификации для анонимного пользователя: {}", username);
         } else {
@@ -136,7 +136,7 @@ public class AuthServiceTokenFilter extends OncePerRequestFilter {
             if (email == null || email.isEmpty()) {
                 email = "user_" + userInfo.get("userId");
             }
-            
+
             User user = new User(email, "", authorities);
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(user, token, authorities);

@@ -22,10 +22,10 @@ import ru.putevod.app.auth.security.JwtTokenProvider;
 import ru.putevod.app.auth.service.impl.AuthServiceImpl;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -80,8 +80,8 @@ class AuthServiceTest {
     private void setupAppPropertiesMocks() {
         when(appProperties.getJwt()).thenReturn(jwtConfig);
         when(jwtConfig.getAccessTokenExpirationMs()).thenReturn(3600000L);
-        when(jwtConfig.getRefreshTokenExpirationMs()).thenReturn(360000000000L); 
-        when(jwtConfig.getAnonymousTokenExpirationMs()).thenReturn(1800000L); 
+        when(jwtConfig.getRefreshTokenExpirationMs()).thenReturn(360000000000L);
+        when(jwtConfig.getAnonymousTokenExpirationMs()).thenReturn(1800000L);
     }
 
     @Test
@@ -237,7 +237,7 @@ class AuthServiceTest {
         verify(jwtTokenProvider).generateAccessToken(savedUser);
         verify(jwtTokenProvider).generateRefreshToken(savedUser, deviceInfo, ipAddress);
         verify(userService).mapToUserInfoDto(savedUser);
-        
+
         // Проверяем, что миграция НЕ вызывается без deviceId
         verify(anonymousUserService, never()).migrateAnonymousUserToRegistered(anyString(), any(User.class));
     }
@@ -291,7 +291,7 @@ class AuthServiceTest {
         verify(jwtTokenProvider).generateAccessToken(savedUser);
         verify(jwtTokenProvider).generateRefreshToken(savedUser, deviceInfo, ipAddress);
         verify(userService).mapToUserInfoDto(savedUser);
-        
+
         // Проверяем, что миграция вызывается с правильными параметрами
         verify(anonymousUserService).migrateAnonymousUserToRegistered(deviceId, savedUser);
     }

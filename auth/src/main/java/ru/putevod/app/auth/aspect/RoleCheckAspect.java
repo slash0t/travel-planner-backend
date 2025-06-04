@@ -1,5 +1,6 @@
 package ru.putevod.app.auth.aspect;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -16,7 +17,6 @@ import ru.putevod.app.auth.model.UserRole;
 import ru.putevod.app.auth.security.JwtTokenProvider;
 import ru.putevod.app.auth.service.UserService;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -67,22 +67,22 @@ public class RoleCheckAspect {
                 // Для обычных пользователей получаем роль из базы данных
                 String email = tokenProvider.getEmailFromToken(token);
                 Optional<User> userOpt = userService.findByEmail(email);
-                
+
                 if (userOpt.isEmpty()) {
                     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Пользователь не найден");
                 }
-                
+
                 User user = userOpt.get();
                 UserRole userRole = user.getRole() != null ? user.getRole() : UserRole.USER;
-                
+
                 // Также проверяем isAdmin для обратной совместимости
                 if (Boolean.TRUE.equals(user.getIsAdmin()) && !Arrays.asList(allowedRoles).contains(UserRole.ADMIN)) {
                     userRole = UserRole.ADMIN;
                 }
-                
+
                 boolean hasRequiredRole = Arrays.asList(allowedRoles).contains(userRole);
                 if (!hasRequiredRole) {
-                    log.warn("Пользователь {} с ролью {} не имеет доступа к методу, требующему роли: {}", 
+                    log.warn("Пользователь {} с ролью {} не имеет доступа к методу, требующему роли: {}",
                             email, userRole, Arrays.toString(allowedRoles));
                     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Недостаточно прав доступа");
                 }

@@ -2,8 +2,8 @@ package ru.putevod.app.planner.mapper;
 
 import org.mapstruct.*;
 import ru.putevod.app.planner.dto.CreateEventDto;
-import ru.putevod.app.planner.dto.UpdateEventDto;
 import ru.putevod.app.planner.dto.EventDto;
+import ru.putevod.app.planner.dto.UpdateEventDto;
 import ru.putevod.app.planner.model.Event;
 import ru.putevod.app.planner.model.TripDay;
 

@@ -54,11 +54,11 @@ public class ImageController {
 
         return ResponseEntity.ok(response);
     }
-    
+
     @GetMapping("/city/service")
     @Operation(summary = "Получение изображений для города (межсервисный)",
             description = "Возвращает список качественных изображений для указанного города из Unsplash. " +
-                         "Эндпоинт для межсервисных запросов с X-Service-Token аутентификацией")
+                    "Эндпоинт для межсервисных запросов с X-Service-Token аутентификацией")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Изображения найдены",
                     content = {@Content(mediaType = "application/json",

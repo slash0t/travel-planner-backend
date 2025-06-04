@@ -5,21 +5,16 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.planner.config.CurrentUser;
-import ru.putevod.app.planner.dto.CreateTodoItemDto;
-import ru.putevod.app.planner.dto.CreateTodoListDto;
-import ru.putevod.app.planner.dto.ReorderTodoItemDto;
-import ru.putevod.app.planner.dto.TodoItemDto;
-import ru.putevod.app.planner.dto.TodoListDto;
-import ru.putevod.app.planner.dto.UpdateTodoItemDto;
+import ru.putevod.app.planner.dto.*;
 import ru.putevod.app.planner.service.TodoListService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -61,18 +56,18 @@ public class TodoListController {
         try {
             Page<TodoListDto> result = todoListService.getUserTodoLists(userId, pageable);
             log.info("Найдено {} списков задач для пользователя {}", result.getTotalElements(), userId);
-            
+
             if (result.hasContent()) {
-                log.info("Списки задач для пользователя {}: {}", userId, 
-                    result.getContent().stream()
-                        .map(todo -> String.format("ID:%s, Title:'%s', Trip:%s", 
-                            todo.getId(), todo.getTitle(), 
-                            todo.getTripId() != null ? "ID:" + todo.getTripId() : "null/deleted"))
-                        .collect(java.util.stream.Collectors.toList()));
+                log.info("Списки задач для пользователя {}: {}", userId,
+                        result.getContent().stream()
+                                .map(todo -> String.format("ID:%s, Title:'%s', Trip:%s",
+                                        todo.getId(), todo.getTitle(),
+                                        todo.getTripId() != null ? "ID:" + todo.getTripId() : "null/deleted"))
+                                .collect(java.util.stream.Collectors.toList()));
             } else {
                 log.warn("Для пользователя {} не найдено ни одного списка задач", userId);
             }
-            
+
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             log.error("Ошибка при получении списков задач для пользователя {}: {}", userId, e.getMessage(), e);

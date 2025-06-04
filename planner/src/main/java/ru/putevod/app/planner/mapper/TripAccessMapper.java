@@ -3,9 +3,9 @@ package ru.putevod.app.planner.mapper;
 import org.mapstruct.*;
 import ru.putevod.app.planner.dto.CreateTripAccessDto;
 import ru.putevod.app.planner.dto.TripAccessDto;
+import ru.putevod.app.planner.model.Trip;
 import ru.putevod.app.planner.model.TripAccess;
 import ru.putevod.app.planner.model.User;
-import ru.putevod.app.planner.model.Trip;
 
 @Mapper(
         config = MapstructConfig.class,

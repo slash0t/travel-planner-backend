@@ -18,11 +18,11 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
      * @return количество уникальных мест
      */
     @Query("SELECT COUNT(DISTINCT p) FROM Place p " +
-           "JOIN p.events e " +
-           "JOIN e.day d " +
-           "JOIN d.trip t " +
-           "WHERE (t.creator = :user OR EXISTS (" +
-           "    SELECT a FROM TripAccess a WHERE a.trip = t AND a.user = :user AND a.invitationStatus = 'accepted'" +
-           ")) AND t.isDeleted = false")
+            "JOIN p.events e " +
+            "JOIN e.day d " +
+            "JOIN d.trip t " +
+            "WHERE (t.creator = :user OR EXISTS (" +
+            "    SELECT a FROM TripAccess a WHERE a.trip = t AND a.user = :user AND a.invitationStatus = 'accepted'" +
+            ")) AND t.isDeleted = false")
     Long countUserPlaces(@Param("user") User user);
 } 

@@ -1,10 +1,6 @@
 package ru.putevod.app.auth.service;
 
-import ru.putevod.app.auth.dto.AuthResponse;
-import ru.putevod.app.auth.dto.RegisterRequest;
-import ru.putevod.app.auth.dto.TokenValidationResponse;
-import ru.putevod.app.auth.dto.UpdateProfileRequest;
-import ru.putevod.app.auth.dto.UserInfoDto;
+import ru.putevod.app.auth.dto.*;
 
 import java.util.Map;
 

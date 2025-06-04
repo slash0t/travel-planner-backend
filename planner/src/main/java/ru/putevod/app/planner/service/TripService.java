@@ -2,12 +2,7 @@ package ru.putevod.app.planner.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import ru.putevod.app.planner.dto.CreateTripDto;
-import ru.putevod.app.planner.dto.TripAccessDto;
-import ru.putevod.app.planner.dto.TripDto;
-import ru.putevod.app.planner.dto.CreateTripAccessDto;
-import ru.putevod.app.planner.dto.UpdateTripDto;
-import ru.putevod.app.planner.dto.RemoveShareResponseDto;
+import ru.putevod.app.planner.dto.*;
 import ru.putevod.app.planner.model.Trip;
 import ru.putevod.app.planner.model.User;
 

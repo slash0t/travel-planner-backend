@@ -51,7 +51,7 @@ jobs:
         run: mvn compile
 
       - name: Run tests
-        run: mvn test
+        run: mvn verify
 
       - name: Package application
         run: mvn package
@@ -84,3 +84,30 @@ jobs:
           path: planner/target/*SNAPSHOT.jar
           if-no-files-found: error
 
+      - name: Upload auth report
+        uses: actions/upload-artifact@v4
+        with:
+          name: auth-report
+          path: auth/target/site/jacoco
+          if-no-files-found: error
+
+      - name: Upload external report
+        uses: actions/upload-artifact@v4
+        with:
+          name: external-report
+          path: external/target/site/jacoco
+          if-no-files-found: error
+
+      - name: Upload library report
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-report
+          path: library/target/site/jacoco
+          if-no-files-found: error
+
+      - name: Upload planner report
+        uses: actions/upload-artifact@v4
+        with:
+          name: planner-report
+          path: planner/target/site/jacoco
+          if-no-files-found: error

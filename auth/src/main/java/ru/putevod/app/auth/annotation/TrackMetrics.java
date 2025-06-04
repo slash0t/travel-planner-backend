@@ -11,17 +11,17 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface TrackMetrics {
-    
+
     /**
      * Тип метрики (auth, planner, external, custom)
      */
     Type type() default Type.AUTH;
-    
+
     /**
      * Название события (если не указано, используется имя метода)
      */
     String eventName() default "";
-    
+
     enum Type {
         AUTH, PLANNER, EXTERNAL, CUSTOM
     }

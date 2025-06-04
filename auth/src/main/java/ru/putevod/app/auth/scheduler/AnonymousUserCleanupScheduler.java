@@ -19,7 +19,7 @@ public class AnonymousUserCleanupScheduler {
     @Scheduled(cron = "0 0 2 * * ?")
     public void cleanupInactiveAnonymousUsers() {
         log.info("Запуск планового задания очистки неактивных анонимных пользователей");
-        
+
         try {
             anonymousUserService.cleanupInactiveAnonymousUsers();
             log.info("Плановое задание очистки анонимных пользователей завершено успешно");

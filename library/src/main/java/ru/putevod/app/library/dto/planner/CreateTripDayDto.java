@@ -15,6 +15,6 @@ import java.time.LocalDate;
 public class CreateTripDayDto {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
-    
+
     private String note;
 } 

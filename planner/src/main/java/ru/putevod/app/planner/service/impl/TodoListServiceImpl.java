@@ -117,19 +117,19 @@ public class TodoListServiceImpl implements TodoListService {
     @Transactional(readOnly = true)
     public Page<TodoListDto> getUserTodoLists(Long userId, Pageable pageable) {
         log.info("Начало получения списков задач для пользователя ID: {}", userId);
-        
+
         try {
             User user = userService.getUserEntityById(userId);
             log.info("Пользователь найден: username={}, email={}", user.getUsername(), user.getEmail());
 
             Page<TodoList> todoLists;
-            
+
             try {
                 todoLists = todoListRepository.findAllActiveByUser(user, pageable);
                 log.info("Найдено {} списков задач для пользователя {} (основной запрос)", todoLists.getTotalElements(), userId);
             } catch (Exception e) {
                 log.warn("Ошибка при получении списков, переключаемся на fallback: {}", e.getMessage());
-                
+
                 try {
                     todoLists = todoListRepository.findAllByUserSimple(user, pageable);
                     log.info("Найдено {} списков задач для пользователя {} (кастомный запрос)", todoLists.getTotalElements(), userId);
@@ -143,7 +143,7 @@ public class TodoListServiceImpl implements TodoListService {
             Page<TodoListDto> result = todoLists.map(todoListMapper::toDtoWithTripCheck);
             log.info("Успешно преобразованы списки задач в DTO для пользователя {} (с обработкой удаленных поездок)", userId);
             return result;
-            
+
         } catch (Exception e) {
             log.error("Ошибка при получении списков задач для пользователя {}: {}", userId, e.getMessage(), e);
             throw e;
@@ -154,7 +154,7 @@ public class TodoListServiceImpl implements TodoListService {
     @Transactional(readOnly = true)
     public Page<TodoListDto> getUserTodoListsSimple(Long userId, Pageable pageable) {
         log.info("DEBUG: Простое получение списков задач для пользователя ID: {}", userId);
-        
+
         try {
             User user = userService.getUserEntityById(userId);
             log.info("DEBUG: Пользователь найден: username={}, email={}", user.getUsername(), user.getEmail());
@@ -166,7 +166,7 @@ public class TodoListServiceImpl implements TodoListService {
             Page<TodoListDto> result = todoLists.map(todoListMapper::toDtoWithTripCheck);
             log.info("DEBUG: Успешно преобразованы простые списки задач в DTO для пользователя {} (с обработкой удаленных поездок)", userId);
             return result;
-            
+
         } catch (Exception e) {
             log.error("DEBUG: Ошибка при получении простых списков задач для пользователя {}: {}", userId, e.getMessage(), e);
             throw e;
@@ -233,7 +233,7 @@ public class TodoListServiceImpl implements TodoListService {
         } else {
             Integer newPosition = createTodoItemDto.getOrderPosition();
             Integer maxPosition = todoItemRepository.findMaxOrderPositionByTodoList(todoList);
-            
+
             if (newPosition <= maxPosition) {
                 todoItemRepository.incrementOrderPositionsFrom(todoList, newPosition);
             }
@@ -253,7 +253,7 @@ public class TodoListServiceImpl implements TodoListService {
         TodoList todoList = todoListRepository.findById(listId)
                 .orElseThrow(() -> new ResourceNotFoundException("Список задач", "id", listId));
 
-         if (todoList.getTrip() != null) {
+        if (todoList.getTrip() != null) {
             if (!tripService.hasAccessToTrip(user, todoList.getTrip(), "admin", "write")) {
                 throw new BadRequestException("У вас нет прав на редактирование задач в этом списке");
             }
@@ -292,7 +292,7 @@ public class TodoListServiceImpl implements TodoListService {
         boolean newStatus = !todoItem.isCompleted();
         todoItemRepository.updateCompletionStatus(todoList, itemId, newStatus);
 
-       todoItem.setCompleted(newStatus);
+        todoItem.setCompleted(newStatus);
 
         return todoItemMapper.toDto(todoItem);
     }
@@ -341,7 +341,7 @@ public class TodoListServiceImpl implements TodoListService {
 
         Integer deletedPosition = todoItem.getOrderPosition();
         todoItemRepository.delete(todoItem);
-        
+
         todoItemRepository.decrementOrderPositionsAfter(todoList, deletedPosition);
     }
 
@@ -378,7 +378,7 @@ public class TodoListServiceImpl implements TodoListService {
         if (newPosition < currentPosition) {
             List<TodoItem> itemsToShift = todoItemRepository
                     .findByTodoListAndOrderPositionBetween(todoList, newPosition, currentPosition - 1);
-            
+
             for (TodoItem item : itemsToShift) {
                 item.setOrderPosition(item.getOrderPosition() + 1);
             }
@@ -386,7 +386,7 @@ public class TodoListServiceImpl implements TodoListService {
         } else {
             List<TodoItem> itemsToShift = todoItemRepository
                     .findByTodoListAndOrderPositionBetween(todoList, currentPosition + 1, newPosition);
-            
+
             for (TodoItem item : itemsToShift) {
                 item.setOrderPosition(item.getOrderPosition() - 1);
             }

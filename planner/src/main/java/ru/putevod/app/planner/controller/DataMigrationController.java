@@ -46,9 +46,9 @@ public class DataMigrationController {
             @Parameter(description = "ID анонимного пользователя")
             @PathVariable Long anonymousUserId,
             @RequestHeader(value = "X-Service-Token", required = false) String requestServiceToken) {
-        
+
         validateServiceToken(requestServiceToken);
-        
+
         List<Trip> trips = dataMigrationService.getAnonymousUserTrips(anonymousUserId);
         return ResponseEntity.ok(trips);
     }
@@ -67,9 +67,9 @@ public class DataMigrationController {
             @Parameter(description = "ID анонимного пользователя")
             @PathVariable Long anonymousUserId,
             @RequestHeader(value = "X-Service-Token", required = false) String requestServiceToken) {
-        
+
         validateServiceToken(requestServiceToken);
-        
+
         List<TodoList> todoLists = dataMigrationService.getAnonymousUserTodoLists(anonymousUserId);
         return ResponseEntity.ok(todoLists);
     }
@@ -88,17 +88,17 @@ public class DataMigrationController {
             @RequestParam Long anonymousUserId,
             @RequestParam Long registeredUserId,
             @RequestHeader(value = "X-Service-Token", required = false) String requestServiceToken) {
-        
+
         validateServiceToken(requestServiceToken);
-        
+
         int transferredTrips = dataMigrationService.transferTripsOwnership(anonymousUserId, registeredUserId);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Путешествия успешно перенесены");
         response.put("transferredTrips", transferredTrips);
         response.put("anonymousUserId", anonymousUserId);
         response.put("registeredUserId", registeredUserId);
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -116,17 +116,17 @@ public class DataMigrationController {
             @RequestParam Long anonymousUserId,
             @RequestParam Long registeredUserId,
             @RequestHeader(value = "X-Service-Token", required = false) String requestServiceToken) {
-        
+
         validateServiceToken(requestServiceToken);
-        
+
         int transferredTodoLists = dataMigrationService.transferTodoListsOwnership(anonymousUserId, registeredUserId);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("message", "TODO листы успешно перенесены");
         response.put("transferredTodoLists", transferredTodoLists);
         response.put("anonymousUserId", anonymousUserId);
         response.put("registeredUserId", registeredUserId);
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -144,22 +144,22 @@ public class DataMigrationController {
             @RequestParam Long anonymousUserId,
             @RequestParam Long registeredUserId,
             @RequestHeader(value = "X-Service-Token", required = false) String requestServiceToken) {
-        
+
         validateServiceToken(requestServiceToken);
-        
+
         int transferredTrips = dataMigrationService.transferTripsOwnership(anonymousUserId, registeredUserId);
         int transferredTodoLists = dataMigrationService.transferTodoListsOwnership(anonymousUserId, registeredUserId);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Данные успешно мигрированы");
         response.put("transferredTrips", transferredTrips);
         response.put("transferredTodoLists", transferredTodoLists);
         response.put("anonymousUserId", anonymousUserId);
         response.put("registeredUserId", registeredUserId);
-        
-        log.info("Миграция данных завершена: {} путешествий и {} TODO листов перенесено от пользователя {} к пользователю {}", 
+
+        log.info("Миграция данных завершена: {} путешествий и {} TODO листов перенесено от пользователя {} к пользователю {}",
                 transferredTrips, transferredTodoLists, anonymousUserId, registeredUserId);
-        
+
         return ResponseEntity.ok(response);
     }
 

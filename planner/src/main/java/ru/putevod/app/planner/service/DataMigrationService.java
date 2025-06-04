@@ -29,7 +29,7 @@ public interface DataMigrationService {
     /**
      * Переносит владение путешествием от анонимного пользователя к зарегистрированному
      *
-     * @param anonymousUserId ID анонимного пользователя
+     * @param anonymousUserId  ID анонимного пользователя
      * @param registeredUserId ID зарегистрированного пользователя
      * @return количество перенесенных путешествий
      */
@@ -38,7 +38,7 @@ public interface DataMigrationService {
     /**
      * Переносит владение TODO листами от анонимного пользователя к зарегистрированному
      *
-     * @param anonymousUserId ID анонимного пользователя
+     * @param anonymousUserId  ID анонимного пользователя
      * @param registeredUserId ID зарегистрированного пользователя
      * @return количество перенесенных TODO листов
      */
