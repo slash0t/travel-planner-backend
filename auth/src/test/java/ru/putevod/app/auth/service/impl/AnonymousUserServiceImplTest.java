@@ -208,16 +208,18 @@ class AnonymousUserServiceImplTest {
     @Test
     void cleanupInactiveAnonymousUsers() {
         LocalDateTime cutoffDate = LocalDateTime.now().minusDays(30);
-        List<AnonymousUser> inactiveUsers = List.of(
-                AnonymousUser.builder().anonymousUserId(1L).deviceId("device1").build(),
-                AnonymousUser.builder().anonymousUserId(2L).deviceId("device2").build()
-        );
+        AnonymousUser user1 = AnonymousUser.builder().anonymousUserId(1L).deviceId("device1").build();
+        AnonymousUser user2 = AnonymousUser.builder().anonymousUserId(2L).deviceId("device2").build();
+        List<AnonymousUser> inactiveUsers = List.of(user1, user2);
 
         when(anonymousUserRepository.findInactiveAnonymousUsers(cutoffDate)).thenReturn(inactiveUsers);
 
         anonymousUserService.cleanupInactiveAnonymousUsers();
 
-        verify(anonymousUserRepository, times(2)).delete(any(AnonymousUser.class));
+        verify(anonymousUserRepository).findInactiveAnonymousUsers(cutoffDate);
+        verify(anonymousUserRepository).delete(user1);
+        verify(anonymousUserRepository).delete(user2);
+        verifyNoMoreInteractions(anonymousUserRepository);
     }
 
     @Test
