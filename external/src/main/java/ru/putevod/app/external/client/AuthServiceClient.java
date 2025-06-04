@@ -54,7 +54,7 @@ public class AuthServiceClient {
     public Map<String, Object> getUserInfoFromToken(String token) {
         try {
             return webClient.post()
-                    .uri("/auth/userinfo")
+                    .uri("/auth/user-info")
                     .bodyValue(new TokenValidationRequest(token))
                     .header("X-Service-Token", serviceToken)
                     .retrieve()

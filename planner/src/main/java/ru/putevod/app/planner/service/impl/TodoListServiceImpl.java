@@ -49,7 +49,7 @@ public class TodoListServiceImpl implements TodoListService {
 
         todoList = todoListRepository.save(todoList);
 
-        return todoListMapper.toDto(todoList);
+        return todoListMapper.toDtoWithTripCheck(todoList);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class TodoListServiceImpl implements TodoListService {
 
         todoList = todoListRepository.save(todoList);
 
-        return todoListMapper.toDto(todoList);
+        return todoListMapper.toDtoWithTripCheck(todoList);
     }
 
     @Override
@@ -90,7 +90,7 @@ public class TodoListServiceImpl implements TodoListService {
         todoListMapper.updateEntityFromDto(todoListDto, todoList);
         todoList = todoListRepository.save(todoList);
 
-        return todoListMapper.toDto(todoList);
+        return todoListMapper.toDtoWithTripCheck(todoList);
     }
 
     @Override
@@ -110,18 +110,67 @@ public class TodoListServiceImpl implements TodoListService {
             throw new BadRequestException("У вас нет доступа к этому списку задач");
         }
 
-        return todoListMapper.toDto(todoList);
+        return todoListMapper.toDtoWithTripCheck(todoList);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<TodoListDto> getUserTodoLists(Long userId, Pageable pageable) {
-        User user = userService.getUserEntityById(userId);
+        log.info("Начало получения списков задач для пользователя ID: {}", userId);
+        
+        try {
+            User user = userService.getUserEntityById(userId);
+            log.info("Пользователь найден: username={}, email={}", user.getUsername(), user.getEmail());
 
-        // Получаем все активные списки пользователя (в т.ч. из неудаленных поездок)
-        Page<TodoList> todoLists = todoListRepository.findAllActiveByUser(user, pageable);
+            Page<TodoList> todoLists;
+            
+            try {
+                todoLists = todoListRepository.findAllActiveByUser(user, pageable);
+                log.info("Найдено {} списков задач для пользователя {} (основной запрос)", todoLists.getTotalElements(), userId);
+            } catch (Exception e) {
+                log.warn("Ошибка при получении списков, переключаемся на fallback: {}", e.getMessage());
+                
+                try {
+                    todoLists = todoListRepository.findAllByUserSimple(user, pageable);
+                    log.info("Найдено {} списков задач для пользователя {} (кастомный запрос)", todoLists.getTotalElements(), userId);
+                } catch (Exception e2) {
+                    log.warn("Ошибка с кастомным запросом, используем стандартный метод Spring Data: {}", e2.getMessage());
+                    todoLists = todoListRepository.findByUserOrderByCreatedAtDesc(user, pageable);
+                    log.info("Найдено {} списков задач для пользователя {} (Spring Data метод)", todoLists.getTotalElements(), userId);
+                }
+            }
 
-        return todoLists.map(todoListMapper::toDto);
+            Page<TodoListDto> result = todoLists.map(todoListMapper::toDtoWithTripCheck);
+            log.info("Успешно преобразованы списки задач в DTO для пользователя {} (с обработкой удаленных поездок)", userId);
+            return result;
+            
+        } catch (Exception e) {
+            log.error("Ошибка при получении списков задач для пользователя {}: {}", userId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TodoListDto> getUserTodoListsSimple(Long userId, Pageable pageable) {
+        log.info("DEBUG: Простое получение списков задач для пользователя ID: {}", userId);
+        
+        try {
+            User user = userService.getUserEntityById(userId);
+            log.info("DEBUG: Пользователь найден: username={}, email={}", user.getUsername(), user.getEmail());
+
+            Page<TodoList> todoLists = todoListRepository.findAllByUserSimple(user, pageable);
+            log.info("DEBUG: Найдено {} простых списков задач для пользователя {}", todoLists.getTotalElements(), userId);
+
+            // Используем специальный маппер с проверкой удаленных поездок
+            Page<TodoListDto> result = todoLists.map(todoListMapper::toDtoWithTripCheck);
+            log.info("DEBUG: Успешно преобразованы простые списки задач в DTO для пользователя {} (с обработкой удаленных поездок)", userId);
+            return result;
+            
+        } catch (Exception e) {
+            log.error("DEBUG: Ошибка при получении простых списков задач для пользователя {}: {}", userId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
@@ -138,7 +187,7 @@ public class TodoListServiceImpl implements TodoListService {
         List<TodoList> todoLists = trip.getTodoLists();
 
         return todoLists.stream()
-                .map(todoListMapper::toDto)
+                .map(todoListMapper::toDtoWithTripCheck)
                 .collect(Collectors.toList());
     }
 

@@ -28,10 +28,10 @@ public class TripAccessDto {
     private UserDto user;
     
     @NotBlank(message = "Уровень доступа обязателен для заполнения")
-    @Schema(description = "Уровень доступа", allowableValues = {"VIEW", "EDIT", "ADMIN"}, example = "VIEW", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Уровень доступа", allowableValues = {"read", "write", "admin"}, example = "read", requiredMode = Schema.RequiredMode.REQUIRED)
     private String accessLevel;
     
-    @Schema(description = "Статус приглашения", allowableValues = {"PENDING", "ACCEPTED", "DECLINED"}, example = "PENDING", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Статус приглашения", allowableValues = {"pending", "accepted", "rejected"}, example = "pending", accessMode = Schema.AccessMode.READ_ONLY)
     private String invitationStatus;
     
     @Schema(description = "Дата создания доступа", accessMode = Schema.AccessMode.READ_ONLY)

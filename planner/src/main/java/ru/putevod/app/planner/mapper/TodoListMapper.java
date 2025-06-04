@@ -20,6 +20,7 @@ public interface TodoListMapper {
     @Mapping(source = "trip.tripId", target = "tripId")
     @Mapping(target = "itemCount", ignore = true)
     @Mapping(target = "completedCount", ignore = true)
+    @Named("toDto")
     TodoListDto toDto(TodoList todoList);
 
     @AfterMapping
@@ -85,5 +86,26 @@ public interface TodoListMapper {
         }
 
         return toEntityFromCreate(createTodoListDto, user, trip);
+    }
+
+    // Специальный метод для обработки TodoList с проверкой удаленных поездок
+    @Named("toDtoWithTripCheck")
+    default TodoListDto toDtoWithTripCheck(TodoList todoList) {
+        if (todoList == null) {
+            return null;
+        }
+
+        TodoListDto dto = toDto(todoList);
+        
+        // Если поездка удалена, убираем tripId
+        if (todoList.getTrip() != null && todoList.getTrip().isDeleted()) {
+            Long originalTripId = dto.getTripId();
+            dto.setTripId(null);
+            // Логируем для отладки (если нужно, можно убрать позже)
+            System.out.println("Удален tripId " + originalTripId + " для TodoList " + dto.getId() + 
+                " так как поездка помечена как удаленная");
+        }
+        
+        return dto;
     }
 } 

@@ -20,8 +20,13 @@ public interface TodoListRepository extends JpaRepository<TodoList, Long> {
 
     List<TodoList> findByTrip(Trip trip);
 
-    @Query("SELECT t FROM TodoList t WHERE t.user = :user AND (t.trip IS NULL OR t.trip.isDeleted = false)")
+    @Query("SELECT t FROM TodoList t WHERE t.user = :user")
     Page<TodoList> findAllActiveByUser(@Param("user") User user, Pageable pageable);
+
+    @Query("SELECT t FROM TodoList t WHERE t.user = :user")
+    Page<TodoList> findAllByUserSimple(@Param("user") User user, Pageable pageable);
+
+    Page<TodoList> findByUserOrderByCreatedAtDesc(User user, Pageable pageable);
 
     Optional<TodoList> findByUserAndListId(User user, Long listId);
 
