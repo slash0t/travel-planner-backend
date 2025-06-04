@@ -23,8 +23,11 @@ public class TodoList {
     private Long listId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
+
+    @Column(name = "anonymous_user_id")
+    private Long anonymousUserId;
 
     @ManyToOne
     @JoinColumn(name = "trip_id")
@@ -66,5 +69,13 @@ public class TodoList {
 
     public int getCompletedCount() {
         return (int) items.stream().filter(TodoItem::isCompleted).count();
+    }
+
+    public boolean isCreatedByAnonymousUser() {
+        return user == null && anonymousUserId != null;
+    }
+
+    public Long getOwnerId() {
+        return user != null ? user.getUserId().longValue() : anonymousUserId;
     }
 } 

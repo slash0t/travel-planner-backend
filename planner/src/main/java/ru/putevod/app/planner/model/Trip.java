@@ -24,8 +24,11 @@ public class Trip {
     private Long tripId;
 
     @ManyToOne
-    @JoinColumn(name = "creator_id", nullable = false)
+    @JoinColumn(name = "creator_id")
     private User creator;
+
+    @Column(name = "anonymous_creator_id")
+    private Long anonymousCreatorId;
 
     @Column(nullable = false, length = 100)
     private String title;
@@ -99,5 +102,13 @@ public class Trip {
             }
         }
         return "unknown";
+    }
+
+    public boolean isCreatedByAnonymousUser() {
+        return creator == null && anonymousCreatorId != null;
+    }
+
+    public Long getCreatorId() {
+        return creator != null ? creator.getUserId().longValue() : anonymousCreatorId;
     }
 } 
