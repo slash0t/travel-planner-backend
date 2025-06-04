@@ -29,7 +29,7 @@ public class DataMigrationController {
 
     private final DataMigrationService dataMigrationService;
 
-    @Value("${app.auth.service-token}")
+    @Value("${auth.token}")
     private String serviceToken;
 
     @Operation(

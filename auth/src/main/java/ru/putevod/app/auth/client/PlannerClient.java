@@ -2,7 +2,6 @@ package ru.putevod.app.auth.client;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -10,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import ru.putevod.app.auth.config.AppProperties;
 
 import java.util.Map;
 
@@ -20,14 +20,9 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class PlannerClient {
-
+    
     private final RestTemplate restTemplate;
-    
-    @Value("${app.services.planner.url}")
-    private String plannerServiceUrl;
-    
-    @Value("${app.auth.service-token}")
-    private String serviceToken;
+    private final AppProperties appProperties;
 
     /**
      * Переносит все данные (путешествия и TODO листы) от анонимного пользователя к зарегистрированному
@@ -37,13 +32,13 @@ public class PlannerClient {
      * @return результат миграции
      */
     public Map<String, Object> migrateAllData(Long anonymousUserId, Long registeredUserId) {
-        String url = UriComponentsBuilder.fromHttpUrl(plannerServiceUrl + "/api/v1/migration/complete")
+        String url = UriComponentsBuilder.fromUriString(appProperties.getServices().getPlannerUrl() + "/migration/complete")
                 .queryParam("anonymousUserId", anonymousUserId)
                 .queryParam("registeredUserId", registeredUserId)
                 .toUriString();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Service-Token", serviceToken);
+        headers.set("X-Service-Token", appProperties.getAuthToken());
         
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
@@ -77,13 +72,13 @@ public class PlannerClient {
      * @return результат переноса путешествий
      */
     public Map<String, Object> transferTripsOwnership(Long anonymousUserId, Long registeredUserId) {
-        String url = UriComponentsBuilder.fromHttpUrl(plannerServiceUrl + "/api/v1/migration/trips/transfer")
+        String url = UriComponentsBuilder.fromUriString(appProperties.getServices().getPlannerUrl() + "/migration/trips/transfer")
                 .queryParam("anonymousUserId", anonymousUserId)
                 .queryParam("registeredUserId", registeredUserId)
                 .toUriString();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Service-Token", serviceToken);
+        headers.set("X-Service-Token", appProperties.getAuthToken());
         
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
@@ -117,13 +112,13 @@ public class PlannerClient {
      * @return результат переноса TODO листов
      */
     public Map<String, Object> transferTodoListsOwnership(Long anonymousUserId, Long registeredUserId) {
-        String url = UriComponentsBuilder.fromHttpUrl(plannerServiceUrl + "/api/v1/migration/todo-lists/transfer")
+        String url = UriComponentsBuilder.fromUriString(appProperties.getServices().getPlannerUrl() + "/migration/todo-lists/transfer")
                 .queryParam("anonymousUserId", anonymousUserId)
                 .queryParam("registeredUserId", registeredUserId)
                 .toUriString();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Service-Token", serviceToken);
+        headers.set("X-Service-Token", appProperties.getAuthToken());
         
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
