@@ -24,6 +24,6 @@ public class CreateTripDto {
 
     private String country;
     private String city;
-    private boolean published = false;
+    private boolean published;
     private String previewUrl;
 } 

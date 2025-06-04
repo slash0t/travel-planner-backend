@@ -46,5 +46,6 @@ public class TripDay {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "day_id")
+    @Builder.Default
     private List<Event> events = new ArrayList<>();
 } 
