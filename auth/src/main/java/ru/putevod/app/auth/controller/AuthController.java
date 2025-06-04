@@ -184,6 +184,36 @@ public class AuthController {
     }
 
     @Operation(
+            summary = "Подтверждение email с миграцией анонимного пользователя",
+            description = "Подтверждает email пользователя по токену из письма и мигрирует данные анонимного пользователя"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Email успешно подтвержден и данные мигрированы",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Неверный или истекший токен")
+    })
+    @PostMapping("/verify-email-with-migration")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "verify_email_migration")
+    public ResponseEntity<AuthResponse> verifyEmailWithMigration(
+            @Valid @RequestBody EmailVerificationWithMigrationRequest verificationRequest,
+            HttpServletRequest request) {
+        String ipAddress = request.getRemoteAddr();
+        String deviceInfo = request.getHeader("User-Agent");
+
+        AuthResponse authResponse = authService.verifyEmail(
+                verificationRequest.getToken(),
+                ipAddress,
+                deviceInfo,
+                verificationRequest.getDeviceId()
+        );
+
+        return ResponseEntity.ok(authResponse);
+    }
+
+    @Operation(
             summary = "Повторная отправка письма подтверждения",
             description = "Повторно отправляет письмо для подтверждения email"
     )
@@ -332,5 +362,86 @@ public class AuthController {
 
         UserInfoDto updatedUser = authService.updateUserProfile(userId, updateProfileRequest);
         return ResponseEntity.ok(updatedUser);
+    }
+
+    @Operation(
+            summary = "Проверка анонимности пользователя",
+            description = "Проверяет является ли текущий пользователь анонимным на основе JWT токена"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Информация об анонимности получена",
+                    content = @Content(mediaType = "application/json")
+            ),
+            @ApiResponse(responseCode = "400", description = "Неверный запрос"),
+            @ApiResponse(responseCode = "401", description = "Невалидный токен")
+    })
+    @PostMapping("/check-anonymous")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "check_anonymous")
+    public ResponseEntity<Map<String, Object>> checkAnonymous(@RequestBody TokenValidationRequest tokenRequest) {
+        TokenValidationResponse validationResponse = authService.validateToken(tokenRequest.getToken(), null);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("isAnonymous", validationResponse.isAnonymous());
+        response.put("valid", validationResponse.isValid());
+        
+        if (validationResponse.isAnonymous()) {
+            response.put("message", "Пользователь является анонимным");
+        } else {
+            response.put("message", "Пользователь авторизован");
+            if (validationResponse.getUserId() != null) {
+                response.put("userId", validationResponse.getUserId());
+            }
+        }
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "Проверка анонимности текущего пользователя",
+            description = "Проверяет является ли текущий авторизованный пользователь анонимным",
+            security = {@SecurityRequirement(name = "bearerAuth")}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200", 
+                    description = "Информация об анонимности получена",
+                    content = @Content(mediaType = "application/json")
+            ),
+            @ApiResponse(responseCode = "401", description = "Пользователь не авторизован")
+    })
+    @GetMapping("/check-anonymous")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "check_anonymous_current")
+    public ResponseEntity<Map<String, Object>> checkCurrentUserAnonymous(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        String token = null;
+        
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        if (token != null) {
+            TokenValidationResponse validationResponse = authService.validateToken(token, null);
+            response.put("isAnonymous", validationResponse.isAnonymous());
+            response.put("valid", validationResponse.isValid());
+            
+            if (validationResponse.isAnonymous()) {
+                response.put("message", "Текущий пользователь является анонимным");
+            } else {
+                response.put("message", "Текущий пользователь авторизован");
+                if (validationResponse.getUserId() != null) {
+                    response.put("userId", validationResponse.getUserId());
+                }
+            }
+        } else {
+            response.put("isAnonymous", null);
+            response.put("valid", false);
+            response.put("message", "Токен не предоставлен");
+        }
+        
+        return ResponseEntity.ok(response);
     }
 } 

@@ -27,6 +27,9 @@ import ru.putevod.app.library.dto.RoutePreviewDto;
 import ru.putevod.app.library.entity.Trip;
 import ru.putevod.app.library.security.CurrentUser;
 import ru.putevod.app.library.service.LibraryService;
+import ru.putevod.app.library.dto.CopyRouteRequestDto;
+import ru.putevod.app.library.dto.CopyRouteResponseDto;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -243,5 +246,31 @@ public class LibraryController {
         plannerClient.publishRoute(originalRouteId, userId, token, false);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/copy")
+    @TrackMetrics(value = "copy_route", type = TrackMetrics.EventType.CUSTOM)
+    @Operation(summary = "Копировать опубликованный маршрут", 
+               description = "Создает копию опубликованного маршрута с новой датой начала",
+               security = {@SecurityRequirement(name = "bearerAuth")})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Маршрут успешно скопирован",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CopyRouteResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Некорректные данные запроса"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
+            @ApiResponse(responseCode = "404", description = "Маршрут не найден"),
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
+    })
+    public ResponseEntity<CopyRouteResponseDto> copyRoute(
+            @PathVariable @Parameter(description = "ID опубликованного маршрута") Long id,
+            @Valid @RequestBody CopyRouteRequestDto copyRequest,
+            @CurrentUser Long userId,
+            Authentication authentication) {
+        
+        String token = (String) authentication.getCredentials();
+        
+        CopyRouteResponseDto response = libraryService.copyRoute(id, copyRequest, userId, token);
+        
+        return ResponseEntity.ok(response);
     }
 } 

@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.external.exception.ServiceUnavailableException;
+import ru.putevod.app.external.security.RequireRegisteredUser;
 import ru.putevod.app.external.service.AiTripListService;
 
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import java.util.Map;
 @Slf4j
 @Tag(name = "AI Trip Lists", description = "API для генерации списков для поездки с помощью искусственного интеллекта")
 @SecurityRequirement(name = "bearerAuth")
+@RequireRegisteredUser(message = "ИИ-функции доступны только зарегистрированным пользователям")
 public class AiTripListController {
     private final AiTripListService aiTripListService;
 

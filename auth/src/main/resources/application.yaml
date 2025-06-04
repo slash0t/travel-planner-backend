@@ -86,6 +86,8 @@ app:
   verification-token-expiration-hours: 24
   reset-token-expiration-minutes: 15
   auth-token: ${AUTH_SERVICE_TOKEN:service_token_for_development}
+  services:
+    planner-url: ${PLANNER_SERVICE_URL}
 
 management:
   endpoints:

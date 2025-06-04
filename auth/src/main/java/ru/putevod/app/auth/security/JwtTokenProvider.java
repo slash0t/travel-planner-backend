@@ -73,12 +73,46 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public String generateAnonymousToken(String deviceId, Long anonymousUserId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("isAnonymous", true);
+        if (deviceId != null && !deviceId.isEmpty()) {
+            claims.put("deviceId", deviceId);
+        }
+        if (anonymousUserId != null) {
+            claims.put("anonymousUserId", anonymousUserId);
+        }
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + appProperties.getJwt().getAnonymousTokenExpirationMs()))
+                .signWith(Keys.hmacShaKeyFor(appProperties.getJwt().getSecret().getBytes()))
+                .compact();
+    }
+
     public String getEmailFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
 
     public Long getUserIdFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get("userId", Long.class));
+    }
+
+    public String getDeviceIdFromToken(String token) {
+        try {
+            return getClaimFromToken(token, claims -> claims.get("deviceId", String.class));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public Long getAnonymousUserIdFromToken(String token) {
+        try {
+            return getClaimFromToken(token, claims -> claims.get("anonymousUserId", Long.class));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public Boolean isAnonymousToken(String token) {
