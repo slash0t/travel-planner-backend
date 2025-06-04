@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
-import ru.putevod.app.planner.dto.external.PixabayResponseDto;
+import ru.putevod.app.planner.dto.external.UnsplashResponseDto;
 
 @Service
 @Slf4j
@@ -24,12 +24,12 @@ public class ExternalServiceClient {
     }
 
     /**
-     * Получает изображения для указанного города из внешнего сервиса
+     * Получает изображения для указанного города из Unsplash через внешний сервис
      *
      * @param city название города
      * @return DTO с информацией об изображениях
      */
-    public PixabayResponseDto getCityImages(String city) {
+    public UnsplashResponseDto getCityImages(String city) {
         if (city == null || city.trim().isEmpty()) {
             log.warn("Город не указан для поиска изображений");
             return null;
@@ -53,7 +53,7 @@ public class ExternalServiceClient {
                         return Mono.error(new ResponseStatusException(response.statusCode(),
                                 "Ошибка сервиса изображений"));
                     })
-                    .bodyToMono(PixabayResponseDto.class)
+                    .bodyToMono(UnsplashResponseDto.class)
                     .doOnError(e -> log.error("Ошибка получения изображений: {}", e.getMessage()))
                     .onErrorResume(e -> Mono.empty())
                     .block();

@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import ru.putevod.app.planner.client.ExternalServiceClient;
-import ru.putevod.app.planner.dto.external.PixabayResponseDto;
+import ru.putevod.app.planner.dto.external.UnsplashResponseDto;
 
 import java.util.Collections;
 
@@ -24,7 +24,7 @@ class TripPreviewServiceImplTest {
     @InjectMocks
     private TripPreviewServiceImpl tripPreviewService;
 
-    private static final String DEFAULT_PREVIEW_URL = "https://via.placeholder.com/800x600?text=Путешествие";
+    private static final String DEFAULT_PREVIEW_URL = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=600&fit=crop&crop=center";
 
     @BeforeEach
     void setUp() {
@@ -51,45 +51,57 @@ class TripPreviewServiceImplTest {
     }
 
     @Test
-    void generatePreviewForCity_WhenEmptyHits_ReturnsDefaultPreview() {
-        PixabayResponseDto response = new PixabayResponseDto();
-        response.setHits(Collections.emptyList());
+    void generatePreviewForCity_WhenEmptyResults_ReturnsDefaultPreview() {
+        UnsplashResponseDto response = new UnsplashResponseDto();
+        response.setResults(Collections.emptyList());
         when(externalServiceClient.getCityImages("Moscow")).thenReturn(response);
         String result = tripPreviewService.generatePreviewForCity("Moscow");
         assertEquals(DEFAULT_PREVIEW_URL, result);
     }
 
     @Test
-    void generatePreviewForCity_WhenLargeImageUrlExists_ReturnsLargeImageUrl() {
-        PixabayResponseDto.PixabayImage image = new PixabayResponseDto.PixabayImage();
-        image.setLargeImageUrl("https://example.com/large.jpg");
-        PixabayResponseDto response = new PixabayResponseDto();
-        response.setHits(Collections.singletonList(image));
+    void generatePreviewForCity_WhenRegularUrlExists_ReturnsRegularUrl() {
+        UnsplashResponseDto.UnsplashImage.Urls urls = new UnsplashResponseDto.UnsplashImage.Urls();
+        urls.setRegular("https://example.com/regular.jpg");
+        
+        UnsplashResponseDto.UnsplashImage image = new UnsplashResponseDto.UnsplashImage();
+        image.setUrls(urls);
+        
+        UnsplashResponseDto response = new UnsplashResponseDto();
+        response.setResults(Collections.singletonList(image));
         when(externalServiceClient.getCityImages("Moscow")).thenReturn(response);
         String result = tripPreviewService.generatePreviewForCity("Moscow");
-        assertEquals("https://example.com/large.jpg", result);
+        assertEquals("https://example.com/regular.jpg", result);
     }
 
     @Test
-    void generatePreviewForCity_WhenWebformatUrlExists_ReturnsWebformatUrl() {
-        PixabayResponseDto.PixabayImage image = new PixabayResponseDto.PixabayImage();
-        image.setWebformatUrl("https://example.com/web.jpg");
-        PixabayResponseDto response = new PixabayResponseDto();
-        response.setHits(Collections.singletonList(image));
+    void generatePreviewForCity_WhenSmallUrlExists_ReturnsSmallUrl() {
+        UnsplashResponseDto.UnsplashImage.Urls urls = new UnsplashResponseDto.UnsplashImage.Urls();
+        urls.setSmall("https://example.com/small.jpg");
+        
+        UnsplashResponseDto.UnsplashImage image = new UnsplashResponseDto.UnsplashImage();
+        image.setUrls(urls);
+        
+        UnsplashResponseDto response = new UnsplashResponseDto();
+        response.setResults(Collections.singletonList(image));
         when(externalServiceClient.getCityImages("Moscow")).thenReturn(response);
         String result = tripPreviewService.generatePreviewForCity("Moscow");
-        assertEquals("https://example.com/web.jpg", result);
+        assertEquals("https://example.com/small.jpg", result);
     }
 
     @Test
-    void generatePreviewForCity_WhenPreviewUrlExists_ReturnsPreviewUrl() {
-        PixabayResponseDto.PixabayImage image = new PixabayResponseDto.PixabayImage();
-        image.setPreviewUrl("https://example.com/preview.jpg");
-        PixabayResponseDto response = new PixabayResponseDto();
-        response.setHits(Collections.singletonList(image));
+    void generatePreviewForCity_WhenThumbUrlExists_ReturnsThumbUrl() {
+        UnsplashResponseDto.UnsplashImage.Urls urls = new UnsplashResponseDto.UnsplashImage.Urls();
+        urls.setThumb("https://example.com/thumb.jpg");
+        
+        UnsplashResponseDto.UnsplashImage image = new UnsplashResponseDto.UnsplashImage();
+        image.setUrls(urls);
+        
+        UnsplashResponseDto response = new UnsplashResponseDto();
+        response.setResults(Collections.singletonList(image));
         when(externalServiceClient.getCityImages("Moscow")).thenReturn(response);
         String result = tripPreviewService.generatePreviewForCity("Moscow");
-        assertEquals("https://example.com/preview.jpg", result);
+        assertEquals("https://example.com/thumb.jpg", result);
     }
 
     @Test

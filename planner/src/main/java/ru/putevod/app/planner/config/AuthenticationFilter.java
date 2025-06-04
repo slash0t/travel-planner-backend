@@ -62,15 +62,44 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             }
 
             Map<String, Object> userInfo = authServiceClient.getUserInfoFromToken(token);
-            if (userInfo == null || !userInfo.containsKey("userId")) {
-                log.error("Получены данные из токена: {}", userInfo);
+            if (userInfo == null || userInfo.isEmpty()) {
+                log.error("Получены пустые данные из токена");
                 throw new AuthenticationException("Невозможно получить информацию о пользователе из токена");
             }
 
-            Long userId = Long.valueOf(userInfo.get("userId").toString());
-            request.setAttribute("userId", userId);
+            // Проверяем, анонимный ли это пользователь
+            boolean isAnonymous = Boolean.TRUE.equals(userInfo.get("isAnonymous"));
+            
+            if (isAnonymous) {
+                // Для анонимных пользователей используем anonymousUserId
+                Object anonymousUserId = userInfo.get("anonymousUserId");
+                if (anonymousUserId != null) {
+                    request.setAttribute("userId", Long.valueOf(anonymousUserId.toString()));
+                    request.setAttribute("isAnonymous", true);
+                    request.setAttribute("deviceId", userInfo.get("deviceId"));
+                    log.info("Установлен anonymousUserId = {} для анонимного пользователя", anonymousUserId);
+                } else {
+                    log.warn("Анонимный пользователь без anonymousUserId в токене: {}", userInfo);
+                    // Для обратной совместимости создаем временный ID
+                    request.setAttribute("userId", -1L);
+                    request.setAttribute("isAnonymous", true);
+                    request.setAttribute("deviceId", userInfo.get("deviceId"));
+                }
+            } else {
+                // Для обычных пользователей используем userId
+                if (!userInfo.containsKey("userId")) {
+                    log.error("Получены данные из токена для обычного пользователя без userId: {}", userInfo);
+                    throw new AuthenticationException("Невозможно получить информацию о пользователе из токена");
+                }
+                
+                Long userId = Long.valueOf(userInfo.get("userId").toString());
+                request.setAttribute("userId", userId);
+                request.setAttribute("isAnonymous", false);
+                log.info("Установлен userId = {} для зарегистрированного пользователя", userId);
+            }
 
-            log.info("Установлен userId = {} в атрибуты запроса, передаем запрос дальше", userId);
+            log.info("Передаем запрос дальше с атрибутами: userId={}, isAnonymous={}", 
+                    request.getAttribute("userId"), request.getAttribute("isAnonymous"));
             filterChain.doFilter(request, response);
             log.info("Запрос обработан filterChain");
 
