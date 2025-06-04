@@ -17,6 +17,7 @@ import ru.putevod.app.planner.dto.CreateTripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.UserDto;
+import ru.putevod.app.planner.dto.RemoveShareResponseDto;
 import ru.putevod.app.planner.service.TripService;
 
 import java.time.LocalDate;
@@ -243,13 +244,26 @@ class TripControllerTest {
     }
 
     @Test
-    void removeShare_ShouldReturnNoContent() {
-        doNothing().when(tripService).removeShare(userId, tripId, 2L);
+    void removeShare_ShouldReturnRemoveResponse() {
+        RemoveShareResponseDto mockResponse = RemoveShareResponseDto.builder()
+                .message("Доступ к поездке успешно удален")
+                .removedUserId(2L)
+                .removedUsername("testuser")
+                .previousInvitationStatus("accepted")
+                .previousAccessLevel("read")
+                .build();
+        
+        when(tripService.removeShare(userId, tripId, 2L))
+                .thenReturn(mockResponse);
 
-        ResponseEntity<Void> response = tripController.removeShare(userId, tripId, 2L);
+        ResponseEntity<RemoveShareResponseDto> response = tripController.removeShare(userId, tripId, 2L);
 
         assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Доступ к поездке успешно удален", response.getBody().getMessage());
+        assertEquals(2L, response.getBody().getRemovedUserId());
+        assertEquals("testuser", response.getBody().getRemovedUsername());
         verify(tripService).removeShare(userId, tripId, 2L);
     }
 

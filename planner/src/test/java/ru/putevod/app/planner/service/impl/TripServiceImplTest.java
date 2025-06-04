@@ -17,6 +17,7 @@ import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.dto.UpdateTripDto;
 import ru.putevod.app.planner.dto.UserDto;
 import ru.putevod.app.planner.dto.CreateTripAccessDto;
+import ru.putevod.app.planner.dto.RemoveShareResponseDto;
 import ru.putevod.app.planner.exception.AccessDeniedException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
 import ru.putevod.app.planner.mapper.TripAccessMapper;
@@ -30,6 +31,7 @@ import ru.putevod.app.planner.repository.TripDayRepository;
 import ru.putevod.app.planner.repository.TripRepository;
 import ru.putevod.app.planner.service.TripPreviewService;
 import ru.putevod.app.planner.service.UserService;
+import ru.putevod.app.planner.service.NotificationService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -62,6 +64,9 @@ class TripServiceImplTest {
 
     @Mock
     private TripPreviewService tripPreviewService;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private TripServiceImpl tripService;
@@ -747,17 +752,58 @@ class TripServiceImplTest {
         sharedUser.setUserId(shareUserId);
         sharedUser.setUsername("shareduser");
 
-        TripAccess share = createTripAccess("admin");
+        TripAccess share = createTripAccess("read");
         share.setUser(sharedUser);
+        share.setInvitationStatus("accepted");
 
         when(userService.getUserEntityById(userId)).thenReturn(currentUser);
         when(tripRepository.findById(tripId)).thenReturn(Optional.of(savedTripEntity));
         when(userService.getUserEntityById(shareUserId)).thenReturn(sharedUser);
-        when(tripAccessRepository.existsByTripAndUser(savedTripEntity, sharedUser)).thenReturn(true);
+        when(tripAccessRepository.findByTripAndUser(savedTripEntity, sharedUser)).thenReturn(Optional.of(share));
 
-        tripService.removeShare(userId, tripId, shareUserId);
+        RemoveShareResponseDto result = tripService.removeShare(userId, tripId, shareUserId);
 
+        assertNotNull(result);
+        assertEquals("Доступ пользователя 'shareduser' к поездке удален", result.getMessage());
+        assertEquals(shareUserId, result.getRemovedUserId());
+        assertEquals("shareduser", result.getRemovedUsername());
+        assertEquals("accepted", result.getPreviousInvitationStatus());
+        assertEquals("read", result.getPreviousAccessLevel());
+        
         verify(tripAccessRepository).deleteByTripAndUser(savedTripEntity, sharedUser);
+    }
+
+    @Test
+    @DisplayName("Should remove pending share and send cancellation notification")
+    void removeShare_PendingInvitation_Success() {
+        Long userId = currentUser.getUserId();
+        Long tripId = savedTripEntity.getTripId();
+        Long shareUserId = 2L;
+
+        User sharedUser = new User();
+        sharedUser.setUserId(shareUserId);
+        sharedUser.setUsername("shareduser");
+
+        TripAccess share = createTripAccess("read");
+        share.setUser(sharedUser);
+        share.setInvitationStatus("pending");
+
+        when(userService.getUserEntityById(userId)).thenReturn(currentUser);
+        when(tripRepository.findById(tripId)).thenReturn(Optional.of(savedTripEntity));
+        when(userService.getUserEntityById(shareUserId)).thenReturn(sharedUser);
+        when(tripAccessRepository.findByTripAndUser(savedTripEntity, sharedUser)).thenReturn(Optional.of(share));
+
+        RemoveShareResponseDto result = tripService.removeShare(userId, tripId, shareUserId);
+
+        assertNotNull(result);
+        assertEquals("Приглашение пользователя 'shareduser' отменено", result.getMessage());
+        assertEquals(shareUserId, result.getRemovedUserId());
+        assertEquals("shareduser", result.getRemovedUsername());
+        assertEquals("pending", result.getPreviousInvitationStatus());
+        assertEquals("read", result.getPreviousAccessLevel());
+        
+        verify(tripAccessRepository).deleteByTripAndUser(savedTripEntity, sharedUser);
+        verify(notificationService).createTripInviteCancelledNotification(shareUserId, tripId, currentUser.getUsername());
     }
 
     @Test

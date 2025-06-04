@@ -7,6 +7,7 @@ import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.dto.CreateTripAccessDto;
 import ru.putevod.app.planner.dto.UpdateTripDto;
+import ru.putevod.app.planner.dto.RemoveShareResponseDto;
 import ru.putevod.app.planner.model.Trip;
 import ru.putevod.app.planner.model.User;
 
@@ -34,7 +35,7 @@ public interface TripService {
 
     List<TripAccessDto> getTripShares(Long userId, Long tripId);
 
-    void removeShare(Long userId, Long tripId, Long shareUserId);
+    RemoveShareResponseDto removeShare(Long userId, Long tripId, Long shareUserId);
 
     TripAccessDto respondToInvitation(Long userId, Long tripId, String status);
 

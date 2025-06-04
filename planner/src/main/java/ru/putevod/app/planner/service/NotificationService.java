@@ -22,5 +22,7 @@ public interface NotificationService {
 
     void createTripShareAcceptedNotification(Long tripOwnerId, Long tripId, String username);
 
+    void createTripInviteCancelledNotification(Long userId, Long tripId, String ownerUsername);
+
     void createEventReminderNotification(Long userId, Long eventId, String eventTitle);
 } 

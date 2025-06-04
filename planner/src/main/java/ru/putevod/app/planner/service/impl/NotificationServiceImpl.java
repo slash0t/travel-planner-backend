@@ -95,21 +95,55 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public void createTripInviteNotification(Long userId, Long tripId, String inviterUsername) {
-        String content = "Пользователь " + inviterUsername + " пригласил вас присоединиться к поездке";
-        createNotification(userId, "trip_invite", content, tripId.intValue());
+        try {
+            String content = "Пользователь " + inviterUsername + " пригласил вас присоединиться к поездке";
+            Integer relatedId = tripId > Integer.MAX_VALUE ? null : tripId.intValue();
+            createNotification(userId, "trip_invite", content, relatedId);
+            log.info("Создано уведомление о приглашении в поездку {} для пользователя {} от {}", 
+                    tripId, userId, inviterUsername);
+        } catch (Exception e) {
+            log.error("Ошибка при создании уведомления о приглашении в поездку: {}", e.getMessage(), e);
+        }
     }
 
     @Override
     @Transactional
     public void createTripShareAcceptedNotification(Long tripOwnerId, Long tripId, String username) {
-        String content = "Пользователь " + username + " принял ваше приглашение к поездке";
-        createNotification(tripOwnerId, "trip_share_accepted", content, tripId.intValue());
+        try {
+            String content = "Пользователь " + username + " принял ваше приглашение к поездке";
+            Integer relatedId = tripId > Integer.MAX_VALUE ? null : tripId.intValue();
+            createNotification(tripOwnerId, "trip_share_accepted", content, relatedId);
+            log.info("Создано уведомление о принятии приглашения в поездку {} для владельца {} от {}", 
+                    tripId, tripOwnerId, username);
+        } catch (Exception e) {
+            log.error("Ошибка при создании уведомления о принятии приглашения: {}", e.getMessage(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void createTripInviteCancelledNotification(Long userId, Long tripId, String ownerUsername) {
+        try {
+            String content = "Пользователь " + ownerUsername + " отменил ваше приглашение к поездке";
+            Integer relatedId = tripId > Integer.MAX_VALUE ? null : tripId.intValue();
+            createNotification(userId, "trip_invite_cancelled", content, relatedId);
+            log.info("Создано уведомление об отмене приглашения в поездку {} для пользователя {} от {}", 
+                    tripId, userId, ownerUsername);
+        } catch (Exception e) {
+            log.error("Ошибка при создании уведомления об отмене приглашения: {}", e.getMessage(), e);
+        }
     }
 
     @Override
     @Transactional
     public void createEventReminderNotification(Long userId, Long eventId, String eventTitle) {
-        String content = "Напоминание о событии: " + eventTitle;
-        createNotification(userId, "event_reminder", content, eventId.intValue());
+        try {
+            String content = "Напоминание о событии: " + eventTitle;
+            Integer relatedId = eventId > Integer.MAX_VALUE ? null : eventId.intValue();
+            createNotification(userId, "event_reminder", content, relatedId);
+            log.info("Создано напоминание о событии {} для пользователя {}", eventId, userId);
+        } catch (Exception e) {
+            log.error("Ошибка при создании напоминания о событии: {}", e.getMessage(), e);
+        }
     }
 } 

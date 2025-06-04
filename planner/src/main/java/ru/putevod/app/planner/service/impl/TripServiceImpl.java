@@ -12,6 +12,7 @@ import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.dto.UpdateTripDto;
 import ru.putevod.app.planner.dto.CreateTripAccessDto;
 import ru.putevod.app.planner.dto.UserDto;
+import ru.putevod.app.planner.dto.RemoveShareResponseDto;
 import ru.putevod.app.planner.exception.AccessDeniedException;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.exception.ResourceNotFoundException;
@@ -377,7 +378,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     @Transactional
-    public void removeShare(Long userId, Long tripId, Long shareUserId) {
+    public RemoveShareResponseDto removeShare(Long userId, Long tripId, Long shareUserId) {
         User user = userService.getUserEntityById(userId);
         Trip trip = getTripEntityWithAccessCheck(userId, tripId, "admin");
 
@@ -391,11 +392,49 @@ public class TripServiceImpl implements TripService {
 
         User shareUser = userService.getUserEntityById(shareUserId);
 
-        if (!tripAccessRepository.existsByTripAndUser(trip, shareUser)) {
-            throw new ResourceNotFoundException("Доступ для указанного пользователя не найден");
+        // Находим запись доступа для получения информации перед удалением
+        TripAccess tripAccess = tripAccessRepository.findByTripAndUser(trip, shareUser)
+                .orElseThrow(() -> new ResourceNotFoundException("Доступ для указанного пользователя не найден"));
+
+        // Сохраняем информацию о доступе перед удалением
+        String previousStatus = tripAccess.getInvitationStatus();
+        String previousAccessLevel = tripAccess.getAccessLevel();
+        String removedUsername = shareUser.getUsername();
+
+        // Удаляем доступ
+        tripAccessRepository.deleteByTripAndUser(trip, shareUser);
+        
+        // Отправляем уведомление пользователю об отмене приглашения, если оно было pending
+        if ("pending".equals(previousStatus)) {
+            try {
+                notificationService.createTripInviteCancelledNotification(
+                        shareUserId, 
+                        tripId, 
+                        user.getUsername());
+            } catch (Exception e) {
+                log.warn("Не удалось отправить уведомление об отмене приглашения пользователю {}: {}", 
+                        shareUserId, e.getMessage());
+            }
+        }
+        
+        // Определяем тип сообщения в зависимости от статуса
+        String message;
+        if ("pending".equals(previousStatus)) {
+            message = "Приглашение пользователя '" + removedUsername + "' отменено";
+        } else {
+            message = "Доступ пользователя '" + removedUsername + "' к поездке удален";
         }
 
-        tripAccessRepository.deleteByTripAndUser(trip, shareUser);
+        log.info("Удален доступ пользователя {} (статус: {}, уровень: {}) к поездке {} пользователем {}", 
+                shareUserId, previousStatus, previousAccessLevel, tripId, userId);
+
+        return RemoveShareResponseDto.builder()
+                .message(message)
+                .removedUserId(shareUserId)
+                .removedUsername(removedUsername)
+                .previousInvitationStatus(previousStatus)
+                .previousAccessLevel(previousAccessLevel)
+                .build();
     }
 
     @Override

@@ -22,6 +22,7 @@ import ru.putevod.app.planner.dto.CreateTripAccessDto;
 import ru.putevod.app.planner.dto.TripAccessDto;
 import ru.putevod.app.planner.dto.TripDto;
 import ru.putevod.app.planner.dto.UpdateTripDto;
+import ru.putevod.app.planner.dto.RemoveShareResponseDto;
 import ru.putevod.app.planner.service.TripService;
 
 import java.util.List;
@@ -171,13 +172,14 @@ public class TripController {
     }
 
     @DeleteMapping("/{tripId}/shares/{shareUserId}")
-    @Operation(summary = "Удалить доступ к поездке для пользователя")
-    public ResponseEntity<Void> removeShare(
+    @Operation(summary = "Удалить доступ к поездке для пользователя", 
+               description = "Удаляет доступ пользователя к поездке. Если приглашение было в статусе pending, оно будет отменено.")
+    public ResponseEntity<RemoveShareResponseDto> removeShare(
             @CurrentUser Long userId,
             @PathVariable Long tripId,
             @PathVariable Long shareUserId) {
-        tripService.removeShare(userId, tripId, shareUserId);
-        return ResponseEntity.noContent().build();
+        RemoveShareResponseDto response = tripService.removeShare(userId, tripId, shareUserId);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{tripId}/invitation")
