@@ -8,6 +8,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
@@ -22,9 +25,6 @@ import ru.putevod.app.planner.config.CurrentUser;
 import ru.putevod.app.planner.dto.FileDto;
 import ru.putevod.app.planner.service.FileService;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import java.util.List;
 
 @RestController
@@ -39,11 +39,11 @@ public class FileController {
 
     @PostMapping("/upload")
     @Operation(
-        summary = "Загрузить файл (устарело для мобильных приложений)",
-        description = "Загружает файл на сервер. Для Flutter приложений рекомендуется использовать /register-local эндпоинт."
+            summary = "Загрузить файл (устарело для мобильных приложений)",
+            description = "Загружает файл на сервер. Для Flutter приложений рекомендуется использовать /register-local эндпоинт."
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "400", description = "Для мобильных приложений используйте /register-local")
+            @ApiResponse(responseCode = "400", description = "Для мобильных приложений используйте /register-local")
     })
     public ResponseEntity<FileDto> uploadFile(
             @CurrentUser Long userId,
@@ -55,20 +55,20 @@ public class FileController {
 
     @PostMapping("/register-local")
     @Operation(
-        summary = "Зарегистрировать локальный файл",
-        description = "Регистрирует файл, который хранится локально на мобильном устройстве. Сервер сохраняет только метаданные файла."
+            summary = "Зарегистрировать локальный файл",
+            description = "Регистрирует файл, который хранится локально на мобильном устройстве. Сервер сохраняет только метаданные файла."
     )
     @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "201", 
-            description = "Файл успешно зарегистрирован",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = FileDto.class)
-            )
-        ),
-        @ApiResponse(responseCode = "400", description = "Некорректные данные файла"),
-        @ApiResponse(responseCode = "401", description = "Пользователь не авторизован")
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Файл успешно зарегистрирован",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FileDto.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Некорректные данные файла"),
+            @ApiResponse(responseCode = "401", description = "Пользователь не авторизован")
     })
     public ResponseEntity<FileDto> registerLocalFile(
             @CurrentUser Long userId,
@@ -88,20 +88,20 @@ public class FileController {
 
     @GetMapping("/{fileId}")
     @Operation(
-        summary = "Получить информацию о файле",
-        description = "Возвращает метаданные файла. Для локальных файлов включает информацию о требовании локального хранения."
+            summary = "Получить информацию о файле",
+            description = "Возвращает метаданные файла. Для локальных файлов включает информацию о требовании локального хранения."
     )
     @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200", 
-            description = "Информация о файле получена",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = FileDto.class)
-            )
-        ),
-        @ApiResponse(responseCode = "404", description = "Файл не найден"),
-        @ApiResponse(responseCode = "403", description = "Нет доступа к файлу")
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Информация о файле получена",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FileDto.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "Файл не найден"),
+            @ApiResponse(responseCode = "403", description = "Нет доступа к файлу")
     })
     public ResponseEntity<FileDto> getFileInfo(
             @CurrentUser Long userId,
@@ -112,11 +112,11 @@ public class FileController {
 
     @GetMapping("/{fileId}/download")
     @Operation(
-        summary = "Скачать файл (не поддерживается для локальных файлов)",
-        description = "Для файлов, хранящихся локально на устройстве, этот эндпоинт недоступен. Используйте локальный путь к файлу."
+            summary = "Скачать файл (не поддерживается для локальных файлов)",
+            description = "Для файлов, хранящихся локально на устройстве, этот эндпоинт недоступен. Используйте локальный путь к файлу."
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "400", description = "Файлы хранятся локально на устройстве")
+            @ApiResponse(responseCode = "400", description = "Файлы хранятся локально на устройстве")
     })
     public ResponseEntity<Resource> downloadFile(
             @CurrentUser Long userId,
@@ -135,13 +135,13 @@ public class FileController {
 
     @DeleteMapping("/{fileId}")
     @Operation(
-        summary = "Удалить файл",
-        description = "Удаляет метаданные файла с сервера. Flutter приложение должно самостоятельно удалить файл из локального хранилища."
+            summary = "Удалить файл",
+            description = "Удаляет метаданные файла с сервера. Flutter приложение должно самостоятельно удалить файл из локального хранилища."
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Файл успешно удален"),
-        @ApiResponse(responseCode = "404", description = "Файл не найден"),
-        @ApiResponse(responseCode = "403", description = "Нет прав на удаление файла")
+            @ApiResponse(responseCode = "204", description = "Файл успешно удален"),
+            @ApiResponse(responseCode = "404", description = "Файл не найден"),
+            @ApiResponse(responseCode = "403", description = "Нет прав на удаление файла")
     })
     public ResponseEntity<Void> deleteFile(
             @CurrentUser Long userId,
@@ -153,20 +153,20 @@ public class FileController {
 
     @PostMapping("/trips/{tripId}/files")
     @Operation(
-        summary = "Добавить файл к поездке",
-        description = "Связывает уже зарегистрированный файл с поездкой. Файл должен быть предварительно зарегистрирован через /register-local."
+            summary = "Добавить файл к поездке",
+            description = "Связывает уже зарегистрированный файл с поездкой. Файл должен быть предварительно зарегистрирован через /register-local."
     )
     @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "201", 
-            description = "Файл успешно добавлен к поездке",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = FileDto.class)
-            )
-        ),
-        @ApiResponse(responseCode = "400", description = "Файл уже добавлен к поездке или нет доступа"),
-        @ApiResponse(responseCode = "404", description = "Поездка или файл не найдены")
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Файл успешно добавлен к поездке",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FileDto.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Файл уже добавлен к поездке или нет доступа"),
+            @ApiResponse(responseCode = "404", description = "Поездка или файл не найдены")
     })
     public ResponseEntity<FileDto> addFileToTrip(
             @CurrentUser Long userId,
@@ -182,20 +182,20 @@ public class FileController {
 
     @GetMapping("/trips/{tripId}/files")
     @Operation(
-        summary = "Получить все файлы поездки",
-        description = "Возвращает список всех файлов, привязанных к поездке. Для локальных файлов включает информацию о локальном хранении."
+            summary = "Получить все файлы поездки",
+            description = "Возвращает список всех файлов, привязанных к поездке. Для локальных файлов включает информацию о локальном хранении."
     )
     @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200", 
-            description = "Список файлов поездки получен",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = FileDto.class)
-            )
-        ),
-        @ApiResponse(responseCode = "404", description = "Поездка не найдена"),
-        @ApiResponse(responseCode = "403", description = "Нет доступа к поездке")
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Список файлов поездки получен",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FileDto.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "Поездка не найдена"),
+            @ApiResponse(responseCode = "403", description = "Нет доступа к поездке")
     })
     public ResponseEntity<List<FileDto>> getTripFiles(
             @CurrentUser Long userId,
@@ -206,13 +206,13 @@ public class FileController {
 
     @DeleteMapping("/trips/{tripId}/files/{fileId}")
     @Operation(
-        summary = "Удалить файл из поездки",
-        description = "Убирает связь файла с поездкой. Сам файл остается в системе и может быть привязан к другим поездкам."
+            summary = "Удалить файл из поездки",
+            description = "Убирает связь файла с поездкой. Сам файл остается в системе и может быть привязан к другим поездкам."
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Связь файла с поездкой удалена"),
-        @ApiResponse(responseCode = "404", description = "Поездка, файл или связь не найдены"),
-        @ApiResponse(responseCode = "403", description = "Нет доступа к поездке")
+            @ApiResponse(responseCode = "204", description = "Связь файла с поездкой удалена"),
+            @ApiResponse(responseCode = "404", description = "Поездка, файл или связь не найдены"),
+            @ApiResponse(responseCode = "403", description = "Нет доступа к поездке")
     })
     public ResponseEntity<Void> removeTripFile(
             @CurrentUser Long userId,
@@ -226,20 +226,20 @@ public class FileController {
 
     @PostMapping("/trips/{tripId}/days/{dayId}/places/{placeId}/files")
     @Operation(
-        summary = "Добавить файл к месту/событию",
-        description = "Связывает уже зарегистрированный файл с конкретным местом в поездке."
+            summary = "Добавить файл к месту/событию",
+            description = "Связывает уже зарегистрированный файл с конкретным местом в поездке."
     )
     @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "201", 
-            description = "Файл успешно добавлен к месту",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = FileDto.class)
-            )
-        ),
-        @ApiResponse(responseCode = "400", description = "Файл уже добавлен к месту или нет доступа"),
-        @ApiResponse(responseCode = "404", description = "Поездка, день, место или файл не найдены")
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Файл успешно добавлен к месту",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FileDto.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Файл уже добавлен к месту или нет доступа"),
+            @ApiResponse(responseCode = "404", description = "Поездка, день, место или файл не найдены")
     })
     public ResponseEntity<FileDto> addFileToPlace(
             @CurrentUser Long userId,
@@ -257,20 +257,20 @@ public class FileController {
 
     @GetMapping("/trips/{tripId}/days/{dayId}/places/{placeId}/files")
     @Operation(
-        summary = "Получить все файлы места/события",
-        description = "Возвращает список всех файлов, привязанных к конкретному месту в поездке."
+            summary = "Получить все файлы места/события",
+            description = "Возвращает список всех файлов, привязанных к конкретному месту в поездке."
     )
     @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200", 
-            description = "Список файлов места получен",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = FileDto.class)
-            )
-        ),
-        @ApiResponse(responseCode = "404", description = "Поездка, день, место не найдены"),
-        @ApiResponse(responseCode = "403", description = "Нет доступа к поездке")
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Список файлов места получен",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FileDto.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "Поездка, день, место не найдены"),
+            @ApiResponse(responseCode = "403", description = "Нет доступа к поездке")
     })
     public ResponseEntity<List<FileDto>> getPlaceFiles(
             @CurrentUser Long userId,
@@ -283,13 +283,13 @@ public class FileController {
 
     @DeleteMapping("/trips/{tripId}/days/{dayId}/places/{placeId}/files/{fileId}")
     @Operation(
-        summary = "Удалить файл из места/события",
-        description = "Убирает связь файла с местом. Сам файл остается в системе."
+            summary = "Удалить файл из места/события",
+            description = "Убирает связь файла с местом. Сам файл остается в системе."
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Связь файла с местом удалена"),
-        @ApiResponse(responseCode = "404", description = "Поездка, день, место, файл или связь не найдены"),
-        @ApiResponse(responseCode = "403", description = "Нет доступа к поездке")
+            @ApiResponse(responseCode = "204", description = "Связь файла с местом удалена"),
+            @ApiResponse(responseCode = "404", description = "Поездка, день, место, файл или связь не найдены"),
+            @ApiResponse(responseCode = "403", description = "Нет доступа к поездке")
     })
     public ResponseEntity<Void> removePlaceFile(
             @CurrentUser Long userId,

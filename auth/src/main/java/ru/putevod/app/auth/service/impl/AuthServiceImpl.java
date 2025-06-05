@@ -12,20 +12,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import ru.putevod.app.auth.dto.AuthResponse;
-import ru.putevod.app.auth.dto.RegisterRequest;
-import ru.putevod.app.auth.dto.TokenValidationResponse;
-import ru.putevod.app.auth.dto.UpdateProfileRequest;
-import ru.putevod.app.auth.dto.UserInfoDto;
+import ru.putevod.app.auth.config.AppProperties;
+import ru.putevod.app.auth.dto.*;
 import ru.putevod.app.auth.model.User;
 import ru.putevod.app.auth.model.UserSession;
 import ru.putevod.app.auth.repository.UserRepository;
 import ru.putevod.app.auth.repository.UserSessionRepository;
 import ru.putevod.app.auth.security.JwtTokenProvider;
+import ru.putevod.app.auth.service.AnonymousUserService;
 import ru.putevod.app.auth.service.AuthService;
 import ru.putevod.app.auth.service.EmailService;
 import ru.putevod.app.auth.service.UserService;
-import ru.putevod.app.auth.config.AppProperties;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -45,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final AppProperties appProperties;
+    private final AnonymousUserService anonymousUserService;
 
     @Override
     @Transactional
@@ -125,11 +123,30 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse verifyEmail(String token, String ipAddress, String deviceInfo) {
+        return verifyEmail(token, ipAddress, deviceInfo, null);
+    }
+
+    @Override
+    @Transactional
+    public AuthResponse verifyEmail(String token, String ipAddress, String deviceInfo, String deviceId) {
         User user = emailService.verifyEmailToken(token);
 
         user.setIsVerified(true);
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
+
+        // Если предоставлен deviceId, выполняем миграцию анонимного пользователя
+        if (deviceId != null && !deviceId.trim().isEmpty()) {
+            try {
+                anonymousUserService.migrateAnonymousUserToRegistered(deviceId, user);
+                log.info("Успешно выполнена миграция анонимного пользователя с deviceId {} к пользователю {}",
+                        deviceId, user.getUserId());
+            } catch (Exception e) {
+                log.warn("Ошибка при миграции анонимного пользователя с deviceId {} к пользователю {}: {}",
+                        deviceId, user.getUserId(), e.getMessage());
+                // Не прерываем процесс верификации из-за ошибки миграции
+            }
+        }
 
         String accessToken = tokenProvider.generateAccessToken(user);
         String refreshToken = tokenProvider.generateRefreshToken(user, deviceInfo, ipAddress);
@@ -208,13 +225,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Map<String, Object> createAnonymousToken(String deviceId) {
-        String anonymousToken = tokenProvider.generateAnonymousToken(deviceId);
+        return anonymousUserService.createAnonymousToken(deviceId, null, null);
+    }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("anonymousToken", anonymousToken);
-        response.put("expiresIn", (int) (appProperties.getJwt().getAnonymousTokenExpirationMs() / 1000)); 
-
-        return response;
+    public Map<String, Object> createAnonymousToken(String deviceId, String deviceInfo, String ipAddress) {
+        return anonymousUserService.createAnonymousToken(deviceId, deviceInfo, ipAddress);
     }
 
     private String generateRandomCode() {
@@ -238,7 +253,19 @@ public class AuthServiceImpl implements AuthService {
             }
 
             if (tokenProvider.isAnonymousToken(token)) {
-                return TokenValidationResponse.builder().valid(true).build();
+                String deviceId = tokenProvider.getDeviceIdFromToken(token);
+                Long anonymousUserId = tokenProvider.getAnonymousUserIdFromToken(token);
+
+                if (deviceId != null) {
+                    anonymousUserService.updateLastActivity(deviceId);
+                }
+
+                return TokenValidationResponse.builder()
+                        .valid(true)
+                        .anonymousUserId(anonymousUserId)
+                        .deviceId(deviceId)
+                        .isAnonymous(true)
+                        .build();
             }
 
             String email = tokenProvider.getEmailFromToken(token);
@@ -317,8 +344,20 @@ public class AuthServiceImpl implements AuthService {
             }
 
             if (tokenProvider.isAnonymousToken(token)) {
+                String deviceId = tokenProvider.getDeviceIdFromToken(token);
+                Long anonymousUserId = tokenProvider.getAnonymousUserIdFromToken(token);
+
                 Map<String, Object> info = new HashMap<>();
                 info.put("isAnonymous", true);
+                info.put("anonymousUserId", anonymousUserId);
+                info.put("deviceId", deviceId);
+                info.put("roles", new String[]{"ROLE_ANONYMOUS"});
+
+                // Обновляем активность
+                if (deviceId != null) {
+                    anonymousUserService.updateLastActivity(deviceId);
+                }
+
                 return info;
             }
 
@@ -336,8 +375,8 @@ public class AuthServiceImpl implements AuthService {
             userInfo.put("email", email);
             userInfo.put("username", user.getUsername());
             userInfo.put("isAdmin", user.getIsAdmin() != null ? user.getIsAdmin() : false);
-                userInfo.put("verified", user.getIsVerified());
-                userInfo.put("roles", user.getIsAdmin() ? new String[]{"ROLE_USER", "ROLE_ADMIN"} : new String[]{"ROLE_USER"});
+            userInfo.put("verified", user.getIsVerified());
+            userInfo.put("roles", user.getIsAdmin() ? new String[]{"ROLE_USER", "ROLE_ADMIN"} : new String[]{"ROLE_USER"});
 
             return userInfo;
 
@@ -392,21 +431,21 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
 
         if (updateProfileRequest.getEmail() != null &&
-            !updateProfileRequest.getEmail().equals(user.getEmail())) {
-            
+                !updateProfileRequest.getEmail().equals(user.getEmail())) {
+
             if (userRepository.existsByEmail(updateProfileRequest.getEmail())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, 
-                    "Пользователь с таким email уже существует");
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Пользователь с таким email уже существует");
             }
             user.setEmail(updateProfileRequest.getEmail());
         }
 
         if (updateProfileRequest.getUsername() != null &&
-            !updateProfileRequest.getUsername().equals(user.getUsername())) {
-            
+                !updateProfileRequest.getUsername().equals(user.getUsername())) {
+
             if (userRepository.existsByUsername(updateProfileRequest.getUsername())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, 
-                    "Пользователь с таким именем уже существует");
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Пользователь с таким именем уже существует");
             }
             user.setUsername(updateProfileRequest.getUsername());
         }

@@ -10,8 +10,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import ru.putevod.app.external.exception.ServiceUnavailableException;
+import ru.putevod.app.external.security.RequireRegisteredUser;
 import ru.putevod.app.external.service.AiTripListService;
 
 import java.util.HashMap;
@@ -24,6 +28,7 @@ import java.util.Map;
 @Slf4j
 @Tag(name = "AI Trip Lists", description = "API для генерации списков для поездки с помощью искусственного интеллекта")
 @SecurityRequirement(name = "bearerAuth")
+@RequireRegisteredUser(message = "ИИ-функции доступны только зарегистрированным пользователям")
 public class AiTripListController {
     private final AiTripListService aiTripListService;
 
@@ -40,19 +45,19 @@ public class AiTripListController {
             @ApiResponse(responseCode = "503", description = "Сервис временно недоступен")
     })
     public ResponseEntity<Object> generate(
-            @Parameter(description = "Текстовое описание поездки (обязательно для генерации с нуля, опционально для tripId и templateId)") 
+            @Parameter(description = "Текстовое описание поездки (обязательно для генерации с нуля, опционально для tripId и templateId)")
             @RequestParam(required = false) String prompt,
-            @Parameter(description = "ID существующей поездки для генерации на её основе") 
+            @Parameter(description = "ID существующей поездки для генерации на её основе")
             @RequestParam(required = false) Long tripId,
-            @Parameter(description = "ID шаблона для генерации на его основе") 
+            @Parameter(description = "ID шаблона для генерации на его основе")
             @RequestParam(required = false) Long templateId,
-            @Parameter(description = "Длительность поездки в днях") 
+            @Parameter(description = "Длительность поездки в днях")
             @RequestParam(required = false) Integer duration,
-            @Parameter(description = "Место назначения") 
+            @Parameter(description = "Место назначения")
             @RequestParam(required = false) String destination,
-            @Parameter(description = "Сезон (зима, весна, лето, осень)") 
+            @Parameter(description = "Сезон (зима, весна, лето, осень)")
             @RequestParam(required = false) String season,
-            @Parameter(description = "Дополнительный запрос или контекст") 
+            @Parameter(description = "Дополнительный запрос или контекст")
             @RequestParam(required = false) String additionalPrompt) {
 
         log.info("Универсальный запрос на генерацию списка: prompt={}, tripId={}, templateId={}, duration={}, destination={}, season={}, additionalPrompt={}",
@@ -63,13 +68,13 @@ public class AiTripListController {
         boolean hasPrompt = prompt != null && !prompt.trim().isEmpty();
 
         if (hasTripId && hasTemplateId) {
-            return createErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка", 
-                "Нельзя одновременно указывать tripId и templateId");
+            return createErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка",
+                    "Нельзя одновременно указывать tripId и templateId");
         }
 
         if (!hasTripId && !hasTemplateId && !hasPrompt) {
-            return createErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка", 
-                "Необходимо указать: prompt (для генерации с нуля), tripId (для генерации по поездке), или templateId (для генерации по шаблону)");
+            return createErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка",
+                    "Необходимо указать: prompt (для генерации с нуля), tripId (для генерации по поездке), или templateId (для генерации по шаблону)");
         }
 
         if (hasPrompt && !aiTripListService.isSafePrompt(prompt)) {
@@ -95,19 +100,19 @@ public class AiTripListController {
         if (additionalPrompt != null && !additionalPrompt.isEmpty()) {
             context.put("additionalInfo", additionalPrompt);
         }
-       if ((hasTripId || hasTemplateId) && hasPrompt) {
+        if ((hasTripId || hasTemplateId) && hasPrompt) {
             context.put("prompt", prompt);
         }
 
         try {
             List<String> items;
 
-           if (hasTripId) {
+            if (hasTripId) {
                 items = aiTripListService.generateTripListFromTrip(tripId, context);
             } else if (hasTemplateId) {
                 items = aiTripListService.generateTripListFromTemplate(templateId, context);
             } else {
-               items = aiTripListService.generateTripListFromPrompt(prompt, context);
+                items = aiTripListService.generateTripListFromPrompt(prompt, context);
             }
 
             if (items.size() == 1) {

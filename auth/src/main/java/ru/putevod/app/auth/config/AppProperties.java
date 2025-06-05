@@ -12,6 +12,7 @@ public class AppProperties {
     private Jwt jwt = new Jwt();
     private Email email = new Email();
     private Security security = new Security();
+    private Services services = new Services();
     private String frontendUrl;
     private int verificationTokenExpirationHours = 24;
     private int resetTokenExpirationMinutes = 15;
@@ -23,6 +24,11 @@ public class AppProperties {
         private long accessTokenExpirationMs;
         private long refreshTokenExpirationMs;
         private long anonymousTokenExpirationMs = 1800000;
+    }
+
+    @Data
+    public static class Services {
+        private String plannerUrl;
     }
 
     @Data

@@ -14,16 +14,16 @@ import lombok.NoArgsConstructor;
 public class RemoveShareResponseDto {
     @Schema(description = "Сообщение о результате операции", example = "Доступ к поездке успешно удален")
     private String message;
-    
+
     @Schema(description = "ID пользователя, у которого был удален доступ", example = "123")
     private Long removedUserId;
-    
+
     @Schema(description = "Никнейм пользователя, у которого был удален доступ", example = "john_doe")
     private String removedUsername;
-    
+
     @Schema(description = "Статус удаленного приглашения", allowableValues = {"pending", "accepted", "rejected"}, example = "pending")
     private String previousInvitationStatus;
-    
+
     @Schema(description = "Уровень доступа, который был удален", allowableValues = {"read", "write", "admin"}, example = "read")
     private String previousAccessLevel;
 } 

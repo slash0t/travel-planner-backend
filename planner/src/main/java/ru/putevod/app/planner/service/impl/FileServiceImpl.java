@@ -46,18 +46,19 @@ public class FileServiceImpl implements FileService {
 
     /**
      * Регистрирует файл, который хранится локально на мобильном устройстве
-     * @param userId ID пользователя
-     * @param fileName оригинальное имя файла
-     * @param localPath путь к файлу на мобильном устройстве
-     * @param fileType MIME тип файла
-     * @param fileSize размер файла в байтах
+     *
+     * @param userId      ID пользователя
+     * @param fileName    оригинальное имя файла
+     * @param localPath   путь к файлу на мобильном устройстве
+     * @param fileType    MIME тип файла
+     * @param fileSize    размер файла в байтах
      * @param description описание файла
      * @return DTO с информацией о зарегистрированном файле
      */
     @Override
     @Transactional
-    public FileDto registerLocalFile(Long userId, String fileName, String localPath, 
-                                   String fileType, Integer fileSize, String description) {
+    public FileDto registerLocalFile(Long userId, String fileName, String localPath,
+                                     String fileType, Integer fileSize, String description) {
         User user = userService.getUserEntityById(userId);
 
         // Очищаем имя файла от потенциально опасных символов
@@ -83,7 +84,7 @@ public class FileServiceImpl implements FileService {
         fileDto.setDescription(description);
         fileDto.setRequiresLocalStorage(true);
         fileDto.setLocalStorageId(localPath); // Путь на устройстве
-        
+
         log.info("Зарегистрирован локальный файл: {} для пользователя: {}", cleanFileName, userId);
         return fileDto;
     }
@@ -101,7 +102,7 @@ public class FileServiceImpl implements FileService {
         FileDto fileDto = fileMapper.toDto(file);
         fileDto.setRequiresLocalStorage(true);
         // localStorageId будет установлен клиентом на основе локального пути
-        
+
         return fileDto;
     }
 
@@ -128,14 +129,14 @@ public class FileServiceImpl implements FileService {
         // Удаляем все связи файла с поездками
         List<TripFile> tripFiles = tripFileRepository.findByFile(file);
         tripFileRepository.deleteAll(tripFiles);
-        
+
         // Удаляем все связи файла с событиями
         List<EventFile> eventFiles = eventFileRepository.findByFile(file);
         eventFileRepository.deleteAll(eventFiles);
-        
+
         // Удаляем запись из БД
         fileRepository.delete(file);
-        
+
         log.info("Удален файл: {} пользователя: {}", file.getFileName(), userId);
         // ВАЖНО: Flutter приложение должно самостоятельно удалить файл из локального хранилища
     }
@@ -220,7 +221,7 @@ public class FileServiceImpl implements FileService {
         Trip trip = tripService.getTripEntityWithAccessCheck(userId, tripId);
 
         List<File> files = fileRepository.findByTripId(tripId);
-        
+
         return files.stream()
                 .map(file -> {
                     FileDto dto = fileMapper.toDto(file);
@@ -243,7 +244,7 @@ public class FileServiceImpl implements FileService {
         }
 
         List<File> files = fileRepository.findByEventId(eventId);
-        
+
         return files.stream()
                 .map(file -> {
                     FileDto dto = fileMapper.toDto(file);
@@ -271,7 +272,7 @@ public class FileServiceImpl implements FileService {
     public void removeEventFile(Long userId, Long eventId, Long fileId) {
         User user = userService.getUserEntityById(userId);
         Event event = eventService.getEventEntityById(eventId);
-        
+
         // Проверяем доступ
         Trip trip = event.getDay().getTrip();
         if (!tripService.hasAccessToTrip(user, trip, "admin", "write")) {

@@ -10,4 +10,6 @@
     <include relativeToChangelogFile="true" file="00-initial-schema.sql"/>
     <include relativeToChangelogFile="true" file="01-add-trip-preview.sql"/>
     <include relativeToChangelogFile="true" file="02-combine-ratings-and-comments.sql"/>
+    <include relativeToChangelogFile="true" file="003_anonymous_users.sql"/>
+    <include relativeToChangelogFile="true" file="04-add-preview-url-fields.sql"/>
 </databaseChangeLog>

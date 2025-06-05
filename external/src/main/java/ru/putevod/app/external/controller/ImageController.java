@@ -23,7 +23,6 @@ import ru.putevod.app.external.service.ImageService;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Изображения", description = "API для работы с изображениями")
-@SecurityRequirement(name = "bearerAuth")
 public class ImageController {
 
     private final ImageService imageService;
@@ -39,12 +38,41 @@ public class ImageController {
             @ApiResponse(responseCode = "404", description = "Изображения не найдены"),
             @ApiResponse(responseCode = "500", description = "Ошибка сервера")
     })
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/city")
     public ResponseEntity<UnsplashResponse> getCityImages(
             @Parameter(description = "Название города для поиска изображений", required = true)
             @RequestParam String city) {
 
         log.info("Получен запрос на поиск изображений для города: {}", city);
+        UnsplashResponse response = imageService.getCityImages(city);
+
+        if (response == null || response.getResults() == null || response.getResults().isEmpty()) {
+            log.info("Для города {} не найдено изображений", city);
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/city/service")
+    @Operation(summary = "Получение изображений для города (межсервисный)",
+            description = "Возвращает список качественных изображений для указанного города из Unsplash. " +
+                    "Эндпоинт для межсервисных запросов с X-Service-Token аутентификацией")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Изображения найдены",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UnsplashResponse.class))}),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный запрос"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен"),
+            @ApiResponse(responseCode = "404", description = "Изображения не найдены"),
+            @ApiResponse(responseCode = "500", description = "Ошибка сервера")
+    })
+    public ResponseEntity<UnsplashResponse> getCityImagesForService(
+            @Parameter(description = "Название города для поиска изображений", required = true)
+            @RequestParam String city) {
+
+        log.info("Получен межсервисный запрос на поиск изображений для города: {}", city);
         UnsplashResponse response = imageService.getCityImages(city);
 
         if (response == null || response.getResults() == null || response.getResults().isEmpty()) {

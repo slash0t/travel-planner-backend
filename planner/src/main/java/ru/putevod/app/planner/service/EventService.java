@@ -1,10 +1,6 @@
 package ru.putevod.app.planner.service;
 
-import ru.putevod.app.planner.dto.CreateEventDto;
-import ru.putevod.app.planner.dto.CreateEventReminderDto;
-import ru.putevod.app.planner.dto.EventDto;
-import ru.putevod.app.planner.dto.EventReminderDto;
-import ru.putevod.app.planner.dto.UpdateEventDto;
+import ru.putevod.app.planner.dto.*;
 import ru.putevod.app.planner.model.Event;
 
 import java.util.List;
@@ -37,10 +33,11 @@ public interface EventService {
 
     /**
      * Перемещение события без времени на новую позицию
-     * @param userId ID пользователя
-     * @param tripId ID поездки  
-     * @param dayId ID дня
-     * @param eventId ID перемещаемого события
+     *
+     * @param userId      ID пользователя
+     * @param tripId      ID поездки
+     * @param dayId       ID дня
+     * @param eventId     ID перемещаемого события
      * @param newPosition новая позиция (может быть между событиями со временем)
      * @return обновленное событие
      */

@@ -19,11 +19,11 @@ public class CreateTodoListDto {
     @Size(min = 3, max = 100, message = "Название списка должно содержать от 3 до 100 символов")
     @Schema(description = "Название списка задач", example = "Подготовка к поездке", requiredMode = Schema.RequiredMode.REQUIRED)
     private String title;
-    
+
     @Size(max = 500, message = "Описание списка не должно превышать 500 символов")
     @Schema(description = "Описание списка задач", example = "Список дел перед отъездом")
     private String description;
-    
+
     @Pattern(regexp = "PERSONAL|TRIP|TEMPLATE", message = "Тип списка должен быть одним из: PERSONAL, TRIP, TEMPLATE")
     @Schema(description = "Тип списка", allowableValues = {"PERSONAL", "TRIP", "TEMPLATE"}, example = "PERSONAL", defaultValue = "PERSONAL")
     private String listType = "PERSONAL";

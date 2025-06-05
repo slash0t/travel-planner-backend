@@ -1,10 +1,6 @@
 package ru.putevod.app.auth.service;
 
-import ru.putevod.app.auth.dto.AuthResponse;
-import ru.putevod.app.auth.dto.RegisterRequest;
-import ru.putevod.app.auth.dto.TokenValidationResponse;
-import ru.putevod.app.auth.dto.UpdateProfileRequest;
-import ru.putevod.app.auth.dto.UserInfoDto;
+import ru.putevod.app.auth.dto.*;
 
 import java.util.Map;
 
@@ -57,6 +53,17 @@ public interface AuthService {
      * @return Объект с токенами и информацией о пользователе
      */
     AuthResponse verifyEmail(String token, String ipAddress, String deviceInfo);
+
+    /**
+     * Подтверждает email пользователя по токену из письма с поддержкой миграции анонимного пользователя
+     *
+     * @param token      Токен подтверждения email
+     * @param ipAddress  IP-адрес пользователя
+     * @param deviceInfo Информация об устройстве
+     * @param deviceId   Идентификатор устройства для миграции данных анонимного пользователя (опционально)
+     * @return Объект с токенами и информацией о пользователе
+     */
+    AuthResponse verifyEmail(String token, String ipAddress, String deviceInfo, String deviceId);
 
     /**
      * Повторно отправляет письмо для подтверждения email

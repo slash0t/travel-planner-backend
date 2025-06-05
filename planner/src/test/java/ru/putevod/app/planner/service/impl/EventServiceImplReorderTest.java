@@ -12,21 +12,29 @@ import ru.putevod.app.planner.dto.CreateEventDto;
 import ru.putevod.app.planner.dto.EventDto;
 import ru.putevod.app.planner.exception.BadRequestException;
 import ru.putevod.app.planner.mapper.EventMapper;
-import ru.putevod.app.planner.mapper.PlaceMapper;
 import ru.putevod.app.planner.mapper.EventReminderMapper;
-import ru.putevod.app.planner.model.*;
-import ru.putevod.app.planner.repository.*;
-import ru.putevod.app.planner.service.*;
+import ru.putevod.app.planner.mapper.PlaceMapper;
+import ru.putevod.app.planner.model.Event;
+import ru.putevod.app.planner.model.Trip;
+import ru.putevod.app.planner.model.TripDay;
+import ru.putevod.app.planner.model.User;
+import ru.putevod.app.planner.repository.EventReminderRepository;
+import ru.putevod.app.planner.repository.EventRepository;
+import ru.putevod.app.planner.repository.PlaceRepository;
+import ru.putevod.app.planner.repository.TripDayRepository;
+import ru.putevod.app.planner.service.NotificationService;
+import ru.putevod.app.planner.service.TripService;
+import ru.putevod.app.planner.service.UserService;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -149,9 +157,9 @@ class EventServiceImplReorderTest {
         when(tripDayRepository.findByTripAndDayId(any(), any())).thenReturn(Optional.of(tripDay));
         when(eventRepository.findById(4L)).thenReturn(Optional.of(timedEvent1));
 
-        BadRequestException exception = assertThrows(BadRequestException.class, 
+        BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> eventService.reorderEvent(1L, 1L, 1L, 4L, 2));
-        
+
         assertTrue(exception.getMessage().contains("Нельзя перемещать события с конкретным временем"));
     }
 
@@ -183,7 +191,7 @@ class EventServiceImplReorderTest {
         CreateEventDto createDto = CreateEventDto.builder()
                 .title("New Timed Event")
                 .hasSpecificTime(true)
-                .startTime(LocalTime.of(12, 0)) 
+                .startTime(LocalTime.of(12, 0))
                 .build();
 
         // Устанавливаем позиции для существующих событий
@@ -219,7 +227,7 @@ class EventServiceImplReorderTest {
         // Максимальная позиция = 5 событий, пытаемся установить 6
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> eventService.reorderEvent(1L, 1L, 1L, 1L, 6));
-        
+
         assertTrue(exception.getMessage().contains("Позиция должна быть от 1 до 5"));
     }
 
@@ -236,7 +244,7 @@ class EventServiceImplReorderTest {
 
         verify(eventRepository).delete(untimedEvent2);
         // Проверяем что пересчет позиций происходит всегда
-        verify(eventRepository).saveAll(any()); 
+        verify(eventRepository).saveAll(any());
     }
 
     @Test

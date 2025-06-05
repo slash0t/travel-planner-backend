@@ -20,29 +20,29 @@ import java.util.List;
 
 @Configuration
 public class OpenApiConfig {
-    
+
     @Bean
     public OpenAPI customOpenAPI() {
         List<Server> servers = new ArrayList<>();
-        
+
         Server prodServer = new Server();
         prodServer.setUrl("https://www.putevod-app.ru/planner/api/v1");
         prodServer.setDescription("Производственный сервер Planner Service");
         servers.add(prodServer);
-        
+
         Server localServer = new Server();
         localServer.setUrl("http://localhost:8083/api/v1");
         localServer.setDescription("Локальный сервер для разработки");
         servers.add(localServer);
-        
+
         return new OpenAPI()
                 .servers(servers)
                 .info(new Info()
                         .title("Putevod Planner Service API")
                         .version("1.0")
                         .description("API для сервиса планирования маршрутов Putevod. " +
-                                    "Обеспечивает создание, редактирование и управление " +
-                                    "персональными маршрутами пользователей.")
+                                "Обеспечивает создание, редактирование и управление " +
+                                "персональными маршрутами пользователей.")
                         .termsOfService("https://www.putevod-app.ru/terms/")
                         .license(new License().name("Apache 2.0").url("https://www.apache.org/licenses/LICENSE-2.0"))
                         .contact(new Contact()
@@ -57,7 +57,7 @@ public class OpenApiConfig {
                                 .description("JWT токен авторизации. Формат: Bearer [token]")))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
     }
-    
+
     @Bean
     public OpenApiCustomizer openApiCustomizer() {
         return openApi -> {
@@ -74,15 +74,15 @@ public class OpenApiConfig {
             }
         };
     }
-    
+
     @RestController
     public static class SwaggerRedirectController {
-        
+
         @GetMapping("/swagger-ui/")
         public RedirectView redirectSwaggerUiSlash() {
             return new RedirectView("/swagger-ui.html", true);
         }
-        
+
         @GetMapping("/swagger-ui")
         public RedirectView redirectSwaggerUi() {
             return new RedirectView("/swagger-ui.html", true);

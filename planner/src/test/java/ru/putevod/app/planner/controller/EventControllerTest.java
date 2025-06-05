@@ -7,11 +7,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import ru.putevod.app.planner.dto.CreateEventDto;
-import ru.putevod.app.planner.dto.UpdateEventDto;
-import ru.putevod.app.planner.dto.CreateEventReminderDto;
-import ru.putevod.app.planner.dto.EventDto;
-import ru.putevod.app.planner.dto.EventReminderDto;
+import ru.putevod.app.planner.dto.*;
 import ru.putevod.app.planner.service.EventService;
 
 import java.time.LocalDateTime;

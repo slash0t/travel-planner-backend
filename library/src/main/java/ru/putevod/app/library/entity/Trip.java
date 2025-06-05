@@ -51,6 +51,9 @@ public class Trip {
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
+    @Column(name = "preview_url")
+    private String previewUrl;
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;

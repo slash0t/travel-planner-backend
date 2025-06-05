@@ -29,6 +29,15 @@ public class TokenValidationResponse {
     @Schema(description = "Признак, что пользователь является администратором", example = "false")
     private boolean admin;
 
+    @Schema(description = "Признак анонимного пользователя", example = "false")
+    private boolean isAnonymous;
+
+    @Schema(description = "ID анонимного пользователя", example = "456")
+    private Long anonymousUserId;
+
+    @Schema(description = "ID устройства анонимного пользователя", example = "device-uuid-123")
+    private String deviceId;
+
     @Schema(description = "Сообщение об ошибке при невалидном токене", example = "Срок действия токена истек")
     private String errorMessage;
 

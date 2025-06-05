@@ -21,31 +21,31 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(CurrentUser.class) &&
-               parameter.getParameterType().equals(Integer.class);
+                parameter.getParameterType().equals(Integer.class);
     }
 
     @Override
-    public Object resolveArgument(MethodParameter parameter, 
-                                ModelAndViewContainer mavContainer,
-                                NativeWebRequest webRequest, 
-                                WebDataBinderFactory binderFactory) throws Exception {
-        
+    public Object resolveArgument(MethodParameter parameter,
+                                  ModelAndViewContainer mavContainer,
+                                  NativeWebRequest webRequest,
+                                  WebDataBinderFactory binderFactory) throws Exception {
+
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
         String authHeader = request.getHeader("Authorization");
-        
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.warn("Отсутствует или неверный Authorization header");
             return null;
         }
-        
+
         String token = authHeader.substring(7);
-        
+
         try {
             if (!jwtTokenProvider.validateToken(token)) {
                 log.warn("Неверный JWT токен");
                 return null;
             }
-            
+
             Long userId = jwtTokenProvider.getUserIdFromToken(token);
             return userId != null ? userId.intValue() : null;
         } catch (Exception e) {

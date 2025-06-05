@@ -50,6 +50,9 @@ public class PublishedRoute {
     @Column(name = "tags", columnDefinition = "TEXT[]")
     private String[] tags;
 
+    @Column(name = "preview_url")
+    private String previewUrl;
+
     @Column(name = "is_approved")
     private Boolean isApproved;
 

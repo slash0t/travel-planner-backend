@@ -3,7 +3,6 @@ package ru.putevod.app.planner.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ru.putevod.app.planner.dto.CreateTodoItemDto;
-import ru.putevod.app.planner.dto.CreateTodoListDto;
 import ru.putevod.app.planner.dto.TodoItemDto;
 import ru.putevod.app.planner.dto.TodoListDto;
 import ru.putevod.app.planner.dto.UpdateTodoItemDto;

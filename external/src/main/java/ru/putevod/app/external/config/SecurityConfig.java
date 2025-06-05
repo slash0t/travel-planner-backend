@@ -27,19 +27,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api-docs-external/**").permitAll()
-                .requestMatchers("/swagger-ui", "/swagger-ui/", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/webjars/**", "/swagger-resources/**").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
-                // Все API эндпоинты требуют авторизации
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(authServiceTokenFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api-docs-external/**").permitAll()
+                        .requestMatchers("/swagger-ui", "/swagger-ui/", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/webjars/**", "/swagger-resources/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
+                        // Все API эндпоинты требуют авторизации
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(authServiceTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -49,9 +49,9 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Collections.singletonList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token", "X-Service-Token"));
         configuration.setExposedHeaders(Collections.singletonList("X-Auth-Token"));
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

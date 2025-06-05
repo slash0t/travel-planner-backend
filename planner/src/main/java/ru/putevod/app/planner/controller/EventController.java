@@ -10,12 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.putevod.app.planner.config.CurrentUser;
-import ru.putevod.app.planner.dto.CreateEventDto;
-import ru.putevod.app.planner.dto.UpdateEventDto;
-import ru.putevod.app.planner.dto.ReorderEventDto;
-import ru.putevod.app.planner.dto.EventDto;
-import ru.putevod.app.planner.dto.EventReminderDto;
-import ru.putevod.app.planner.dto.CreateEventReminderDto;
+import ru.putevod.app.planner.dto.*;
 import ru.putevod.app.planner.service.EventService;
 
 import java.util.List;
@@ -60,8 +55,8 @@ public class EventController {
     }
 
     @PutMapping("/{eventId}")
-    @Operation(summary = "Обновить событие", 
-               description = "Обновляет событие и связанное с ним место. Если поле 'place' передано как null, связь с местом будет удалена. Если поле 'place' не передано, место остается без изменений.")
+    @Operation(summary = "Обновить событие",
+            description = "Обновляет событие и связанное с ним место. Если поле 'place' передано как null, связь с местом будет удалена. Если поле 'place' не передано, место остается без изменений.")
     public ResponseEntity<EventDto> updateEvent(
             @CurrentUser Long userId,
             @PathVariable Long tripId,
@@ -72,8 +67,8 @@ public class EventController {
     }
 
     @PatchMapping("/{eventId}/reorder")
-    @Operation(summary = "Переместить событие без времени на новую позицию", 
-               description = "Позволяет перемещать только события без конкретного времени. События со временем автоматически сортируются по времени.")
+    @Operation(summary = "Переместить событие без времени на новую позицию",
+            description = "Позволяет перемещать только события без конкретного времени. События со временем автоматически сортируются по времени.")
     public ResponseEntity<EventDto> reorderEvent(
             @CurrentUser Long userId,
             @PathVariable Long tripId,

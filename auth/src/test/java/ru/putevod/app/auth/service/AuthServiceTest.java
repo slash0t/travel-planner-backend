@@ -22,6 +22,7 @@ import ru.putevod.app.auth.security.JwtTokenProvider;
 import ru.putevod.app.auth.service.impl.AuthServiceImpl;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,6 +60,9 @@ class AuthServiceTest {
     @Mock
     private AppProperties.Jwt jwtConfig;
 
+    @Mock
+    private AnonymousUserService anonymousUserService;
+
     @InjectMocks
     private AuthServiceImpl authService;
 
@@ -76,8 +80,8 @@ class AuthServiceTest {
     private void setupAppPropertiesMocks() {
         when(appProperties.getJwt()).thenReturn(jwtConfig);
         when(jwtConfig.getAccessTokenExpirationMs()).thenReturn(3600000L);
-        when(jwtConfig.getRefreshTokenExpirationMs()).thenReturn(360000000000L); 
-        when(jwtConfig.getAnonymousTokenExpirationMs()).thenReturn(1800000L); 
+        when(jwtConfig.getRefreshTokenExpirationMs()).thenReturn(360000000000L);
+        when(jwtConfig.getAnonymousTokenExpirationMs()).thenReturn(1800000L);
     }
 
     @Test
@@ -233,6 +237,105 @@ class AuthServiceTest {
         verify(jwtTokenProvider).generateAccessToken(savedUser);
         verify(jwtTokenProvider).generateRefreshToken(savedUser, deviceInfo, ipAddress);
         verify(userService).mapToUserInfoDto(savedUser);
+
+        // Проверяем, что миграция НЕ вызывается без deviceId
+        verify(anonymousUserService, never()).migrateAnonymousUserToRegistered(anyString(), any(User.class));
+    }
+
+    @Test
+    void verifyEmail_withDeviceId_shouldVerifyUserAndMigrateAnonymousData() {
+        String validToken = "valid-verification-token";
+        String ipAddress = "192.168.1.1";
+        String deviceInfo = "Verify Device";
+        String deviceId = "test-device-123";
+        Integer userId = 456;
+        String userEmail = "verify@example.com";
+        String username = "verifyUser";
+        String accessToken = "newAccessToken";
+        String refreshToken = "newRefreshToken";
+
+        User userToVerify = User.builder()
+                .userId(userId)
+                .email(userEmail)
+                .username(username)
+                .isVerified(false)
+                .build();
+
+        UserInfoDto userInfoDto = UserInfoDto.builder()
+                .id(userId)
+                .email(userEmail)
+                .username(username)
+                .emailVerified(true)
+                .build();
+
+        when(emailService.verifyEmailToken(validToken)).thenReturn(userToVerify);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(jwtTokenProvider.generateAccessToken(any(User.class))).thenReturn(accessToken);
+        when(jwtTokenProvider.generateRefreshToken(any(User.class), eq(deviceInfo), eq(ipAddress))).thenReturn(refreshToken);
+        when(userService.mapToUserInfoDto(any(User.class))).thenReturn(userInfoDto);
+
+        AuthResponse response = authService.verifyEmail(validToken, ipAddress, deviceInfo, deviceId);
+
+        assertNotNull(response);
+        assertEquals(accessToken, response.getAccessToken());
+        assertEquals(refreshToken, response.getRefreshToken());
+        assertNotNull(response.getUser());
+        assertEquals(userEmail, response.getUser().getEmail());
+        assertTrue(response.getUser().isEmailVerified());
+
+        verify(userRepository).save(userCaptor.capture());
+        User savedUser = userCaptor.getValue();
+        assertTrue(savedUser.getIsVerified());
+        assertNotNull(savedUser.getUpdatedAt());
+
+        verify(jwtTokenProvider).generateAccessToken(savedUser);
+        verify(jwtTokenProvider).generateRefreshToken(savedUser, deviceInfo, ipAddress);
+        verify(userService).mapToUserInfoDto(savedUser);
+
+        // Проверяем, что миграция вызывается с правильными параметрами
+        verify(anonymousUserService).migrateAnonymousUserToRegistered(deviceId, savedUser);
+    }
+
+    @Test
+    void verifyEmail_withEmptyDeviceId_shouldNotCallMigration() {
+        String validToken = "valid-verification-token";
+        String ipAddress = "192.168.1.1";
+        String deviceInfo = "Verify Device";
+        String emptyDeviceId = "   "; // Пустая строка с пробелами
+        Integer userId = 456;
+        String userEmail = "verify@example.com";
+        String username = "verifyUser";
+        String accessToken = "newAccessToken";
+        String refreshToken = "newRefreshToken";
+
+        User userToVerify = User.builder()
+                .userId(userId)
+                .email(userEmail)
+                .username(username)
+                .isVerified(false)
+                .build();
+
+        UserInfoDto userInfoDto = UserInfoDto.builder()
+                .id(userId)
+                .email(userEmail)
+                .username(username)
+                .emailVerified(true)
+                .build();
+
+        when(emailService.verifyEmailToken(validToken)).thenReturn(userToVerify);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(jwtTokenProvider.generateAccessToken(any(User.class))).thenReturn(accessToken);
+        when(jwtTokenProvider.generateRefreshToken(any(User.class), eq(deviceInfo), eq(ipAddress))).thenReturn(refreshToken);
+        when(userService.mapToUserInfoDto(any(User.class))).thenReturn(userInfoDto);
+
+        AuthResponse response = authService.verifyEmail(validToken, ipAddress, deviceInfo, emptyDeviceId);
+
+        assertNotNull(response);
+        assertEquals(accessToken, response.getAccessToken());
+        assertEquals(refreshToken, response.getRefreshToken());
+
+        // Проверяем, что миграция НЕ вызывается для пустого deviceId
+        verify(anonymousUserService, never()).migrateAnonymousUserToRegistered(anyString(), any(User.class));
     }
 
     @Test
@@ -585,17 +688,18 @@ class AuthServiceTest {
     @Test
     void createAnonymousToken_shouldGenerateAndReturnToken() {
         String deviceId = "anon-device-id";
-        String expectedToken = "generated-anonymous-token";
+        Map<String, Object> expectedResponse = new HashMap<>();
+        expectedResponse.put("anonymousToken", "generated-anonymous-token");
+        expectedResponse.put("expiresIn", 1800);
+        expectedResponse.put("anonymousUserId", 123L);
 
-        when(jwtTokenProvider.generateAnonymousToken(deviceId)).thenReturn(expectedToken);
+        when(anonymousUserService.createAnonymousToken(deviceId, null, null)).thenReturn(expectedResponse);
 
         Map<String, Object> response = authService.createAnonymousToken(deviceId);
 
         assertNotNull(response);
-        assertEquals(2, response.size());
-        assertEquals(expectedToken, response.get("anonymousToken"));
-        assertEquals(1800, response.get("expiresIn"));
+        assertEquals(expectedResponse, response);
 
-        verify(jwtTokenProvider).generateAnonymousToken(deviceId);
+        verify(anonymousUserService).createAnonymousToken(deviceId, null, null);
     }
 } 

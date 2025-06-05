@@ -11,13 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import ru.putevod.app.planner.dto.CreateTripDto;
-import ru.putevod.app.planner.dto.UpdateTripDto;
-import ru.putevod.app.planner.dto.CreateTripAccessDto;
-import ru.putevod.app.planner.dto.TripDto;
-import ru.putevod.app.planner.dto.TripAccessDto;
-import ru.putevod.app.planner.dto.UserDto;
-import ru.putevod.app.planner.dto.RemoveShareResponseDto;
+import ru.putevod.app.planner.dto.*;
 import ru.putevod.app.planner.service.TripService;
 
 import java.time.LocalDate;
@@ -252,7 +246,7 @@ class TripControllerTest {
                 .previousInvitationStatus("accepted")
                 .previousAccessLevel("read")
                 .build();
-        
+
         when(tripService.removeShare(userId, tripId, 2L))
                 .thenReturn(mockResponse);
 
