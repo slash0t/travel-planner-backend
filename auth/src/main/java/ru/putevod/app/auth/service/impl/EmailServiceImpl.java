@@ -47,11 +47,11 @@ public class EmailServiceImpl implements EmailService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(appProperties.getEmail().getFrom());
         message.setTo(email);
-        message.setSubject("Подтверждение регистрации в Travel Planner");
+        message.setSubject("Подтверждение регистрации в Путевод");
         message.setText(String.format(
                 "Здравствуйте, %s!\n\n" +
-                        "Для подтверждения регистрации в приложении Travel Planner перейдите по ссылке:\n" +
-                        "%s/verify-email?token=%s\n\n" +
+                        "Для подтверждения регистрации в приложении Путевод перейдите по ссылке:\n" +
+                        "%s/api/v1/verify-email?token=%s\n\n" +
                         "Ссылка действительна в течение %d часов.\n\n" +
                         "Если вы не регистрировались в нашем приложении, просто проигнорируйте это письмо.",
                 username, appProperties.getFrontendUrl(), verificationToken, appProperties.getVerificationTokenExpirationHours()

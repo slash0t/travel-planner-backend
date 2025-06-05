@@ -72,6 +72,46 @@ public class AuthController {
 
         return ResponseEntity.ok(authResponse);
     }
+    
+    @Operation(
+            summary = "Подтверждение email через GET запрос",
+            description = "Подтверждает email пользователя по токену из ссылки в письме"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "302",
+                    description = "Перенаправление на страницу с результатом подтверждения email"
+            ),
+            @ApiResponse(responseCode = "400", description = "Неверный или истекший токен")
+    })
+    @GetMapping("/verify-email")
+    @TrackMetrics(type = TrackMetrics.Type.AUTH, eventName = "verify_email_get")
+    public ResponseEntity<Void> verifyEmailGet(@RequestParam String token,
+                                               HttpServletRequest request) {
+        try {
+            String ipAddress = request.getRemoteAddr();
+            String deviceInfo = request.getHeader("User-Agent");
+
+            AuthResponse authResponse = authService.verifyEmail(
+                    token,
+                    ipAddress,
+                    deviceInfo
+            );
+
+            String redirectUrl = "/email-verification-result.html?success=true";
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header("Location", redirectUrl)
+                    .build();
+
+        } catch (Exception e) {
+            String errorMessage = e.getMessage() != null ? e.getMessage() : "Произошла ошибка при подтверждении email";
+            String redirectUrl = "/email-verification-result.html?error=true&message=" +
+                    java.net.URLEncoder.encode(errorMessage, java.nio.charset.StandardCharsets.UTF_8);
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header("Location", redirectUrl)
+                    .build();
+        }
+    }
 
     @Operation(
             summary = "Обновление токена",
