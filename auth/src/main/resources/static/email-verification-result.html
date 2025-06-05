@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подтверждение Email - Путевод</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 500px;
+            margin: 20px;
+        }
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        .app-name {
+            color: #667eea;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon" id="resultIcon">
+            ✓
+        </div>
+        <h1 id="resultTitle">Email успешно подтвержден!</h1>
+        <p id="resultMessage">
+            Ваш email адрес был успешно подтвержден. Теперь вы можете полноценно пользоваться всеми возможностями <span class="app-name">Путевод</span>.
+        </p>
+        <a href="#" class="btn" id="actionBtn">Перейти в приложение</a>
+    </div>
+
+    <script>
+        // Получаем параметры из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success') === 'true';
+        const message = urlParams.get('message');
+        
+        const icon = document.getElementById('resultIcon');
+        const title = document.getElementById('resultTitle');
+        const messageEl = document.getElementById('resultMessage');
+        const actionBtn = document.getElementById('actionBtn');
+        
+        if (success === false || urlParams.get('error') === 'true') {
+            icon.textContent = '✗';
+            icon.className = 'icon error';
+            title.textContent = 'Ошибка подтверждения';
+            messageEl.innerHTML = decodeURIComponent(message || 'Произошла ошибка при подтверждении email. Возможно, ссылка устарела или недействительна.');
+            actionBtn.textContent = 'Попробовать снова';
+        }
+        
+        // Здесь можно добавить ссылку на ваше приложение
+        actionBtn.href = 'https://putevod-app.ru'; // Замените на URL вашего фронтенда
+    </script>
+</body>
+</html> 

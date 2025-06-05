@@ -59,7 +59,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/validate", "/api/v1/auth/user-info",
                                 "/api/v1/users/**",
                                 "/swagger-ui.html", "/swagger-ui/**", "/api-docs-auth/**",
-                                "/swagger-resources/**", "/webjars/**"
+                                "/swagger-resources/**", "/webjars/**",
+                                "/*.html", "/static/**", "/css/**", "/js/**", "/images/**"
                         ).permitAll()
                         .requestMatchers("/api/v1/profile/**").authenticated()
                         .anyRequest().permitAll()
